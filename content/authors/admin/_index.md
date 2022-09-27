@@ -36,4 +36,4 @@ Dantong Li is a CS Ph.D. student at the Yale Quantum System Lab. His research in
 
 In his spare time (which he doesn't have much right now), he also enjoys following up with classical AI breakthroughs, game development, and algorithmic trading.
 
-{{< icon name="download" pack="fas" >}} Download my {{< staticref "assets/media/resume-dantong-li.pdf" "newtab" >}}resumé{{< /staticref >}}.
+{{< icon name="download" pack="fas" >}} Download my {{< staticref "uploads/resume-dantong-li.pdf" "newtab" >}}resumé{{< /staticref >}}.
