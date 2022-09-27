@@ -3,47 +3,37 @@ role: CS Ph.D. Student @ Yale University
 avatar_filename: img_1312.jpg
 bio: My research interests include quantum computing and machine learning.
 interests:
-  - Artificial Intelligence
-  - Computational Linguistics
-  - Information Retrieval
+  - Computational Complexity
+  - Quantum Computing
+  - Machine Learning
 social:
   - icon: envelope
     icon_pack: fas
     link: /#contact
-  - icon: twitter
-    icon_pack: fab
-    link: https://twitter.com/GeorgeCushen
   - icon: graduation-cap
     icon_pack: fas
-    link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
-  - icon: github
-    icon_pack: fab
-    link: https://github.com/gcushen
+    link: https://scholar.google.com/citations?user=3Ycv7wwAAAAJ&hl=en&oi=sra
   - icon: linkedin
     icon_pack: fab
-    link: https://www.linkedin.com/
+    link: https://www.linkedin.com/in/dantongli
 organizations:
-  - name: Stanford University
-    url: https://www.stanford.edu/
+  - name: Yale University
+    url: https://www.yale.edu
 education:
   courses:
-    - course: PhD in Artificial Intelligence
-      institution: Stanford University
-      year: 2012
-    - course: MEng in Artificial Intelligence
-      institution: Massachusetts Institute of Technology
-      year: 2009
-    - course: BSc in Artificial Intelligence
-      institution: Massachusetts Institute of Technology
-      year: 2008
+    - course: Ph.D. in Computer Science
+      institution: Yale University
+      year: -15
+    - course: B.ENG. in Computer Science
+      institution: The University of Hong Kong
+      year: 2022
 superuser: true
 highlight_name: true
 title: Dantong Li
-email: ""
+email: dtlics2000@gmail.com
 ---
+Dantong Li is a CS Ph.D. student at the Yale Quantum System Lab. His research interests are in the inter-discipline of **Computational Complexity**, **Quantum Computing**, and **Machine Learning**, especially in Quantum Computing for ML, to explore quantum advantages and their applications in the near-term future. 
 
-Nelson Bighetti is a professor of artificial intelligence at the Stanford AI Lab. His research interests include distributed robotics, mobile computing and programmable matter. He leads the Robotic Neurobiology group, which develops self-reconfiguring robots, systems of self-organizing robots, and mobile sensor networks.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed neque elit, tristique placerat feugiat ac, facilisis vitae arcu. Proin eget egestas augue. Praesent ut sem nec arcu pellentesque aliquet. Duis dapibus diam vel metus tempus vulputate.
+In his spare time (which he doesn't have much right now), he also enjoys following up with classical AI breakthroughs, game development, and algorithmic trading.
 
 {{< icon name="download" pack="fas" >}} Download my {{< staticref "uploads/demo_resume.pdf" "newtab" >}}resumé{{< /staticref >}}.
