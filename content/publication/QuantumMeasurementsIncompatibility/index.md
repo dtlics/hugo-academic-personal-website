@@ -24,7 +24,7 @@ abstract: The existence of incompatible observables is a cornerstone of quantum
   share approximately the same measurement context.
 draft: false
 slides: ""
-url_pdf: ""
+url_pdf: "https://arxiv.org/pdf/2208.06210.pdf"
 summary: We defined a new quantity to describe the incompatibility between
   quantum measurements, and it can be efficiently estimated using quantum
   switches.
