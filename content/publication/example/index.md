@@ -1,79 +1,59 @@
 ---
-title: 'An example conference paper'
-
-# Authors
-# If you created a profile for a user (e.g. the default `admin` user), write the username (folder name) here
-# and it will be replaced with their full name and linked to their profile.
+publication_types:
+  - "3"
 authors:
-  - admin
-  - Robert Ford
-
-# Author notes (optional)
+  - Ning Gao
+  - Dantong Li
+  - Anchit Mishra
+  - Junchen Yan
+  - Kyrylo Simonov
+  - Giulio Chiribella
+abstract: The existence of incompatible observables is a cornerstone of quantum
+  mechanics and a valuable resource in quantum technologies. Here we introduce a
+  measure of incompatibility, called the mutual eigenspace disturbance (MED),
+  which quantifies the amount of disturbance induced by the measurement of a
+  sharp observable on the eigenspaces of another. The MED is a faithful measure
+  of incompatibility for sharp observables and provides a metric on the space of
+  von Neumann measurements. It can be efficiently estimated by letting the
+  measurements act in an indefinite order, using a setup known as the quantum
+  switch. Thanks to these features, the MED can be used in quantum machine
+  learning tasks, such as clustering quantum measurement devices based on their
+  mutual compatibility. We demonstrate this application by providing an
+  unsupervised algorithm that clusters unknown von Neumann measurements. Our
+  algorithm is robust to noise can be used to identify groups of observers that
+  share approximately the same measurement context.
+draft: false
+slides: ""
+url_pdf: ""
+summary: We defined a new quantity to describe the incompatibility between
+  quantum measurements, and it can be efficiently estimated using quantum
+  switches.
+url_dataset: ""
+url_project: ""
 author_notes:
-  - 'Equal contribution'
-  - 'Equal contribution'
-
-date: '2013-07-01T00:00:00Z'
-doi: ''
-
-# Schedule page publish date (NOT publication's date).
-publishDate: '2017-01-01T00:00:00Z'
-
-# Publication type.
-# Legend: 0 = Uncategorized; 1 = Conference paper; 2 = Journal article;
-# 3 = Preprint / Working Paper; 4 = Report; 5 = Book; 6 = Book section;
-# 7 = Thesis; 8 = Patent
-publication_types: ['1']
-
-# Publication name and optional abbreviated publication name.
-publication: In *Wowchemy Conference*
-publication_short: In *ICW*
-
-abstract: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus ac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum. Sed ac faucibus dolor, scelerisque sollicitudin nisi. Cras purus urna, suscipit quis sapien eu, pulvinar tempor diam. Quisque risus orci, mollis id ante sit amet, gravida egestas nisl. Sed ac tempus magna. Proin in dui enim. Donec condimentum, sem id dapibus fringilla, tellus enim condimentum arcu, nec volutpat est felis vel metus. Vestibulum sit amet erat at nulla eleifend gravida.
-
-# Summary. An optional shortened abstract.
-summary: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus ac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum.
-
-tags: []
-
-# Display this page in the Featured widget?
+  - Equal contribution
+  - Equal contribution
+publication: ""
+publication_short: ""
+url_source: ""
+url_video: ""
 featured: true
-
-# Custom links (uncomment lines below)
-# links:
-# - name: Custom Link
-#   url: http://example.org
-
-url_pdf: ''
-url_code: ''
-url_dataset: ''
-url_poster: ''
-url_project: ''
-url_slides: ''
-url_source: ''
-url_video: ''
-
-# Featured image
-# To use, add an image named `featured.jpg/png` to your page's folder.
+date: 2022-09-27T05:01:04.631Z
+url_slides: ""
+title: Measuring incompatibility and clustering quantum observables with a
+  quantum switch
+doi: ""
+tags:
+  - Quantum_Measurements
+projects: []
 image:
-  caption: 'Image credit: [**Unsplash**](https://unsplash.com/photos/pLCdAaMFLTE)'
-  focal_point: ''
+  caption: ""
+  focal_point: ""
   preview_only: false
-
-# Associated Projects (optional).
-#   Associate this publication with one or more of your projects.
-#   Simply enter your project's folder or file name without extension.
-#   E.g. `internal-project` references `content/project/internal-project/index.md`.
-#   Otherwise, set `projects: []`.
-projects:
-  - example
-
-# Slides (optional).
-#   Associate this publication with Markdown slides.
-#   Simply enter your slide deck's filename without extension.
-#   E.g. `slides: "example"` references `content/slides/example/index.md`.
-#   Otherwise, set `slides: ""`.
-slides: example
+  filename: featured.png
+publishDate: 2017-01-01T00:00:00Z
+url_poster: ""
+url_code: ""
 ---
 
 {{% callout note %}}
