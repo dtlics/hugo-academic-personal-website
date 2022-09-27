@@ -1,6 +1,6 @@
 ---
 role: CS Ph.D. Student @ Yale University
-avatar_filename: img_1312.jpg
+avatar_filename: avatar.jpg
 bio: My research interests include quantum computing and machine learning.
 interests:
   - Computational Complexity
