@@ -23,7 +23,7 @@ education:
   courses:
     - course: Ph.D. in Computer Science
       institution: Yale University
-      year: -15
+      year: 2028
     - course: B.ENG. in Computer Science
       institution: The University of Hong Kong
       year: 2022
