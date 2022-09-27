@@ -30,9 +30,7 @@ summary: We defined a new quantity to describe the incompatibility between
   switches.
 url_dataset: ""
 url_project: ""
-author_notes:
-  - Equal contribution
-  - Equal contribution
+author_notes: []
 publication: ""
 publication_short: ""
 url_source: ""
@@ -51,7 +49,7 @@ image:
   focal_point: ""
   preview_only: false
   filename: featured.png
-publishDate: 2017-01-01T00:00:00Z
+publishDate: 2017-01-01T00:00:00.000Z
 url_poster: ""
 url_code: ""
 ---
