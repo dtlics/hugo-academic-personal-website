@@ -15,20 +15,20 @@ content:
   # Automatically link email and phone or display as text?
   autolink: true
 
-  # Email form provider
-  form:
-    provider: netlify
-    formspree:
-      id:
-    netlify:
-      # Enable CAPTCHA challenge to reduce spam?
-      captcha: false
+#   # Email form provider
+#   form:
+#     provider: netlify
+#     formspree:
+#       id:
+#     netlify:
+#       # Enable CAPTCHA challenge to reduce spam?
+#       captcha: false
 
   # Contact details (edit or remove options as required)
   email: dtlics2000@gmail.com
-  phone: +14753014348
+#   phone: +14753014348
   address:
-    street: 420 Temple Street
+    # street: 420 Temple Street
     city: New Haven
     region: CT
     postcode: '06511'
