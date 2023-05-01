@@ -1,6 +1,6 @@
 ---
 publication_types:
-  - "3"
+  - "2"
 authors:
   - Ning Gao
   - Dantong Li
@@ -24,23 +24,23 @@ abstract: The existence of incompatible observables is a cornerstone of quantum
   share approximately the same measurement context.
 draft: false
 slides: ""
-url_pdf: "https://arxiv.org/pdf/2208.06210.pdf"
+url_pdf: https://arxiv.org/pdf/2208.06210.pdf
 summary: We defined a new quantity to describe the incompatibility between
   quantum measurements, and it can be efficiently estimated using quantum
   switches.
 url_dataset: ""
 url_project: ""
 author_notes: []
-publication: ""
-publication_short: ""
+publication: PHYSICAL REVIEW LETTERS
+publication_short: PRL
 url_source: ""
 url_video: ""
 featured: true
-date: 2022-09-27T05:01:04.631Z
+date: 2023-05-01T18:56:22.141Z
 url_slides: ""
 title: Measuring incompatibility and clustering quantum observables with a
   quantum switch
-doi: ""
+doi: https://doi.org/10.1103/PhysRevLett.130.170201
 tags:
   - Quantum_Measurements
 projects: []
