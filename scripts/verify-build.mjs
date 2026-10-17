@@ -39,7 +39,7 @@ for (const [file,html] of htmlByFile) {
   assert(!html.includes('Quantum-Inspired Fidelity-based Divergence'), `${file}: excluded paper`);
   assert(!/AgentSkills|Ph\.D\. Student|2027/.test(html), `${file}: stale profile claim`);
   const blocked = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="[^"]*noindex)[^>]*>/i.test(html);
-  assert.equal(blocked, !indexable || file === '404.html', `${file}: expected ${indexable ? 'release' : 'preview'} indexing policy`);
+  assert.equal(blocked, !indexable || ['404.html','instagram/index.html'].includes(file), `${file}: expected ${indexable ? 'release' : 'preview'} indexing policy`);
   assert(!/<dialog(?:\s|>)/.test(html) && !/role="(?:alertdialog|dialog)"/.test(html), `${file}: content must remain in the page, without modal windows`);
   const canonical = html.match(/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="([^"]+)")[^>]*>/i)?.[1];
   assert(canonical, `${file}: canonical URL`);

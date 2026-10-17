@@ -6,6 +6,8 @@
 @media(max-width:560px){:root{--gutter:18px}.site-header{height:100px;display:block;padding-top:16px}.site-header nav{justify-content:space-between;gap:20px;font-size:12px;margin-top:4px}.site-wordmark{font-size:22px}.site-header nav a{min-height:38px}.site-footer{padding-top:40px;margin-top:15px}.footer-email{font-size:54px}.footer-email span{font-size:13px;overflow-wrap:anywhere}.footer-links{gap:24px}.site-main{min-height:60vh}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 .is-home .site-header{position:fixed;background:var(--ground)}
+.profile-links{display:flex;flex-wrap:wrap;column-gap:22px;row-gap:0;font-size:13px;line-height:1.4}
+.profile-links a{display:inline-flex;align-items:center;gap:4px;min-height:44px;text-decoration:underline;text-underline-offset:5px;white-space:nowrap}
 @media(max-width:560px) and (max-height:700px){
   .is-home .site-header{height:82px;padding-top:10px}
   .is-home .site-wordmark{display:block;width:fit-content;line-height:1.1}

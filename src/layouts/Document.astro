@@ -1,5 +1,6 @@
 ---
 import profile from '../data/profile.json';
+import ProfileLinks from '../components/ProfileLinks.astro';
 import { localPath } from '../lib/paths';
 import '../styles/site.css';
 import '../styles/study-controls.css';
@@ -36,13 +37,13 @@ const canonical = new URL(canonicalPath ? localPath(canonicalPath) : Astro.url.p
       <nav aria-label="Main navigation">
         <a href={localPath('publication/')} aria-current={Astro.url.pathname.endsWith('/publication/') ? 'page' : undefined}>All work <sup>06</sup></a>
         <a href={localPath('about/')} aria-current={Astro.url.pathname.endsWith('/about/') ? 'page' : undefined}>About</a>
-        <a href={`mailto:${profile.email}`}>Email ↗</a>
+        <a href={localPath('about/#profiles')} aria-label="Profiles and contact">Profiles</a>
       </nav>
     </header>
     <main id="main" class="site-main"><slot /></main>
     <footer class="site-footer" id="contact">
       <a class="footer-email" href={`mailto:${profile.email}`}>Let’s talk.<span>{profile.email} ↗</span></a>
-      <div class="footer-links"><a href={profile.github}>GitHub ↗</a><a href={profile.scholar}>Scholar ↗</a><a href={profile.linkedin}>LinkedIn ↗</a></div>
+      <ProfileLinks class="footer-links" />
       <span class="footer-signature">Dantong Li / {new Date().getFullYear()}</span>
     </footer>
   </body>

@@ -19,6 +19,8 @@ flowchart LR
 | About composition | `src/pages/about.astro` |
 | Portrait and other static files | `public/images/` |
 
+The header's Profiles link opens the contact and account links beside the About introduction. Instagram uses the stable local path `/instagram/`, which sends visitors to the `instagram` URL in `src/data/profile.json`. After an Instagram username change, update that one value and rebuild. The local path stays the same; it does not detect account renames automatically.
+
 Keep the same paper IDs in the publication files and exhibition data. All six approved works have individual pages and downloadable citations. The excluded fidelity-divergence paper is not included. The old résumé PDF is kept at its former URL for compatibility; the website does not link to it as a current résumé. Replace it only after the separate résumé update is approved.
 
 The home exhibition uses six related 3D mechanisms. Routing follows one exact mode through separated circuit sections from the pinned compiler. The generalized Hadamard view adds control qubits and joint readout factors for derivative orders one to three. The gate-cancellation circuit is an exact teaching example. The switch view shows coherent order histories and uses the stated one-qubit assumptions. Detection plus cancellation shows an operational concept. Transformer-QEC shows encoder context, positional queries, local proposals, residual decoding and the final XOR; it does not run a learned prediction. Each input changes a working part. There is no general spin control or shared interaction bar.
@@ -46,7 +48,7 @@ The build writes `dist/`. Run `verify` with the same environment values as `buil
 | `WEBSITE_BASE` | `/` | `/` for the domain; `/repository-name/` for a project site |
 | `WEBSITE_INDEXABLE` | `false` | Set to `true` only for the approved public build |
 
-Preview builds include `noindex, nofollow` metadata and a blocking `robots.txt`. A production build with `WEBSITE_INDEXABLE=true` removes that metadata from normal pages and allows crawling. The 404 page remains unindexed. These settings control indexing; they do not make a public preview private.
+Preview builds include `noindex, nofollow` metadata and a blocking `robots.txt`. A production build with `WEBSITE_INDEXABLE=true` removes that metadata from normal pages and allows crawling. The 404 page and Instagram shortcut remain unindexed. These settings control indexing; they do not make a public preview private.
 
 The validation workflow checks a domain preview, a project-path preview and an indexable domain build. It verifies all six papers, author order, source links, citations, local links, profile corrections and the indexing policy. Linux builds also create and verify the former mixed-case PRL and résumé URLs. Each downloadable validation artifact is one `.tar` file, with both spellings preserved inside it. Windows cannot create those case-only copies, so local Windows verification reports that limit. The GitHub Pages deployment action also packages the site as a TAR archive before upload.
 

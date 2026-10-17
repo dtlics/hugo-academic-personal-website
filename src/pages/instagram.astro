@@ -1,0 +1,17 @@
+---
+import Document from '../layouts/Document.astro';
+import profile from '../data/profile.json';
+---
+<Document title="Instagram" description="Dantong Li on Instagram." canonicalPath="instagram/" noindex>
+  <meta slot="head" http-equiv="refresh" content={`0; url=${profile.instagram}`} />
+  <section class="profile-redirect">
+    <h1>Instagram</h1>
+    <a href={profile.instagram}>Continue to my Instagram profile ↗</a>
+  </section>
+  <script is:inline define:vars={{ destination: profile.instagram }}>window.location.replace(destination);</script>
+</Document>
+<style>
+  .profile-redirect{padding:80px var(--gutter);min-height:50vh}
+  .profile-redirect h1{font-size:clamp(44px,8vw,88px);letter-spacing:-.05em;line-height:1;margin-bottom:32px}
+  .profile-redirect a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline}
+</style>
