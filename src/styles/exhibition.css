@@ -20,7 +20,7 @@
 @media(max-height:650px) and (min-width:561px){.study-number{font-size:28px}.study-title{font-size:16px}.study-identity{min-height:32px}.exhibition-story h2{margin-top:10px}.exhibition-scene{top:33%}}
 
 /* Keep a full sculptural reading area on ordinary landscape laptops. */
-@media(max-height:820px) and (min-width:561px){
+@media(max-height:920px) and (min-width:561px){
   .study-identity{min-height:36px;gap:12px}
   .study-number{font-size:34px}
   .study-title{font-size:17px;margin-bottom:3px}
@@ -108,3 +108,24 @@
 .exhibition-photo image{filter:saturate(.84)}
 .name-role{display:block;margin-top:10px;opacity:0;white-space:nowrap}
 @media(min-width:561px){.name-role{display:none}}
+
+/* The closing trail names its works: an index in the same space. */
+.exhibition-trail{position:absolute;inset:0;z-index:7;pointer-events:none}
+.exhibition-trail a{position:absolute;pointer-events:auto;font:10px/1.4 RFMono,monospace;color:#5e545f;white-space:nowrap;min-height:28px;padding:6px 2px;display:flex;align-items:center;gap:6px}
+.exhibition-trail a span{color:#9c6548}
+.exhibition-trail a:hover,.exhibition-trail a:focus-visible{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.exhibition-trail a[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){.exhibition-trail{display:none}}
+
+/* Phones: the next work's name sits under its cue; the earlier works leave the screen. */
+@media(max-width:560px){
+  .exhibition-context{display:block}
+  .exhibition-context a[data-context=past]{display:none}
+  .exhibition-context a{min-height:44px;align-items:center}
+  .study-links a+a{padding-inline:4px}
+}
+/* Short phones keep the height for the work: the one-line note gives way to its links. */
+@media(max-width:560px) and (max-height:700px){
+  .exhibition-story .study-note{display:none}
+  .exhibition-scene .study-actions__hint{display:none}
+}

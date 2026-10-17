@@ -168,7 +168,7 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
   xor(final,.16);arrow([2.32,-1.05,.20],[2.61,-1.05,.20],plum,.035);
   b.ball([2.65,-1.05,.20],.065,porcelain);
   // Distance choices are presentation controls, not an extra architecture wire.
-  const handles=[...[5,7,9].map((value,i)=>({key:'distance',value,point:[-2.55+i,-1.45,.45]})),{key:'transformerYaw',value:0,point:[2.4,-1.62,.3]}];
+  const handles=[...[5,7,9].map((value,i)=>({key:'distance',value,point:[-2.55+i,-1.45,.45]})),{key:'transformerYaw',value:0,point:[-.38,.12,.36]}];
   const markers=[
     {id:'transformer-input',text:'Syndrome + positions',point:[-2.06,1.34,.15],target:inputCentre},
     {id:'transformer-model',text:'Encoder → Decoder',point:[-.02,1.49,.20],target:[-.02,.66,.20]},
@@ -358,6 +358,7 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
     const meanY = collector[1]+.73*kthDerivative;
     b.line([outputX,collector[1]-.78,collector[2]], [outputX,collector[1]+.78,collector[2]], .014, quiet);
     b.line([outputX-.075,collector[1],collector[2]], [outputX+.075,collector[1],collector[2]], .019, quiet);
+    for (const end of [-.73,.73]) b.line([outputX-.05,collector[1]+end,collector[2]], [outputX+.05,collector[1]+end,collector[2]], .014, quiet);
     if (Math.abs(kthDerivative) > 1e-9) {
       b.line([outputX,collector[1],collector[2]], [outputX,meanY,collector[2]], .055, warm);
     }
@@ -448,14 +449,14 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
     // the one before, so its works step back toward that lane's vanishing
     // point. Only the works travel. Depth gives attention and order, never a
     // scientific quantity.
-    const PASSAGE_FOV=38*Math.PI/180,PASSAGE_DEPTH=10,LANE_RATIO=1.8,HIDDEN_FOG=.93;
+    const PASSAGE_FOV=38*Math.PI/180,PASSAGE_DEPTH=10,LANE_RATIO=2,TRAIL_RATIO=1.3,HIDDEN_FOG=.93;
     const FRONT_YAW=[.55,0,0,0,0,0],FILL=[1,.92,.72,1,1,.94],ROW_STATIONS=[1,3,4,5];
-    let homeLayout={readTop:0},coda=0,passage=null,fitCache=null,projectionShiftX=0,captionSeen={view:'',height:0},projectCache={vp:null,model:null,m:null},stationFrame=null,drawCount=0;
+    let homeLayout={readTop:0},overviewFocus=-1,coda=0,passage=null,fitCache=null,projectionShiftX=0,captionSeen={view:'',height:0},projectCache={vp:null,model:null,m:null},stationFrame=null,drawCount=0;
     const routeEnvelope=bounds(data[0]),peepholeEnvelope=bounds(peepholeStudy(0));
     // Inspection turns the Transformer about its own centre. Its reading size
     // covers every allowed turn, so dragging never rescales or reframes it.
-    const transformerTurnEnvelope=(()=>{const lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];for(const r of transformerFrameRotations)for(let n=0;n<transformerFramePoints.length;n+=10){const p=transformerFramePoints[n];for(let k=0;k<3;k++){const v=r[k]*p[0]+r[4+k]*p[1]+r[8+k]*p[2]+r[12+k];lo[k]=Math.min(lo[k],v);hi[k]=Math.max(hi[k],v);}}return{lo,hi};})();
-    const passageEnvelope=index=>[routeEnvelope,logicalEnvelope,peepholeEnvelope,gradientEnvelope,transformerTurnEnvelope,switchEnvelope][index];
+    let turnEnvelopeCache=null;const transformerTurnEnvelope=()=>turnEnvelopeCache||(turnEnvelopeCache=(()=>{const lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];for(const r of transformerFrameRotations)for(let n=0;n<transformerFramePoints.length;n+=10){const p=transformerFramePoints[n];for(let k=0;k<3;k++){const v=r[k]*p[0]+r[4+k]*p[1]+r[8+k]*p[2]+r[12+k];lo[k]=Math.min(lo[k],v);hi[k]=Math.max(hi[k],v);}}return{lo,hi};})());
+    const passageEnvelope=index=>index===4?transformerTurnEnvelope():[routeEnvelope,logicalEnvelope,peepholeEnvelope,gradientEnvelope,null,switchEnvelope][index];
     // Fit by occupied geometry where a box would overstate it: the deep route
     // lattice, and the Transformer across its whole inspection range.
     const sampleCache=[];
@@ -467,9 +468,10 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
       return sampleCache[index]=points;
     }
     const coarseCache=[],coarseSamples=index=>coarseCache[index]||(coarseCache[index]=(all=>all.length<40?all:all.filter((_,i)=>i%6===0))(passageSamples(index)));
-    function homeMode(){return solo===null&&!overview;}
+    function homeMode(){return !overview;}
     const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
     function passageComposition(){
+      if(solo!==null){const phone=global.innerWidth<=560,captionTop=height-captionReserve()-(phone?5:16),band={left:.04,right:.96,top:.05,bottom:Math.max(.5,(captionTop-(ROW_STATIONS.includes(solo)?(phone?46:70):12))/height),align:'centre'},bands=[0,1,2,3,4,5].map(()=>band),lane={u:.5,v:.5,rel:.3,vu:.5,vv:.5,yaw:0,fog:[1,0]};return{mode:'solo',bands,centre:.5,middle:(band.top+band.bottom)/2,opening:{u:.5,v:.5,rel:.3},future:lane,past:lane,trail:lane};}
       // Screen fractions of the full-width field. A lane is set by its first
       // slot (u, v, apparent size rel) and its vanishing point (vu, vv).
       const phone=global.innerWidth<=560,mode=phone?'phone':homeLayout.mode==='side'?'side':global.innerWidth<1000?'tablet':'stage',captionTop=height-captionReserve()-(phone?5:16);
@@ -482,36 +484,36 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
         return{mode,bands,centre:(b.left+b.right)/2,middle:(b.top+b.bottom)/2,opening:{u:.84,v:.5,rel:.5},
           future:{u:b.right-.02,v:.12,rel:.22,vu:1.06,vv:.02,yaw:-.36,fog:[.12,.55]},
           past:{u:b.left+.08,v:.12,rel:.2,vu:b.left-.04,vv:.02,yaw:.36,fog:[.28,.5]},
-          trail:{u:b.left+(b.right-b.left)*.64,v:.62,rel:.48,vu:b.left+.02,vv:.2}};
+          trail:{u:b.left+.08,v:.78,rel:.46,vu:.98,vv:.1}};
       }
       const top=readTop+(phone?4:10)/height,bottom=index=>Math.max(top+.12,(captionTop-reserve(index))/height);
       if(mode==='phone'){
         // Only the next work waits, beside the story links; earlier works fade
         // as they recede, so the active work keeps the full width.
         const bands=[0,1,2,3,4,5].map(index=>({left:.04,right:.96,top,bottom:bottom(index),align:'centre'}));
-        return{mode,bands,centre:.5,middle:(top+bottom(1))/2,opening:{u:.8,v:.62,rel:.5},
-          future:{u:.85,v:top-.032,rel:.19,vu:1.1,vv:top-.07,yaw:-.42,fog:[.16,.62]},
-          past:{u:.12,v:top-.02,rel:.2,vu:-.15,vv:top-.07,yaw:.42,fog:[1,0]},
-          trail:{u:.64,v:top+(bottom(1)-top)*.58,rel:.55,vu:.08,vv:top+.02}};
+        return{mode,bands,centre:.5,middle:(top+bottom(1))/2,opening:{u:.5,v:.82,rel:.62},
+          future:{u:.83,v:top-.045,rel:.25,vu:1.15,vv:top-.09,yaw:-.42,fog:[.1,1]},
+          past:{u:-.32,v:top+(bottom(1)-top)*.4,rel:.55,vu:-.9,vv:top,yaw:.42,fog:[.2,1]},
+          trail:{u:.62,v:top+(bottom(1)-top)*.88,rel:.5,vu:.9,vv:top-.02}};
       }
       if(mode==='tablet'){
         const bands=[0,1,2,3,4,5].map(index=>({left:readLeft,right:.96,top,bottom:bottom(index),align:'left'}));
         return{mode,bands,centre:(readLeft+.96)/2,middle:(top+bottom(1))/2,opening:{u:.8,v:.55,rel:.5},
           future:{u:.87,v:top-.03,rel:.2,vu:1.08,vv:top-.07,yaw:-.36,fog:[.14,.6]},
-          past:{u:readLeft+.06,v:top-.02,rel:.18,vu:readLeft-.12,vv:top-.08,yaw:.36,fog:[1,0]},
-          trail:{u:readLeft+(.96-readLeft)*.62,v:top+(bottom(1)-top)*.56,rel:.5,vu:readLeft,vv:top+.02}};
+          past:(()=>{const below=clamp((Number(homeLayout.identityBottom)||height*.6)/height,.3,.85),u=Math.max(.08,readLeft*.42);return{u,v:Math.min(.92,below+.1),rel:.16,vu:u,vv:below-.05,yaw:.36,fog:[.22,.5]};})(),
+          trail:{u:readLeft+.1,v:top+(bottom(1)-top)*.78,rel:.46,vu:.98,vv:top-.04}};
       }
       // Stage: the work hangs on the story column; the next work waits to its
       // right, the previous one in the gutter beside the portrait.
       const right=.8,bands=[0,1,2,3,4,5].map(index=>({left:readLeft,right,top,bottom:bottom(index),align:'left'})),mid=(top+bottom(1))/2,gutter=Math.max(.04,readLeft-identity),pastU=(identity+readLeft)/2;
       return{mode,bands,centre:(readLeft+right)/2,middle:mid,opening:{u:.81,v:.55,rel:.55},
-        future:{u:.89,v:top+(bottom(1)-top)*.3,rel:.36,vu:1.02,vv:top-.25,yaw:-.36,fog:[.1,.5]},
+        future:{u:.87,v:top+(bottom(1)-top)*.3,rel:.36,vu:.98,vv:top-.25,yaw:-.36,fog:[.1,.5]},
         past:{u:pastU,v:top+(bottom(1)-top)*.2,rel:clamp(gutter*1.15/(right-readLeft),.14,.26),vu:pastU-.01,vv:top-.32,yaw:.36,fog:[.24,.46]},
-        trail:{u:readLeft+(right-readLeft)*.66,v:top+(bottom(1)-top)*.6,rel:.68,vu:readLeft+.01,vv:top-.03}};
+        trail:{u:readLeft+.11,v:top+(bottom(1)-top)*.78,rel:.5,vu:.97,vv:top-.18}};
     }
     // The reading band never jumps when the caption appears or a readout wraps:
     // it reserves the tallest caption seen at this viewport size.
-    function captionReserve(){const view=width+'x'+height,measured=Number(homeLayout.caption)||0;if(captionSeen.view!==view)captionSeen={view,height:0};captionSeen.height=Math.max(captionSeen.height,measured,global.innerWidth<=560?44:62);return captionSeen.height;}
+    function captionReserve(){const view=width+'x'+height,measured=Number(homeLayout.caption)||0;if(captionSeen.view!==view)captionSeen={view,height:0};captionSeen.height=Math.max(captionSeen.height,measured||(solo!==null?host.querySelector?.('.study-caption')?.offsetHeight||0:0),global.innerWidth<=560?44:62);return captionSeen.height;}
     function passageFits(c,aspect,f,sx,sy){
       const key=[width,height,c.mode,sx,sy,...c.bands.flatMap(b=>[b.left,b.right,b.top,b.bottom])].map(v=>typeof v==='number'?v.toFixed(4):v).join(':');
       if(fitCache?.key===key)return fitCache.fits;
@@ -530,7 +532,7 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
       fitCache={key,fits};return fits;
     }
     function passageFrame(){
-      const key=[width,height,travel,arrival,coda,homeLayout.mode,homeLayout.readTop,homeLayout.readLeft,homeLayout.readRight,homeLayout.identityRight,captionReserve(),global.innerWidth,global.innerHeight].join(':');
+      const key=[width,height,travel,arrival,coda,homeLayout.mode,homeLayout.readTop,homeLayout.readLeft,homeLayout.readRight,homeLayout.identityRight,homeLayout.identityBottom,captionReserve(),global.innerWidth,global.innerHeight].join(':');
       if(passage?.key===key)return passage;
       const aspect=width/Math.max(1,height),f=1/Math.tan(PASSAGE_FOV/2),D=PASSAGE_DEPTH,c=passageComposition(),sx=2*c.centre-1,sy=1-2*c.middle;
       const toX=(u,d)=>(2*u-1-sx)*aspect*d/f,toY=(v,d)=>(1-2*v-sy)*d/f,fits=passageFits(c,aspect,f,sx,sy);
@@ -540,21 +542,22 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
       const slot=(L,k)=>{const q=Math.pow(LANE_RATIO,-(k-1)),depth=D/L.rel/q,u=L.vu+(L.u-L.vu)*q,v=L.vv+(L.v-L.vv)*q;return[toX(u,depth),toY(v,depth),-depth];};
       const haze=(L,k)=>clamp(L.fog[0]+Math.max(0,k-1)*L.fog[1],0,1);
       // The closing trail steps back more gently, so all six works stay legible.
-      const trailSlot=(L,k)=>{const q=Math.pow(1.6,-(k-1)),depth=D/L.rel/q,u=L.vu+(L.u-L.vu)*q,v=L.vv+(L.v-L.vv)*q;return[toX(u,depth),toY(v,depth),-depth];};
+      const trailSlot=(L,k)=>{const q=Math.pow(TRAIL_RATIO,-(k-1)),depth=D/L.rel/q,u=L.vu+(L.u-L.vu)*q,v=L.vv+(L.v-L.vv)*q;return[toX(u,depth),toY(v,depth),-depth];};
       // At the opening only the first work waits, just behind the portrait.
       const opening=1-smooth(arrival),closing=smooth(coda);
       const future={...c.future,u:mix(c.future.u,c.opening.u,opening),v:mix(c.future.v,c.opening.v,opening),rel:mix(c.future.rel,c.opening.rel,opening)};
       const p=travel*5-opening;
       const poses=fits.map((fit,i)=>{
+        if(solo!==null)return{position:fit.position,yaw:FRONT_YAW[i],fog:i===solo?0:1,scale:fit.scale,centre:fit.centre,hidden:i!==solo};
         const s=i-p;let position,yaw,fog;
-        if(s>=1){position=slot(future,s);yaw=future.yaw;fog=Math.max(haze(future,s),opening*clamp(s-1,0,1));}
-        else if(s<=-1){position=slot(c.past,-s);yaw=c.past.yaw;fog=haze(c.past,-s);}
+        if(s>=1){position=slot(future,s);yaw=FRONT_YAW[i]+future.yaw;fog=Math.max(haze(future,s),i>0?smooth((opening-.1)/.3):0);}
+        else if(s<=-1){position=slot(c.past,-s);yaw=FRONT_YAW[i]+c.past.yaw;fog=haze(c.past,-s);}
         // Arrival leads departure: the incoming work comes forward and passes in
         // front of the outgoing one, which first recedes, then drifts aside.
-        else if(s>=0){const t=1-s,a=slot(future,1),lateral=smooth(t*1.2),near=smooth(t*1.2-.1);position=[mix(a[0],fit.position[0],lateral),mix(a[1],fit.position[1],lateral),mix(a[2],fit.position[2],near)];yaw=mix(future.yaw,FRONT_YAW[i],smooth(t*1.2-.1));fog=mix(haze(future,1),0,near);}
-        else{const t=-s,a=slot(c.past,1),far=smooth(t*1.5),lateral=smooth(t*1.3-.3);position=[mix(fit.position[0],a[0],lateral),mix(fit.position[1],a[1],lateral),mix(fit.position[2],a[2],far)];yaw=mix(FRONT_YAW[i],c.past.yaw,smooth(t*1.2-.1));fog=mix(0,haze(c.past,1),far);}
+        else if(s>=0){const t=1-s,a=slot(future,1),lateral=smooth(t*1.15),near=smooth(t*1.4-.05);position=[mix(a[0],fit.position[0],lateral),mix(a[1],fit.position[1],lateral),mix(a[2],fit.position[2],near)];yaw=FRONT_YAW[i]+mix(future.yaw,0,smooth(t*1.2-.1));fog=mix(haze(future,1),0,near);}
+        else{const t=-s,a=slot(c.past,1),hold=smooth(t/.55),drift=smooth((t-.45)/.55),back=fit.position.map(v=>v*1.8),held=fit.position.map((v,k)=>mix(v,back[k],hold));position=held.map((v,k)=>mix(v,a[k],drift));yaw=FRONT_YAW[i]+mix(0,c.past.yaw,drift);fog=mix(mix(0,.1,hold),haze(c.past,1),drift);}
         // Coda: the whole practice gathers as one receding trail, newest nearest.
-        if(closing>0){const k=fits.length-i,target=trailSlot(c.trail,k);position=position.map((v,axis)=>mix(v,target[axis],closing));yaw=mix(yaw,.3,closing);fog=mix(fog,clamp(.05+(k-1)*.12,0,.8),closing);}
+        if(closing>0){const k=fits.length-i,target=trailSlot(c.trail,k);position=position.map((v,axis)=>mix(v,target[axis],closing));yaw=mix(yaw,FRONT_YAW[i]+.3,closing);fog=mix(fog,clamp(.05+(k-1)*.06,0,.35),closing);}
         return{position,yaw,fog,scale:fit.scale,centre:fit.centre,hidden:fog>=HIDDEN_FOG};
       });
       passage={key,sx,sy,fov:PASSAGE_FOV,poses,bands:c.bands,mode:c.mode,progress:p};return passage;
@@ -565,11 +568,11 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
     function narrowOverview(){return solo===null&&overview&&width<=700;}
     function overviewPhonePosition(index){const aspect=width/Math.max(1,height),distance=Math.hypot(45,10),tanHalf=9/(distance*Math.max(.25,aspect)),row=Math.floor(index/2),target=[.43,.65,.86][row]+[0,.012,-.008,.006,0,.008][index],n=1-2*target,upY=10/distance,upZ=-45/distance,depth0=45*(45/distance)+7*(10/distance),z=(n*tanHalf*depth0+45*upY+7*upZ)/(upZ+n*tanHalf*(10/distance)),depth=depth0-z*(10/distance),x=([.255,.745,.265,.735,.25,.75][index]*2-1)*depth*tanHalf*aspect;return[x,0,z];}
     function positionFor(index){if(solo===index)return[0,0,0];if(homeMode())return passageFrame().poses[index].position.slice();if(narrowOverview())return overviewPhonePosition(index);const original=STATIONS[index].position;if(overview||solo!==null||index===activeIndex())return original;const theta=travel*5*TAU/6,angular=Math.acos(Math.cos(STATIONS[index].yaw-theta))/(TAU/6),weight=clamp((angular-.55)/.4,0,1);if(!weight)return original;const right=[Math.cos(theta),0,-Math.sin(theta)],radial=[Math.sin(theta),0,Math.cos(theta)],centre=[GALLERY_RADIUS*radial[0],0,-GALLERY_RADIUS+GALLERY_RADIUS*radial[2]],relative=sub(original,centre),horizontal=dot(relative,right),depth=mix(13,6.5,arrival*arrival*(3-2*arrival))-dot(relative,radial),side=Math.sign(horizontal)||Math.sign(index-travel*5)||1,edge=(sideResource()&&RESOURCE_STATIONS.includes(activeIndex())&&horizontal>0?1.10:.78)+.035*Math.max(0,angular-1),target=side*edge*depth*(width/Math.max(1,height))/Math.max(.1,renderFocal),smooth=weight*weight*(3-2*weight);return add(original,mul(right,(target-horizontal)*smooth));}
-    function modelFor(index,forFraming=false){if(homeMode())return inspectionModel(index,passageModel(index),forFraming);const s=STATIONS[index],position=positionFor(index);if(solo===null&&overview&&!narrowOverview())return transform(position[0],heights[index]*1.7,position[2],scales[index]*1.75,[-.12,.14,-.1,.1,.16,-.16][index],-.95+pitches[index]);if(!narrowOverview()){const scale=scales[index]*(solo===null&&!overview&&!narrowFocus()&&[1,2,5].includes(index)?1.15:1);return inspectionModel(index,transform(position[0],heights[index],position[2],scale,solo===index?FRONT_YAW[index]:s.yaw,pitches[index]),forFraming);}const model=transform(position[0],0,position[2],scales[index]*(index===4?1.08:1.25),[-.15,.2,-.12,.18,.1,-.18][index],-.95+pitches[index]),b=bounds(data[index]);let bottom=Infinity;for(let k=0;k<8;k++){const v=[k&1?b.hi[0]:b.lo[0],k&2?b.hi[1]:b.lo[1],k&4?b.hi[2]:b.lo[2]];bottom=Math.min(bottom,model[1]*v[0]+model[5]*v[1]+model[9]*v[2]);}model[13]=FLOOR-bottom+.015;return model;}
+    function modelFor(index,forFraming=false){if(homeMode())return inspectionModel(index,passageModel(index),forFraming);const s=STATIONS[index],position=positionFor(index);if(solo===null&&overview&&!narrowOverview())return transform(position[0],heights[index]*1.7+(index===2?.75:0),position[2],scales[index]*1.75*clamp(height/820,.72,1),[-.12,.14,-.1,.1,.16,-.16][index],-.95+pitches[index]);if(!narrowOverview()){const scale=scales[index]*(solo===null&&!overview&&!narrowFocus()&&[1,2,5].includes(index)?1.15:1);return inspectionModel(index,transform(position[0],heights[index],position[2],scale,solo===index?FRONT_YAW[index]:s.yaw,pitches[index]),forFraming);}const model=transform(position[0],0,position[2],scales[index]*(index===4?1.08:1.25),[-.15,.2,-.12,.18,.1,-.18][index]+orbit*Math.PI/180*.9,-.95+pitches[index]),b=bounds(data[index]);let bottom=Infinity;for(let k=0;k<8;k++){const v=[k&1?b.hi[0]:b.lo[0],k&2?b.hi[1]:b.lo[1],k&4?b.hi[2]:b.lo[2]];bottom=Math.min(bottom,model[1]*v[0]+model[5]*v[1]+model[9]*v[2]);}model[13]=FLOOR-bottom+.015;return model;}
     function upload(def){const buffers=[];for(const[name,values]of[['aPosition',def.data.position],['aNormal',def.data.normal],['aColor',def.data.baseColor]]){const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,values,gl.STATIC_DRAW);buffers.push({buffer,location:gl.getAttribLocation(p,name),name});}return{...def,buffers};}
     function init(){gl=canvas.getContext('webgl',{alpha:true,antialias:true,preserveDrawingBuffer:false,premultipliedAlpha:false,powerPreference:'low-power'});if(!gl)throw new Error('WebGL unavailable');p=program(gl);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.clearColor(0,0,0,0);meshes=definitions.map(upload);}
     function readingHeight(value){const at=clamp(value*5,0,5),lo=Math.floor(at),hi=Math.min(5,lo+1),q=at-lo,ease=q*q*(3-2*q),centre=index=>{const m=modelFor(index,true),b=framingBounds(index),v=b.lo.map((n,i)=>(n+b.hi[i])/2);return m[1]*v[0]+m[5]*v[1]+m[9]*v[2]+m[13];};return mix(centre(lo),centre(hi),ease);}
-    function path(value){if(homeMode())return{eye:[0,0,0],look:[0,0,-1]};if(solo!==null){const y=[0,-.25,-.65,-.35,-.25,-.6][solo],distance=[5.3,6.8,6.8,6.8,6.8,6.8][solo];return{eye:[.1,y+.8*distance/6.8,distance],look:[.1,y,0]};}if(narrowOverview()){const theta=orbit*.15*Math.PI/180;return{eye:[10*Math.sin(theta),45,-3+10*Math.cos(theta)],look:[0,0,-3]};}if(overview){const theta=orbit*Math.PI/180;return{eye:[21*Math.sin(theta),29,-GALLERY_RADIUS+21*Math.cos(theta)],look:[0,-3.1,-GALLERY_RADIUS+1.2]};}const theta=value*5*TAU/6,a=arrival*arrival*(3-2*arrival),distance=mix(13,6.5,a),radius=GALLERY_RADIUS+distance;return{eye:[radius*Math.sin(theta),.8,-GALLERY_RADIUS+radius*Math.cos(theta)],look:[GALLERY_RADIUS*Math.sin(theta),mix(.7,readingHeight(value)-(narrowFocus()?.16:.45),a),-GALLERY_RADIUS+GALLERY_RADIUS*Math.cos(theta)]};}
+    function path(value){if(homeMode())return{eye:[0,0,0],look:[0,0,-1]};if(solo!==null){const y=[0,-.25,-.65,-.35,-.25,-.6][solo],distance=[5.3,6.8,6.8,6.8,6.8,6.8][solo];return{eye:[.1,y+.8*distance/6.8,distance],look:[.1,y,0]};}if(narrowOverview()){const theta=orbit*.15*Math.PI/180;return{eye:[10*Math.sin(theta),45,-3+10*Math.cos(theta)],look:[0,0,-3]};}if(overview){const theta=orbit*Math.PI/180,k=Math.max(1,(width/Math.max(1,height))/1.75);return{eye:[21*k*Math.sin(theta),29*k,-GALLERY_RADIUS+21*k*Math.cos(theta)],look:[0,-3.1,-GALLERY_RADIUS+1.2]};}const theta=value*5*TAU/6,a=arrival*arrival*(3-2*arrival),distance=mix(13,6.5,a),radius=GALLERY_RADIUS+distance;return{eye:[radius*Math.sin(theta),.8,-GALLERY_RADIUS+radius*Math.cos(theta)],look:[GALLERY_RADIUS*Math.sin(theta),mix(.7,readingHeight(value)-(narrowFocus()?.16:.45),a),-GALLERY_RADIUS+GALLERY_RADIUS*Math.cos(theta)]};}
     function activeIndex(){return solo===null?clamp(Math.round(travel*5),0,5):solo;}
     function sideResource(){if(homeMode())return homeLayout.mode==='side';return solo===null&&!overview&&Boolean(host.classList?.contains('exhibition-scene'))&&global.innerWidth>560&&width>=650&&height<340;}
     function resourcePlacement(){return RESOURCE_STATIONS.includes(activeIndex())&&!overview?(sideResource()?'side':'bottom'):null;}
@@ -632,14 +635,14 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
     function draw(now){raf=0;if(disposed||lost||!width||!height)return;try{advanceAnimations(Number(now)||clock());
       const ratio=Math.min(global.devicePixelRatio||1,1.65),w=Math.max(1,Math.round(width*ratio)),h=Math.max(1,Math.round(height*ratio));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}camera=path(travel);const aspect=width/height,base=44*Math.PI/180,minWidth=solo!==null?Math.tan(29*Math.PI/180):overview?Math.tan(Math.PI/6):width<=560?.53:1,defaultFov=narrowOverview()?2*Math.atan(9/(Math.hypot(45,10)*Math.max(.25,aspect))):Math.max(base,2*Math.atan(minWidth/Math.max(.36,aspect))),view=lookAt(camera.eye,camera.look),fov=fitFov(defaultFov,aspect,view);renderFocal=1/Math.tan(fov/2);const projection=perspective(fov,aspect,.12,110);projection[8]=projectionShiftX;projection[9]=projectionShiftY;viewProjection=multiply(projection,view);
       gl.viewport(0,0,w,h);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(p);gl.uniformMatrix4fv(gl.getUniformLocation(p,'uProjection'),false,viewProjection);gl.uniform3fv(gl.getUniformLocation(p,'uEye'),camera.eye);gl.uniform1f(gl.getUniformLocation(p,'uRoughness'),.74);gl.uniform3fv(gl.getUniformLocation(p,'uStations[0]'),STATIONS.flatMap((s,i)=>positionFor(i)));gl.uniform3fv(gl.getUniformLocation(p,'uGround'),GROUND);gl.uniform1f(gl.getUniformLocation(p,'uSolo'),solo===null?-1:solo);gl.uniform1f(gl.getUniformLocation(p,'uShadowOnly'),solo===null&&!homeMode()?0:1);const homeFrame=homeMode()?passageFrame():null;gl.uniform1fv(gl.getUniformLocation(p,'uFog[0]'),homeFrame?homeFrame.poses.map(pose=>pose.fog):[0,0,0,0,0,0]);gl.uniform1fv(gl.getUniformLocation(p,'uRadius[0]'),[1,1,1,1,1,1]);
-      for(let i=0;i<meshes.length;i++){if((overview||solo!==null||homeFrame)&&i===1)continue;if(homeFrame&&(meshes[i].floor||(meshes[i].station!==undefined&&homeFrame.poses[meshes[i].station].hidden)))continue;const mesh=meshes[i];if(solo!==null&&mesh.station!==undefined&&mesh.station!==solo)continue;mesh.model=mesh.station===undefined?identity:modelFor(mesh.station);gl.uniformMatrix4fv(gl.getUniformLocation(p,'uModel'),false,mesh.model);gl.uniform1f(gl.getUniformLocation(p,'uFloor'),mesh.floor?1:0);let context=0;if(homeFrame&&mesh.station!==undefined)context=homeFrame.poses[mesh.station].fog;else if(!overview&&solo===null&&mesh.station!==undefined){const distance=Math.acos(Math.cos(STATIONS[mesh.station].yaw-travel*5*TAU/6))/(TAU/6),focus=clamp(1-distance,0,1);context=.42*(1-focus*focus*(3-2*focus));}gl.uniform1f(gl.getUniformLocation(p,'uContext'),context);for(const entry of mesh.buffers){gl.bindBuffer(gl.ARRAY_BUFFER,entry.buffer);gl.vertexAttribPointer(entry.location,3,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(entry.location);}gl.drawArrays(gl.TRIANGLES,0,mesh.data.count);}
+      for(let i=0;i<meshes.length;i++){if((overview||solo!==null||homeFrame)&&i===1)continue;if(homeFrame&&(meshes[i].floor||(meshes[i].station!==undefined&&homeFrame.poses[meshes[i].station].hidden)))continue;const mesh=meshes[i];if(solo!==null&&mesh.station!==undefined&&mesh.station!==solo)continue;mesh.model=mesh.station===undefined?identity:modelFor(mesh.station);gl.uniformMatrix4fv(gl.getUniformLocation(p,'uModel'),false,mesh.model);gl.uniform1f(gl.getUniformLocation(p,'uFloor'),mesh.floor?1:0);let context=0;if(overview&&overviewFocus>=0&&mesh.station!==undefined&&mesh.station!==overviewFocus)context=.55;else if(homeFrame&&mesh.station!==undefined)context=homeFrame.poses[mesh.station].fog;else if(!overview&&solo===null&&mesh.station!==undefined){const distance=Math.acos(Math.cos(STATIONS[mesh.station].yaw-travel*5*TAU/6))/(TAU/6),focus=clamp(1-distance,0,1);context=.42*(1-focus*focus*(3-2*focus));}gl.uniform1f(gl.getUniformLocation(p,'uContext'),context);for(const entry of mesh.buffers){gl.bindBuffer(gl.ARRAY_BUFFER,entry.buffer);gl.vertexAttribPointer(entry.location,3,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(entry.location);}gl.drawArrays(gl.TRIANGLES,0,mesh.data.count);}
       canvasSemantics();host.dataset.sceneTransformerYaw=transformerYaw.toFixed(4);host.dataset.sceneTransformerPitch=transformerPitch.toFixed(4);updatePointer();const motion=transitionState();host.dataset.sceneTransitionActive=String(motion.active);host.dataset.sceneTransitionKind=motion.kind;host.dataset.sceneTransitionProgress=String(motion.progress);drawCount++;host.dataset.sceneReady=String(!gl.isContextLost()&&(drawCount>2||gl.getError()===gl.NO_ERROR));host.dataset.sceneTravel=travel.toFixed(4);host.dataset.sceneActive=STATION_IDS[activeIndex()];for(const[key,value]of Object.entries({Layer:layer,Angle:angle,Repair:repair,Window:windowStep,Gradient:gradient,Order:order}))host.dataset['scene'+key]=String(value);
       host.dispatchEvent(new CustomEvent('exhibitionscenedraw',{bubbles:true,detail:{ready:host.dataset.sceneReady==='true',overview,activeIndex:activeIndex(),stations:stationState(),resourceBounds:resourceBounds(),resourcePlacement:resourcePlacement(),handles:handles(),markers:markers()}}));
       if(Object.values(transitions).some(Boolean))request();
     }catch(error){host.dataset.sceneReady='false';host.dataset.sceneError='render';host.dataset.sceneErrorDetail=String(error?.message||error).slice(0,200);}}
     function request(){if(!disposed&&!lost&&!raf)raf=requestAnimationFrame(draw);}
     function resize(){if(disposed)return;const box=host.getBoundingClientRect();width=box.width;height=box.height;request();}
-    function setView(view){if(disposed)return;if(view&&'travel'in view)travel=clamp(Number(view.travel)||0,0,1);if(view&&'arrival'in view)arrival=clamp(Number(view.arrival)||0,0,1);if(view&&'overview'in view)overview=Boolean(view.overview);if(view&&'orbit'in view)orbit=Number(view.orbit)||0;if(view&&view.layout)homeLayout={...homeLayout,...view.layout};if(view&&'coda'in view)coda=clamp(Number(view.coda)||0,0,1);request();}
+    function setView(view){if(disposed)return;if(view&&'travel'in view)travel=clamp(Number(view.travel)||0,0,1);if(view&&'arrival'in view)arrival=clamp(Number(view.arrival)||0,0,1);if(view&&'overview'in view)overview=Boolean(view.overview);if(view&&'orbit'in view)orbit=Number(view.orbit)||0;if(view&&view.layout)homeLayout={...homeLayout,...view.layout};if(view&&'coda'in view)coda=clamp(Number(view.coda)||0,0,1);if(view&&'focus'in view)overviewFocus=Number.isInteger(view.focus)?view.focus:-1;request();}
     function interactionState(){return{activeIndex:activeIndex(),activeId:STATION_IDS[activeIndex()],angle,layer,routeLayers:routeSpec.compiled.layers.length,repair,window:windowStep,gradient,derivativeOrder,distance,order,selectedMode,transformerYaw,transformerPitch};}
     function replaceStudy(index){data[index]=makeStudy(index);definitions[index+2].data=data[index];if(gl&&!lost&&meshes[index+2]){for(const entry of meshes[index+2].buffers)gl.deleteBuffer(entry.buffer);meshes[index+2]=upload(definitions[index+2]);}}
     function emit(reason){host.dispatchEvent(new CustomEvent('exhibitioninteraction',{bubbles:true,detail:{...interactionState(),reason}}));if(reason==='pointer'&&activeIndex()===0)host.dispatchEvent(new CustomEvent('routescrub',{bubbles:true,detail:{layer,reason}}));}
@@ -654,7 +657,7 @@ function transformerIllustration(optionalDistance=5,visualDistance=optionalDista
       const nearest=samples=>{let best=null;for(const[value,point]of samples){const q=project(point,model);if(!q||q.depth<=0)continue;const d=Math.hypot(q.x*width-px,q.y*height-py);if(!best||d<best.d)best={d,value};}return best?best.value:null;};
       if(key==='angle'&&index===5){const samples=[];for(let a=0;a<=180;a++)samples.push([a,switchAxisPoint(a)]);return nearest(samples);}
       if(key==='gradient'&&index===3){const samples=[];for(let k=-100;k<=100;k++)samples.push([k/100,gradientDialPoint(k/100)]);return nearest(samples);}
-      if(key==='layer'&&index===0)return nearest((data[0].example.route.track||[]).map((point,k)=>[k,point]));
+      if(key==='layer'&&index===0)return nearest((data[0].example.route.track||[]).map((point,k)=>[k,point]).filter(([k])=>Math.abs(k-layer)<=2));
       if(key==='window'&&index===2){const a=project([-.15,.37,.28],model),c=project([.95,.37,.28],model),stepPx=Math.max(24,Math.hypot((c.x-a.x)*width,(c.y-a.y)*height));return clamp(Math.round(Number(start)+Number(dx)/stepPx),0,2);}
       if(key==='repair'&&index===1){let best=null;for(const item of handles().filter(h=>h.key==='repair')){const d=Math.abs(item.x*width-px);if(!best||d<best.d)best={d,value:item.value};}return best?best.value:null;}
       return null;

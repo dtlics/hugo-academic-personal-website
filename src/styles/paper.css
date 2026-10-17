@@ -116,3 +116,61 @@
   .paper-object__scope{font-size:11px}
 }
 .paper-opening__authors .paper-citation{grid-column:auto}
+
+/* One grid below the hero: mono section labels on column 1, every heading and
+   body on column 3, the hero title's column. */
+@media(min-width:1051px){
+  .paper-contribution{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .paper-contribution>.paper-section-label{grid-column:1/3}
+  .paper-contribution>div{grid-column:3/11}
+  .paper-reading__main,.paper-page--reading .paper-reading__main{grid-column:3/9}
+  .paper-instrument__heading{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .paper-instrument__heading>.paper-section-label{grid-column:1/3}
+  .paper-instrument__heading>h2{grid-column:3/7}
+  .paper-instrument__heading>p{grid-column:7/12}
+  .paper-instrument__scope{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .paper-instrument__scope>.paper-section-label{grid-column:1/3}
+  .paper-instrument__scope>p{grid-column:3/11}
+  .paper-instrument__preview,.paper-instrument__launch{margin-left:calc((100% - 11 * 24px) / 12 * 2 + 48px)}
+  .paper-sources__heading{grid-column:1/3}
+  .paper-sources__heading h2{font-size:34px;line-height:1.05}
+  .paper-sources__body{grid-column:3/13}
+}
+/* One reading-heading size on every paper. */
+.paper-reading__main h2,.paper-page--reading .paper-reading__main h2{font-size:34px;max-width:20ch}
+/* The reported-results heading speaks at the section size. */
+.paper-page .logical-study .ls-heading h2{font-size:clamp(28px,3.3vw,47px);line-height:1.02}
+/* Formulas read as mathematics, not source code. */
+.paper-content code{font:italic 1em/inherit RFArchivo,Arial,sans-serif;letter-spacing:0;padding:0;background:none}
+/* Small notes keep 4.5:1 on the porcelain ground. */
+.paper-reading__aside .paper-scope,.paper-object__scope,.paper-wayfinding>span{color:#625665}
+/* The hero keeps its title beside its object down to 900px. */
+@media(max-width:1050px) and (min-width:901px){
+  .paper-opening__main,.paper-opening__authors,.paper-page--logical-error-management .paper-opening__main,.paper-page--logical-error-management .paper-opening__authors{grid-column:3/8}
+  .paper-opening h1{font-size:clamp(28px,3.9vw,40px)}
+  .paper-object{grid-column:8/13;grid-row:1/span 3;min-height:440px}
+  .paper-object .concept-study__scene{flex:1;height:auto;min-height:400px}
+}
+
+/* Loaded instruments speak the page's language: choices are underlined mono
+   words, not boxed form buttons; the selected one carries the copper rule. */
+.paper-instrument :is(.measurement-study,.route-study) :is(button,select){border:0;border-radius:0;background:transparent;box-shadow:none;outline:0;font-family:RFMono,monospace;font-size:12px;letter-spacing:.01em;color:var(--paper-ink);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--paper-ink) 35%,transparent);text-decoration-thickness:1px;text-underline-offset:6px}
+.paper-instrument :is(.measurement-study,.route-study) :is(button[aria-pressed=true],button[data-active=true]){background:transparent;color:var(--paper-ink);font-weight:600;outline:0;text-decoration-color:#9c6548;text-decoration-thickness:2px}
+.paper-instrument :is(.measurement-study,.route-study) button[data-selected=true]{outline:0;text-decoration-color:#9c6548;text-decoration-thickness:2px}
+.paper-instrument :is(.measurement-study,.route-study) :is(button,select):hover{color:#9c6548}
+.paper-instrument :is(.measurement-study,.route-study) :is(button,select,input):focus-visible{outline:2px solid var(--paper-ink);outline-offset:2px}
+.paper-instrument :is(.measurement-study,.route-study) select{padding-right:4px;cursor:pointer}
+.paper-instrument :is(.measurement-study,.route-study) input[type=range]{accent-color:#9c6548;height:28px}
+.paper-instrument .route-study .route-study__canvas{border:0;background:transparent}
+/* The MED matrix is type on the ground; only its tint carries the value. */
+.paper-instrument .measurement-study .ms-matrix button{text-decoration:none;border:0;font-weight:400}
+.paper-instrument .measurement-study .ms-matrix button[aria-pressed=true]{font-weight:600;outline:0;box-shadow:inset 0 -2px 0 #9c6548}
+.paper-page .logical-study .ls-depth-options button[aria-pressed=true]{background:transparent;text-decoration:underline;text-decoration-color:#9c6548;text-decoration-thickness:2px;text-underline-offset:8px}
+
+/* All work: labels fit their words; the meta line never breaks; the overview
+   and its controls share the header's gutter. */
+.research-label{width:max-content;max-width:240px}
+.research-label small{white-space:nowrap}
+.research-label__arrow{margin-left:6px}
+.research-overview__meta,.research-overview__controls{left:var(--gutter);right:var(--gutter)}
+.research-current [data-research-intro]>p{font-size:14px}

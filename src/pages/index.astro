@@ -48,6 +48,7 @@ const studies = exhibition.map(study=>({...study,paper:papers.find(p=>p.id===stu
           </div>
           <div class="exhibition-scene" data-scene role="group" aria-label="Six research studies share one space. Scroll between them, then use each study’s control." />
           <nav class="exhibition-context" aria-label="Neighbouring studies"><a data-context="past" hidden></a><a data-context="next" hidden></a></nav>
+          <nav class="exhibition-trail" aria-label="The six works">{studies.map((study,i)=><a data-trail={i} href={localPath(`publication/${study.id}/`)} hidden><span>{study.index}</span> {study.label}</a>)}</nav>
         </div>
         <div class="exhibition-progress"><span data-current-label>00 / Identity and practice</span><a data-scroll-cue href="#work-1">Scroll to begin the research ↓</a><a href={localPath('publication/')}>All work ↗</a></div>
       </div>

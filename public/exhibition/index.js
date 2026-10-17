@@ -12,8 +12,10 @@
   const fallback = [[.19,.19],[.71,.13],[.88,.50],[.72,.84],[.24,.84],[.10,.53]];
   let orbit = 0, active = -1, scene = null, stations = [], pointer = null, returningFocus = false;
   const suppressedClicks = new WeakSet();
-  // Each label sits beside its own model: above it if there is room, else to a
-  // side or below, never on another model, another label or the centre text.
+  // Each label sits on the outward side of its own model, away from the
+  // centre title, so it turns with the ring and never lands on a neighbour.
+  // A label keeps its side until that side becomes blocked.
+  const sides = new Map();
   function layout(next) {
     if (next) stations = next;
     const W = root.clientWidth, H = root.clientHeight, narrow = W <= 700;
@@ -23,29 +25,45 @@
     const overlap = (a,b,pad=0) => Math.max(0,Math.min(a.right+pad,b.right)-Math.max(a.left-pad,b.left))*Math.max(0,Math.min(a.bottom+pad,b.bottom)-Math.max(a.top-pad,b.top));
     const panel = rect(q('.research-current')), top = rect(q('.research-overview__meta')).bottom+6, bottom = rect(q('.research-overview__controls')).top-6;
     const boxes = labels.map((_,i) => { const b = stations.find(s => s.index === i)?.bounds; return b ? {left:b.left*W,right:b.right*W,top:b.top*H,bottom:b.bottom*H} : null; });
+    const centre = {x:(panel.left+panel.right)/2,y:(panel.top+panel.bottom)/2};
     const placed = [];
-    labels.forEach((label,i) => {
-      const w = label.offsetWidth, h = label.offsetHeight, box = boxes[i];
+    const order = labels.map((_,i) => i).sort((a,b) => (sides.has(b)?1:0)-(sides.has(a)?1:0));
+    for (const i of order) {
+      const label = labels[i], w = label.offsetWidth, h = label.offsetHeight, box = boxes[i];
       if (!box) {
         const point = narrow ? phone[i] : fallback[i];
         label.style.left = (point[0]*100).toFixed(3)+'%'; label.style.top = (point[1]*100).toFixed(3)+'%';
-        return;
+        continue;
       }
-      const cx = (box.left+box.right)/2, cy = (box.top+box.bottom)/2, gap = 8;
-      const candidates = [[cx,box.top-gap-h/2],[box.left+w/2,box.top-gap-h/2],[box.right-w/2,box.top-gap-h/2],[box.left-gap-w/2,cy],[box.right+gap+w/2,cy],[cx,box.bottom+gap+h/2]];
-      let best = null;
-      candidates.forEach(([x0,y0],k) => {
-        const x = clamp(x0,w/2+10,W-w/2-10), y = clamp(y0,top+h/2,Math.max(top+h/2,bottom-h/2));
+      const cx = (box.left+box.right)/2, cy = (box.top+box.bottom)/2, gap = 10, outX = cx >= centre.x ? 1 : -1, outY = cy >= centre.y ? 1 : -1;
+      const places = {
+        above:[cx,box.top-gap-h/2], below:[cx,box.bottom+gap+h/2],
+        outer:[outX>0?box.right+gap+w/2:box.left-gap-w/2,cy], inner:[outX>0?box.left-gap-w/2:box.right+gap+w/2,cy],
+        corner:[outX>0?box.right-w/2:box.left+w/2,outY>0?box.bottom+gap+h/2:box.top-gap-h/2]
+      };
+      const preference = narrow ? ['above','below','outer','corner'] : outY < 0 ? ['above','outer','corner','below','inner'] : ['below','outer','corner','above','inner'];
+      const test = name => {
+        const [x0,y0] = places[name], x = Math.max(w/2+10,Math.min(W-w/2-10,x0)), y = Math.max(top+h/2,Math.min(Math.max(top+h/2,bottom-h/2),y0));
         const area = {left:x-w/2,right:x+w/2,top:y-h/2,bottom:y+h/2};
-        let score = k*30+Math.hypot(x-x0,y-y0)*2;
-        boxes.forEach((other,j) => { if (other) score += overlap(area,other,4)*(j===i?2:1.4); });
-        placed.forEach(other => { score += overlap(area,other,10)*8; });
-        score += overlap(area,panel,12)*8;
-        if (!best || score < best.score) best = {x,y,area,score};
-      });
-      placed.push(best.area);
-      label.style.left = best.x.toFixed(1)+'px'; label.style.top = best.y.toFixed(1)+'px';
-    });
+        let blocked = overlap(area,panel,8) > 0 || placed.some(other => overlap(area,other,6) > 0);
+        boxes.forEach((other,j) => { if (other && overlap(area,other,j === i ? 0 : 4) > 0) blocked = true; });
+        return {x,y,area,blocked,clamp:Math.hypot(x-x0,y-y0)};
+      };
+      let choice = null;
+      const kept = sides.get(i);
+      if (kept) { const t = test(kept); if (!t.blocked && t.clamp < 24) choice = {name:kept,...t}; }
+      if (!choice) for (const name of preference) { const t = test(name); if (!t.blocked && t.clamp < 24) { choice = {name,...t}; break; } }
+      if (!choice) {
+        // Every side is blocked: take the place that covers the least.
+        let best = null;
+        for (const name of preference) { const t = test(name); let cost = overlap(t.area,panel,8)*3+t.clamp*20; for (const other of placed) cost += overlap(t.area,other,6)*4; boxes.forEach((other,j) => { if (other) cost += overlap(t.area,other,4)*(j === i ? 2 : 1); }); if (!best || cost < best.cost) best = {name,cost,...t}; }
+        choice = best;
+      }
+      // A label that must change side fades to its new place instead of sweeping.
+      if (kept && kept !== choice.name && label.animate) label.animate([{opacity:0},{opacity:1}],{duration:240,easing:'ease-out'});
+      sides.set(i,choice.name); placed.push(choice.area);
+      label.style.left = choice.x.toFixed(1)+'px'; label.style.top = choice.y.toFixed(1)+'px';
+    }
   }
   function select(index) {
     if (index === active) return;
@@ -54,6 +72,7 @@
     q('[data-research-intro]').hidden = index >= 0;
     q('[data-research-detail]').hidden = index < 0;
     root.dataset.active = String(index);
+    scene?.setView({overview:true,orbit,focus:index});
     if (index < 0) return;
     const work = works[index];
     q('[data-research-headline]').replaceChildren(...work.headline.map(line => { const span=document.createElement('span');span.textContent=line;return span; }));
@@ -84,7 +103,7 @@
     label.addEventListener('focus',() => { if (!returningFocus) select(i); });
   });
   q('[data-research-clear]').addEventListener('click',clearSelection);
-  root.addEventListener('keydown',event => { if (event.key === 'Escape') clearSelection(); });
+  document.addEventListener('keydown',event => { if (event.key === 'Escape' && active >= 0) clearSelection(); });
   range.addEventListener('keydown',event => {
     if(['ArrowRight','ArrowUp','ArrowLeft','ArrowDown','Home','End'].includes(event.key)){
       event.preventDefault();turn(event.key==='Home'?-35:event.key==='End'?35:orbit+(['ArrowRight','ArrowUp'].includes(event.key)?3:-3));
@@ -120,7 +139,7 @@
     });
     target.addEventListener('pointerup',event=>finishPointer(event));
     target.addEventListener('pointercancel',event=>finishPointer(event,true));
-    target.addEventListener('lostpointercapture',event=>finishPointer(event,true));
+    target.addEventListener('lostpointercapture',event=>{if(event.target===target)finishPointer(event,true);});
     target.addEventListener('pointerleave',event=>{if(pointer&&!pointer.engaged)finishPointer(event,true);});
     target.addEventListener('click',event=>{
       if (!suppressedClicks.has(target)) return;
@@ -128,7 +147,9 @@
       event.preventDefault();event.stopImmediatePropagation();
     });
   }
-  host.addEventListener('click',()=>select(-1));
+  const stationAt = event => { const box = host.getBoundingClientRect(), x = (event.clientX-box.left)/box.width, y = (event.clientY-box.top)/box.height; const hit = stations.filter(s => s.bounds && x >= s.bounds.left && x <= s.bounds.right && y >= s.bounds.top && y <= s.bounds.bottom).sort((a,b) => (a.bounds.right-a.bounds.left)-(b.bounds.right-b.bounds.left))[0]; return hit ? hit.index : -1; };
+  host.addEventListener('click',event=>{const i=stationAt(event);if(i>=0)location.href=works[i].page;else select(-1);});
+  host.addEventListener('pointermove',event=>{if(pointer?.engaged||event.pointerType==='touch')return;const i=stationAt(event);host.style.cursor=i>=0?'pointer':'';if(i>=0)select(i);});
   root.addEventListener('exhibitionscenedraw',event => {root.dataset.ready=String(Boolean(event.detail.ready));layout(event.detail.stations);});
   try {
     const source=window.ROUTE_SOURCE,compiler=window.RouteCompiler;
@@ -145,5 +166,5 @@
   window.addEventListener('blur',()=>{if(pointer)finishPointer({pointerId:pointer.id},true);});
   window.addEventListener('pagehide',event => {if(pointer)finishPointer({pointerId:pointer.id},true);if(!event.persisted){observer.disconnect();scene?.destroy?.();}});
   window.addEventListener('pageshow',event => {if(event.persisted){scene?.resize?.();scene?.setView?.({overview:true,orbit});layout(scene?.getState?.().stations);}});
-  const hash=decodeURIComponent(location.hash.slice(1));const selected=works.findIndex(work=>work.id===hash);if(selected>=0)select(selected);
+  const hash=decodeURIComponent(location.hash.slice(1));const selected=works.findIndex(work=>work.id===hash);if(selected>=0){select(selected);requestAnimationFrame(()=>scrollTo({top:0,behavior:'instant'}));}
 })();

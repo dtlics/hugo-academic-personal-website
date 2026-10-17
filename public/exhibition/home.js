@@ -23,7 +23,7 @@
     const ctx=document.createElement('canvas').getContext('2d');ctx.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;if('letterSpacing'in ctx)ctx.letterSpacing=style.letterSpacing;
     const li=ctx.measureText('Li'),dantong=ctx.measureText('Dantong'),ascent=li.fontBoundingBoxAscent||parseFloat(style.fontSize)*.95;
     const lastLeft=(last.left-box.left)/s,lastTop=(last.top-box.top)/s,firstLeft=(first.left-box.left)/s,firstTop=(first.top-box.top)/s;
-    metricsCache={key,firstWidth:first.width/s,wholeWidth:whole.width/s,liLeft:lastLeft-li.actualBoundingBoxLeft,liRight:lastLeft+li.actualBoundingBoxRight,liCapTop:lastTop+ascent-li.actualBoundingBoxAscent,liBaseline:lastTop+ascent,firstRight:firstLeft+dantong.actualBoundingBoxRight,firstCapTop:firstTop+ascent-dantong.actualBoundingBoxAscent,firstDescent:firstTop+ascent+dantong.actualBoundingBoxDescent};
+    metricsCache={key,fontSize:parseFloat(style.fontSize),firstBaseline:firstTop+ascent,firstWidth:first.width/s,wholeWidth:whole.width/s,liLeft:lastLeft-li.actualBoundingBoxLeft,liRight:lastLeft+li.actualBoundingBoxRight,liCapTop:lastTop+ascent-li.actualBoundingBoxAscent,liBaseline:lastTop+ascent,firstRight:firstLeft+dantong.actualBoundingBoxRight,firstCapTop:firstTop+ascent-dantong.actualBoundingBoxAscent,firstDescent:firstTop+ascent+dantong.actualBoundingBoxDescent};
     return metricsCache;
   }
   let notchKey='';
@@ -40,24 +40,25 @@
       // Phone: a compact identity row. The portrait docks top left, the name
       // beside it, and the story keeps the rest of the screen.
       const nameMove=reduced.matches?0:step(phase,0,.55),photoMove=reduced.matches?0:step(phase,.22,1.0),sizeMove=reduced.matches?0:step(phase,.12,.78);
-      const photoStart=Math.max(.29,(h*.05+Math.min(innerWidth*.1624,62)+100)/h)*h,dockSize=clamp(w*.24,tinyPhone?64:70,96),dockTop=h*(shortPhone?.012:.02),nameLeft=w*.03+dockSize+14,nameDock=Math.min(.6,(w-nameLeft-6)/Math.max(1,m.wholeWidth));
+      const photoStart=Math.max(.29,(h*.05+Math.min(innerWidth*.1624,62)+100)/h)*h,dockSize=clamp(w*.22,tinyPhone?54:shortPhone?60:70,92),dockTop=h*(shortPhone?.012:.02),nameLeft=w*.03+dockSize+14,nameDock=Math.min(.6,(w-nameLeft-6)/Math.max(1,m.wholeWidth));
       setNotch(0,0);
       pose(photo,mix(w*.25,w*.03,photoMove),mix(photoStart,dockTop,photoMove),mix(1,dockSize/natural,sizeMove));
       nameScale=mix(1,nameDock,nameMove);pose(name,mix(w*.03,nameLeft,nameMove),mix(h*.05,dockTop+2,nameMove),nameScale);
-    }else{
-      // Docked, "Li" sits in the portrait's cut: name and photograph form one
-      // mark. The cut is sized from the type, so the two always interlock.
-      const nameMove=reduced.matches?0:step(phase,0,.86),photoMove=reduced.matches?0:step(phase,.06,1),nameDock=side?.34:.38;
-      const nameX=.035*w,nameY=.025*h,liLeft=nameX+m.liLeft*nameDock,liRight=nameX+m.liRight*nameDock,capTop=nameY+m.liCapTop*nameDock,baseline=nameY+m.liBaseline*nameDock;
-      // The photograph's top edge clears the descender of "Dantong"; "Li" stands in the cut.
-      const dockTop=Math.max(capTop-2,nameY+m.firstDescent*nameDock+9),room=h-dockTop-profile.offsetHeight-34,dockSize=clamp(Math.min(m.firstWidth*nameDock*1.12,room),110,w*.26);
-      const notchW=(liRight-liLeft+14)/dockSize,notchH=(baseline-dockTop+10)/dockSize;setNotch(notchW,notchH);
-      // At the opening the same cut holds the end of "Dantong": the two lock
-      // together at both ends of the move.
-      const openX=.03*w,openY=.14*h,gRight=openX+m.firstRight,gBottom=openY+m.firstDescent,openSize=Math.min(natural,h*.84,(h-18-gBottom)/Math.max(.2,1-notchH)),openLeft=Math.max(.34*w,gRight+12-notchW*openSize),openTop=gBottom+8-notchH*openSize;
-      pose(photo,mix(openLeft,liLeft,photoMove),mix(openTop,dockTop,photoMove),mix(openSize/natural,dockSize/natural,photoMove));
-      nameScale=mix(1,nameDock,nameMove);pose(name,mix(openX,nameX,nameMove),mix(openY,nameY,nameMove),nameScale);
-      profile.style.top=`${mix(h*.7,dockTop+dockSize+20,arrival).toFixed(1)}px`;profile.style.left=`${mix(.04*w,liLeft,arrival).toFixed(1)}px`;
+      q('.exhibition-stories').style.top=`${(dockTop+dockSize+14).toFixed(1)}px`;
+    }else{q('.exhibition-stories').style.removeProperty('top');
+      // Name and photograph move as one mark. The cut always holds a glyph of
+      // the name: the end of "Dantong" at the opening, "Li" when docked; between
+      // the two the photograph slides beneath the name on the same curve.
+      const move=reduced.matches?0:step(phase,0,.94),nameDock=side?.34:.38,descent=Math.max(m.firstDescent,m.firstBaseline+.23*m.fontSize);
+      nameScale=mix(1,nameDock,move);const sNow=nameScale,nameX=mix(.03*w,.035*w,move),nameY=mix(.14*h,.025*h,move);
+      // Docked geometry: the cut fits "Li"; the photograph's top edge clears the descender; its width is the width of "Dantong".
+      const dX=.035*w,dY=.025*h,dLiLeft=dX+m.liLeft*nameDock,dLiRight=dX+m.liRight*nameDock,dBase=dY+m.liBaseline*nameDock,dTop=Math.max(dY+m.liCapTop*nameDock-2,dY+descent*nameDock+9),room=h-dTop-profile.offsetHeight-34,dockSize=clamp(Math.min(m.firstWidth*nameDock,room),110,w*.26);
+      const notchW=(dLiRight-dLiLeft+14)/dockSize,notchH=(dBase-dTop+10)/dockSize;setNotch(notchW,notchH);
+      const openSize=Math.min(natural,h*.84,(h-20-(.14*h+descent))/Math.max(.2,1-notchH)),size=mix(openSize,dockSize,move);
+      // Two anchors measured on the name as it is drawn now.
+      const gX=nameX+m.firstRight*sNow+8-notchW*size,gY=nameY+descent*sNow+8-notchH*size,liX=nameX+m.liLeft*sNow,liY=Math.max(nameY+m.liCapTop*sNow-2,nameY+descent*sNow+9);
+      pose(photo,mix(gX,liX,move),mix(gY,liY,move),size/natural);pose(name,nameX,nameY,nameScale);
+      profile.style.top=`${mix(h*.7,dTop+dockSize+20,arrival).toFixed(1)}px`;profile.style.left=`${mix(.04*w,dLiLeft,arrival).toFixed(1)}px`;
     }
     q('[data-name] .mono').style.fontSize=(11/nameScale).toFixed(2)+'px';
     // Phone: the full role fades as the identity docks; a short role returns under the name.
@@ -75,7 +76,8 @@
     // The readout and hint share the story's left edge (or the band's, beside a story column).
     sceneHost.style.setProperty('--read-left',`${(narrow?Math.max(18,readLeft):side?readRight:readLeft).toFixed(1)}px`);
     const captionHeight=sceneHost.querySelector('.study-caption')?.offsetHeight||0;
-    scene?.setView({layout:{caption:captionHeight,mode:side?'side':narrow?'phone':'stage',readTop:side?0:readingSpace-sceneTop-field.top+world.getBoundingClientRect().top,readLeft,readRight,identityRight:Math.round(identityRight)}});
+    const identityBottom=Math.max(...['[data-photo] .exhibition-photo','.exhibition-profile'].map(s=>{const r=q(s).getBoundingClientRect();return r.height&&!q(s).hidden?r.bottom:0;}))-field.top;
+    scene?.setView({layout:{caption:captionHeight,identityBottom:Math.round(identityBottom),mode:side?'side':narrow?'phone':'stage',readTop:side?0:readingSpace-sceneTop-field.top+world.getBoundingClientRect().top,readLeft,readRight,identityRight:Math.round(identityRight)}});
     // A reading pause, then a shared eased move; no hard chapter cuts. After
     // the last reading pause the works gather into one trail: a coda, not a cut.
     const close=reduced.matches?0:step(phase,10.3,10.95),cameraPosition=at+step(fraction,.60,1);scene?.setView({arrival,travel:cameraPosition/(count-1),coda:close});current=Math.min(count-1,Math.floor(position+.22));
@@ -91,7 +93,7 @@
     controls?.setVisible(presence>.01&&!reduced.matches&&phase<=10.3,presence);
     q('[data-current-label]').textContent=phase<1.1?'00 / Identity and practice':phase>=10.5?'Six works / 2023–2026':`${String(current+1).padStart(2,'0')} / ${String(count).padStart(2,'0')}`;
     const cueText=phase<.6?'Scroll to begin the research ↓':phase<10.3?'Scroll through the work ↓':'More to explore ↓';if(q('[data-scroll-cue]').textContent!==cueText)q('[data-scroll-cue]').textContent=cueText;
-    root.dataset.phase=phase.toFixed(3);root.dataset.study=String(active);root.dataset.travel=(cameraPosition/(count-1)).toFixed(4);root.dataset.presence=presence.toFixed(3);
+    root.dataset.phase=phase.toFixed(3);root.dataset.study=String(active);root.dataset.travel=(cameraPosition/(count-1)).toFixed(4);root.dataset.presence=presence.toFixed(3);root.dataset.trail=(reduced.matches?0:step(phase,10.85,11.05)).toFixed(3);
   }
   function inkRight(){const range=document.createRange();let right=0;for(const story of stories)for(const part of story.querySelectorAll('.study-identity,h2>span,.study-note,.study-links')){range.selectNodeContents(part);right=Math.max(right,range.getBoundingClientRect().right,part.getBoundingClientRect().left);}return right;}
   // The prior and the next work carry a quiet name; choosing one travels there
@@ -106,8 +108,13 @@
       link.hidden=!settled||!b||target<0||target>=count;if(link.hidden)return;
       const info=contextOf(target);link.textContent=`${info.number} ${info.label} ${link.dataset.context==='next'?'→':'←'}`;link.href=`#work-${target+1}`;link.dataset.target=String(target);
       // Below the object if that is clear of the study's own labels, else above it, else not at all.
-      const w=link.offsetWidth,h=link.offsetHeight,x=clamp(box.left-origin.left+(b.left+b.right)/2*box.width,w/2+8,origin.width-w/2-8),busy=Array.from(sceneHost.querySelectorAll('.study-marker:not([hidden]),.study-grip__label,.study-resource-group,.study-mode')).map(node=>node.getBoundingClientRect()).filter(r=>r.width);
-      const clear=y=>!busy.some(r=>r.left-origin.left<x+w/2+6&&r.right-origin.left>x-w/2-6&&r.top-origin.top<y+h+4&&r.bottom-origin.top>y-4)&&y>(side?0:q('.exhibition-stories').offsetTop+Math.max(...stories.map(story=>story.offsetHeight)));
+      // Left-aligned under an earlier work, right-aligned under the next one.
+      const w=link.offsetWidth,h=link.offsetHeight,objLeft=box.left-origin.left+b.left*box.width,objRight=box.left-origin.left+b.right*box.width,x=clamp(link.dataset.context==='next'?objRight-w/2:objLeft+w/2,w/2+8,origin.width-w/2-8);
+      const active=stations?.find(s=>s.index===reading)?.bounds,busy=Array.from(sceneHost.querySelectorAll('.study-marker:not([hidden]),.study-grip__label:not([hidden]),.study-resource-group,.study-caption')).map(node=>node.getBoundingClientRect()).filter(r=>r.width).map(r=>({left:r.left-40,right:r.right+40,top:r.top,bottom:r.bottom}));
+      const story=stories[reading];if(story)for(const part of story.querySelectorAll('.study-identity,h2,.study-note,.study-links')){const r=part.getBoundingClientRect();if(r.width)busy.push({left:r.left-12,right:r.right+12,top:r.top-6,bottom:r.bottom+6});}
+      for(const node of[q('.exhibition-profile'),q('[data-photo] .exhibition-photo')]){const r=node.getBoundingClientRect();if(r.width&&!node.hidden)busy.push({left:r.left-16,right:r.right+16,top:r.top-8,bottom:r.bottom+8});}
+      if(active)busy.push({left:box.left+active.left*box.width-12,right:box.left+active.right*box.width+12,top:box.top+active.top*box.height-8,bottom:box.top+active.bottom*box.height+8});
+      const clear=y=>y>16&&!busy.some(r=>r.left-origin.left<x+w/2&&r.right-origin.left>x-w/2&&r.top-origin.top<y+h&&r.bottom-origin.top>y);
       const below=box.top-origin.top+b.bottom*box.height+6,above=box.top-origin.top+b.top*box.height-h-4,y=clear(below)?below:clear(above)?above:null;
       link.hidden=y===null;if(link.hidden)return;
       link.style.left=`${x.toFixed(1)}px`;link.style.top=`${y.toFixed(1)}px`;link.style.opacity=presence.toFixed(3);link.style.pointerEvents=presence>.95?'':'none';
@@ -127,7 +134,16 @@
     if(phase>=10.3){event.preventDefault();const footer=document.getElementById('contact');footer?.scrollIntoView({behavior:reduced.matches||event.detail===0?'auto':'smooth'});if(event.detail===0)footer?.querySelector('a')?.focus({preventScroll:true});return;}
     event.preventDefault();goTo(phase<1.1?0:Math.min(count-1,Number(root.dataset.study)>=0?Number(root.dataset.study)+1:current+1),event.detail===0);
   });
-  sceneHost.addEventListener('exhibitionscenedraw',event=>placeContext(event.detail.stations));
+  // In the coda each work in the trail carries its name: the trail is an index.
+  const trailLinks=Array.from(root.querySelectorAll('[data-trail]'));
+  function placeTrail(stations){
+    const alpha=Number(root.dataset.trail)||0,box=sceneHost.getBoundingClientRect(),origin=world.getBoundingClientRect();
+    trailLinks.forEach(link=>{const b=stations?.find(s=>s.index===Number(link.dataset.trail))?.bounds;link.hidden=alpha<.01||!b;if(link.hidden)return;
+      // Beside the work on the open side: right if it fits, else left.
+      const h=link.offsetHeight,lw=link.offsetWidth,right=box.left-origin.left+b.right*box.width+10,left=box.left-origin.left+b.left*box.width-10-lw,x=right+lw<=origin.width-6?right:Math.max(6,left),y=box.top-origin.top+(b.top+b.bottom)/2*box.height-h/2;
+      link.style.left=`${x.toFixed(1)}px`;link.style.top=`${y.toFixed(1)}px`;link.style.opacity=alpha.toFixed(3);link.style.pointerEvents=alpha>.9?'':'none';});
+  }
+  sceneHost.addEventListener('exhibitionscenedraw',event=>{placeContext(event.detail.stations);placeTrail(event.detail.stations);});
   function request(){if(!raf)raf=requestAnimationFrame(render)}
   function resize(){
     const start=scrollY+track.getBoundingClientRect().top,within=viewportHeight&&scrollY>=start&&scrollY<start+viewportHeight*12.5,readingPhase=viewportHeight?clamp((scrollY-start)/viewportHeight,0,12.5):0;
@@ -137,6 +153,8 @@
   }
   addEventListener('scroll',request,{passive:true});addEventListener('resize',resize,{passive:true});reduced.addEventListener('change',resize);
   addEventListener('pagehide',event=>{if(!event.persisted){controls?.destroy?.();scene?.destroy?.();}});addEventListener('pageshow',event=>{if(event.persisted)resize()});resize();
+  document.fonts?.ready.then(()=>{metricsCache=null;notchKey='';resize();});
+  if(globalThis.ResizeObserver)new ResizeObserver(()=>{metricsCache=null;request();}).observe(q('.exhibition-stories'));
   if(location.hash==='#about'){const about=document.querySelector('.site-header nav a[href$="about/"]');if(about)location.replace(about.href);}
   else if(location.hash==='#featured')scrollTo({top:innerHeight*1.6,behavior:'auto'});
   const staticTarget=/^#work-(\d)$/.exec(location.hash);if(staticTarget&&(reduced.matches||!scene))root.querySelectorAll('.exhibition-static article')[Number(staticTarget[1])-1]?.scrollIntoView();

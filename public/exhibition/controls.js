@@ -3,10 +3,10 @@
   'use strict';
   const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
   const definitions=[
-    {key:'layer',min:0,max:27,step:1,label:'Circuit layer',verb:'Drag to trace ↔',hint:'Drag the marked point to trace layers. Click Mode to change paths.'},
+    {key:'layer',min:0,max:27,step:1,label:'Circuit layer',verb:'Drag to trace\u00a0↔',hint:'Drag the marked point to trace the moments. Click Mode to follow another path.'},
     {key:'repair',choices:[['0','Sample'],['1','Check'],['2','Combine']],label:'Detection and cancellation',hint:'Click a stage. Signed weights change the estimate, not the quantum state.'},
-    {key:'window',min:0,max:2,step:1,label:'Peephole step',verb:'Move the window ↔',hint:'Drag the window, or click the gates to step through this identity rewrite.'},
-    {key:'gradient',min:-1,max:1,step:.02,label:'Circuit angle',verb:'Turn the angle ↻',hint:'Drag the angle marker. For this Y rotation, mean X/Z products give the derivative.'},
+    {key:'window',min:0,max:2,step:1,label:'Peephole step',verb:'Move the window\u00a0↔',hint:'Drag the window, or click the gates to step through this identity rewrite.'},
+    {key:'gradient',min:-1,max:1,step:.02,label:'Circuit angle',verb:'Turn the angle\u00a0↻',hint:'Drag the angle marker. For this Y rotation, mean X/Z products give the derivative.'},
     {key:'distance',choices:[['5','d = 5'],['7','d = 7'],['9','d = 9']],label:'Code distance',hint:'Drag the model to turn it. Each new code size still needs training.'},
     {key:'order',choices:[['ab','A → B'],['coherent','Coherent'],['ba','B → A']],label:'Quantum-switch order',hint:'Drag the marked axis to turn the bases. Target: equal mixture of 0 and 1.'},
   ];
@@ -54,7 +54,7 @@
       button.addEventListener('pointermove',event=>{
         if(!pointer||pointer.button!==button||event.pointerId!==pointer.id)return;
         const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;
-        if(!pointer.engaged&&(pointer.touch?Math.abs(dx)>4&&Math.abs(dx)>Math.abs(dy)*1.15:Math.hypot(dx,dy)>4)){pointer.engaged=true;button.dataset.dragging='true';button.dataset.dragged='true';button.setPointerCapture(event.pointerId);}
+        if(!pointer.engaged&&(pointer.touch&&!['gradient','angle'].includes(def.key)?Math.abs(dx)>4&&Math.abs(dx)>Math.abs(dy)*1.15:Math.hypot(dx,dy)>4)){pointer.engaged=true;button.dataset.dragging='true';button.dataset.dragged='true';button.setPointerCapture(event.pointerId);}
         if(!pointer.engaged)return;
         if(event.cancelable)event.preventDefault();
         const direct=scene.valueAt?.(def.key,event.clientX,event.clientY,pointer.start,dx);if(direct!==null&&direct!==undefined){send(def.key,direct);return;}
@@ -84,8 +84,8 @@
           else for(const [value,label]of def.choices)createChoice(def.key,value,label,def.label);
         }else createGrip(def);
         if(index===3)createResourceGroup('derivativeOrder','Order',[['1','1st'],['2','2nd'],['3','3rd']],'Derivative order');
-        if(index===5)createGrip({key:'angle',min:0,max:180,step:1,label:'Measurement basis angle',verb:'Turn the bases ↻'});
-        if(index===4)createGrip({key:'transformerYaw',min:-.55,max:.55,step:.04,label:'Turn the architecture view',verb:'Drag to turn ↻'});
+        if(index===5)createGrip({key:'angle',min:0,max:180,step:1,label:'Measurement basis angle',verb:'Turn the bases\u00a0↻'});
+        if(index===4)createGrip({key:'transformerYaw',min:-.55,max:.55,step:.04,label:'Turn the architecture view',verb:'Drag to turn\u00a0↻'});
         hint.textContent=def.hint;
       }else hint.textContent='Relations learned by a decoder. A concept view of transfer across code sizes.';
       readRow.querySelector('.study-mode')?.remove();
@@ -128,7 +128,7 @@
       if(index===1)text=(shortHome?['Sample signed operations.','Reject flagged runs.','Combine accepted, signed results.']:['Sample the PEC operations with signed weights.','Use error checks to reject flagged runs.','Combine the accepted, signed results.'])[state.repair||0];
       if(index===2)text=['4 gates · each half stays unchanged on its own.','2 gates · H H cancels at the seam. X X remains.','0 gates · X X cancels. The circuit is the identity.'][state.window||0];
       if(index===3){const example=state.example?.gradient,order=state.derivativeOrder||1,theta=(state.gradient||0)*Math.PI,derivative=example?.kthDerivative??Math.cos(theta+order*Math.PI/2);text=`Order ${order} · θ ${compact(theta)} rad · joint readout ${compact(example?.jointExpectation??derivative)}`;}
-      if(index===4)text=shortHome?`d = ${state.distance||5} · local proposal → residual decoder`:`Code distance ${state.distance||5} · shared transformer → local proposals → residual decoder`;
+      if(index===4)text=shortHome?`d = ${state.distance||5} · local proposal → residual decoder`:`d = ${state.distance||5} · transformer → local proposals → residual\u00a0decoder`;
       if(index===5){
         const angle=Number(state.angle??52),med=Math.abs(Math.sin(angle*Math.PI/180))/Math.SQRT2,coherent=state.order==='coherent',port=coherent?med*med/2:.5;
         text=`θ ${degrees(angle)} · minus port ${(port*100).toFixed(1)}% · ${coherent?`MED ${med.toFixed(3)}`:'MED not inferred'}`;
@@ -138,7 +138,6 @@
       if(phoneHome&&index===3){const order=state.derivativeOrder||1,theta=(state.gradient||0)*Math.PI; text=`Order ${order} · θ ${compact(theta)} rad · mean ${compact(state.example?.gradient?.jointExpectation??Math.cos(theta+order*Math.PI/2))}`;}
       if(phoneHome&&index===4)text=`d = ${state.distance||5} · proposal → residual decoder`;
       if(state.transition?.active&&state.transition.kind==='peephole'&&index===2)text='Rewriting the selected gates…';
-      if(state.transition?.active&&state.transition.kind==='route'&&index===0)text=`Moving to layer ${state.layer} / ${state.routeLayers||27}…`;
       if(state.transition?.active&&state.transition.kind==='derivativeOrder'&&index===3)text='Changing the control registers…';
       if(state.transition?.active&&state.transition.kind==='distance'&&index===4)text='Changing the code size…';
       setText(readout,text);
@@ -162,6 +161,7 @@
       if(root.hidden)return;
       const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;
       const compact=compactAnnotations(),origin=root.getBoundingClientRect(),captionBox=caption.getBoundingClientRect();
+      const stageHome=Boolean(host.classList?.contains('exhibition-scene'))&&!compact&&state.resourcePlacement!=='side',minLeft=stageHome?Math.max(0,(parseFloat(getComputedStyle(host).getPropertyValue('--read-left'))||0)-72):0;
       const limit=Math.max(45,captionBox.top-origin.top-12);
       // Parameter values and changing mesh bounds are deliberately absent.
       if(!state.transition?.active)geometryKey=[state.derivativeOrder,state.distance,state.window,state.order,state.repair,state.selectedMode].join('/');
@@ -208,7 +208,7 @@
         node.hidden=false;
         if(kind==='marker'||kind==='grip-label'){
           const short=/^(Before|After|Input|Output|Ry\(θ\)|\d+ gates)$/.test(node.textContent);
-          node.style.width=(id==='marker-gradient-control'&&compact?110:short?62:compact?92:120)+'px';node.style.maxWidth='none';
+          node.style.width='max-content';node.style.maxWidth=(compact?122:164)+'px';node.style.whiteSpace=kind==='grip-label'?'nowrap':'';
         }
         const b=node.getBoundingClientRect(),rw=b.width,rh=b.height;if(!rw||!rh)return;
         const cached=annotationPositions.get(id);
@@ -224,6 +224,8 @@
             'marker-peephole-after':{side:'left',gap:16},
             'marker-peephole-count':{side:'right',gap:14},
             'marker-gradient-mean':{side:'right',gap:16},
+            'marker-transformer-residual':{side:'below',gap:10},
+            'marker-transformer-queries':{side:'left',gap:14},
             'marker-logical-estimate':state.resourcePlacement==='side'?{side:'above',gap:60,dx:-24}:{side:'right',gap:18},
             'marker-gradient-factors':{side:'above',gap:compact?28:32},
             'marker-gradient-control':{side:'below',gap:compact?14:30},
@@ -231,25 +233,27 @@
             'marker-transformer-model':{side:'above',gap:36,dx:compact?16:0}
           },rule=semanticSides[id];
           let candidates=[[local.x,local.y],[target.x,target.y-above],[target.x,target.y+above],[target.x-side,target.y],[target.x+side,target.y],[target.x-46,target.y-above],[target.x+46,target.y-above],[target.x-46,target.y+above],[target.x+46,target.y+above],[target.x,target.y-above-28],[target.x,target.y+above+28],[target.x-side-30,target.y],[target.x+side+30,target.y]];
+          let costs=candidates.map(()=>0);
           if(rule){
             const x=target.x+(rule.dx||0)+(rule.side==='left'?-rw/2-rule.gap:rule.side==='right'?rw/2+rule.gap:0),y=target.y+(rule.side==='above'?-rh/2-rule.gap:rule.side==='below'?rh/2+rule.gap:0);
-            candidates=rule.side==='left'||rule.side==='right'?[[x,y],[x,y-16],[x,y+16],[x+(rule.side==='left'?-14:14),y]]:[[x,y],[x-12,y],[x+12,y],[x,y+(rule.side==='above'?-14:12)]];
+            const preferredPlaces=rule.side==='left'||rule.side==='right'?[[x,y],[x+(rule.side==='left'?-14:14),y],[x,y-16],[x,y+16]]:[[x,y],[x-12,y],[x+12,y],[x,y+(rule.side==='above'?-14:12)]];
+            costs=[...preferredPlaces.map((_,k)=>k&&rule.side!=='above'&&rule.side!=='below'&&k>1?24:0),...candidates.map(()=>90)];candidates=[...preferredPlaces,...candidates];
           }
-          for(let [x,y]of candidates){
-            x=clamp(x,rw/2+7,Math.max(rw/2+7,w-rw/2-7));y=clamp(y,rh/2+7,Math.max(rh/2+7,limit-rh/2));
-            if(Math.hypot(x-target.x,y-target.y)>reach+Math.max(rw,rh)/2)continue;
+          candidates.forEach(([x0,y0],ci)=>{let x=x0,y=y0;
+            x=clamp(x,Math.max(rw/2+7,minLeft+rw/2),Math.max(rw/2+7,w-rw/2-7));y=clamp(y,rh/2+7,Math.max(rh/2+7,limit-rh/2));
+            if(Math.hypot(x-target.x,y-target.y)>reach+Math.max(rw,rh)/2)return;
             const area=rect(x,y,rw,rh);
-            let score=Math.hypot(x-target.x,y-target.y)+(preferredOverride?1.6:.35)*Math.hypot(x-local.x,y-local.y);
+            let score=costs[ci]+Math.hypot(x-target.x,y-target.y)+(preferredOverride?1.6:.35)*Math.hypot(x-local.x,y-local.y);
             for(const other of occupied)score+=areaOverlap(area,other,4)*240;
             for(const other of background)score+=areaOverlap(area,other,3)*12;
             if(kind!=='resource')for(const other of cores)score+=areaOverlap(area,other,5)*70;
-            if(kind==='marker'||kind==='grip-label')score+=inkCover(area)*34;
+            if(kind==='marker'||kind==='grip-label')score+=inkCover(area)*(compact?160:60);
             if(!best||score<best.score)best={x,y,score};
-          }
+          });
           if(best&&fromDraw)annotationPositions.set(id,{x:best.x,y:best.y,referenceX:preferred.x,referenceY:preferred.y});
         }
         if(!best){node.hidden=true;return;}
-        best={x:clamp(best.x,rw/2+7,Math.max(rw/2+7,w-rw/2-7)),y:clamp(best.y,rh/2+7,Math.max(rh/2+7,limit-rh/2))};
+        best={x:clamp(best.x,Math.max(rw/2+7,(kind==='marker'||kind==='grip-label')?minLeft+rw/2:0),Math.max(rw/2+7,w-rw/2-7)),y:clamp(best.y,rh/2+7,Math.max(rh/2+7,limit-rh/2))};
         apply(node,best,kind==='grip-label');
         const area=rect(best.x,best.y,rw,rh);occupied.push(area);
         const ink=node.querySelector('.study-annotation-text')?.getBoundingClientRect();
@@ -290,7 +294,7 @@
       for(const {button,def}of grips){
         const label=button.querySelector('.study-grip__label'),point=anchor(def.key);
         if(label)label.hidden=used.has(def.key);button.dataset.fresh=String(!used.has(def.key));
-        if(point&&label&&!label.hidden&&getComputedStyle(label).display!=='none'&&!button.hidden){const p=targetOf(point),before=data.find(item=>item.id==='peephole-before'),after=data.find(item=>item.id==='peephole-after'),preferred=def.key==='window'?{x:p.x,y:before&&after?(targetOf(before).y+targetOf(after).y)/2:p.y+34}:null;place(label,'grip-label-'+def.key,point,'grip-label',preferred);}
+        if(point&&label&&!label.hidden&&getComputedStyle(label).display!=='none'&&!button.hidden){const p=targetOf(point),before=data.find(item=>item.id==='peephole-before'),after=data.find(item=>item.id==='peephole-after'),preferred=null;place(label,'grip-label-'+def.key,point,'grip-label',preferred);}
       }
       guides.setAttribute('viewBox','0 0 '+w+' '+h);
       const markup=lines.join('');if(guides.innerHTML!==markup)guides.innerHTML=markup;
