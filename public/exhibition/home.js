@@ -9,8 +9,9 @@
   const ease=x=>{x=clamp(x);return x*x*(3-2*x)},step=(p,a,b)=>ease((p-a)/(b-a));
   const compiled=window.ROUTE_SOURCE&&window.RouteCompiler?.compile(window.ROUTE_SOURCE.fixtures[0].perm,window.ROUTE_SOURCE.gammaLayers);
   const scene=compiled&&window.createExhibitionScene?.(q('[data-scene]'),{compiled,initial:window.ROUTE_SOURCE.fixtures[0].witnessBits});
+  const controls=scene&&window.createStudyControls?.(q('[data-scene]'),scene,{visible:false});
   if(!scene)root.classList.add('no-scene');root.classList.add('is-ready');
-  let raf=0,phase=0,turn=0,layer=0,angle=52,current=0,lastActive=-1;
+  let raf=0,phase=0,current=0;
   function pose(el,x,y,scale){el.style.transform=`translate3d(${(x*world.clientWidth).toFixed(2)}px,${(y*world.clientHeight).toFixed(2)}px,0) scale(${scale.toFixed(4)})`;}
   function render(){
     raf=0;const height=innerHeight,w=world.clientWidth,h=world.clientHeight;if(!w||!h)return;
@@ -26,21 +27,15 @@
     const cameraPosition=at+step(fraction,.60,1);scene?.setView({arrival,travel:cameraPosition/(count-1)});current=Math.min(count-1,Math.floor(position+.22));
     let active=-1;
     stories.forEach((story,i)=>{const delta=position-i,entry=i===0?step(phase,.95,1.4):step(delta,-.24,.04),exit=1-step(delta,.60,.86),alpha=reduced.matches?0:entry*exit;story.style.opacity=alpha.toFixed(4);story.style.visibility=alpha>.005?'visible':'hidden';story.style.transform=`translate3d(${(step(delta,.60,.86)*-24).toFixed(2)}px,${((1-entry)*38-step(delta,.6,.86)*30).toFixed(2)}px,0)`;story.style.filter=`blur(${((1-alpha)*3).toFixed(2)}px)`;const visible=alpha>.55;story.inert=!visible;story.setAttribute('aria-hidden',String(!visible));if(visible)active=i;});
-    if(active!==lastActive){turn=scene?.getState?.().turn||0;lastActive=active;}
-    q('[data-controls]').hidden=active<0||reduced.matches;q('[data-route-control]').hidden=active!==0;q('[data-pair-control]').hidden=active!==count-1;
+    controls?.setVisible(active>=0&&!reduced.matches&&phase<=10.7);
     q('[data-current-label]').textContent=phase<1.1?'00 / Identity and practice':`${String(current+1).padStart(2,'0')} / ${String(count).padStart(2,'0')}`;
-    q('[data-scroll-cue]').textContent=phase<.6?'Scroll to begin the research ↓':phase<10.6?'Scroll through the work ↓':'More to explore ↓';q('[data-end-link]').hidden=phase<10.7||reduced.matches;if(phase>10.7)q('[data-controls]').hidden=true;
+    q('[data-scroll-cue]').textContent=phase<.6?'Scroll to begin the research ↓':phase<10.6?'Scroll through the work ↓':'More to explore ↓';q('[data-end-link]').hidden=phase<10.7||reduced.matches;
     root.dataset.phase=phase.toFixed(3);root.dataset.study=String(active);root.dataset.travel=(cameraPosition/(count-1)).toFixed(4);
   }
   function request(){if(!raf)raf=requestAnimationFrame(render)}
   function resize(){root.style.setProperty('--stage-h',innerHeight+'px');root.style.setProperty('--world-h',Math.max(280,innerHeight-(innerWidth<=560?154:142))+'px');track.style.height=innerHeight*12.15+'px';scene?.resize();request();}
   addEventListener('scroll',request,{passive:true});addEventListener('resize',resize,{passive:true});reduced.addEventListener('change',resize);
-  function interaction(){scene?.setInteraction?.({turn,layer,angle});}
-  root.querySelectorAll('[data-turn]').forEach(button=>button.addEventListener('click',()=>{turn=clamp(turn+Number(button.dataset.turn)*12,-85,85);interaction()}));
-  q('[data-scene]').addEventListener('exhibitioninteraction',event=>{turn=event.detail.turn;});
-  q('[data-route-range]').max=String(compiled?.layers.length||27);q('[data-route-range]').addEventListener('input',event=>{layer=Number(event.target.value);q('[data-route-output]').textContent=String(layer);interaction()});
-  q('[data-pair-range]').addEventListener('input',event=>{angle=Number(event.target.value);q('[data-pair-output]').textContent=angle+'°';interaction()});
-  addEventListener('pagehide',event=>{if(!event.persisted)scene?.destroy?.()});addEventListener('pageshow',event=>{if(event.persisted)resize()});resize();
+  addEventListener('pagehide',event=>{if(!event.persisted){controls?.destroy?.();scene?.destroy?.();}});addEventListener('pageshow',event=>{if(event.persisted)resize()});resize();
   if(location.hash==='#about'){const about=document.querySelector('.site-header nav a[href$="about/"]');if(about)location.replace(about.href);}
   else if(location.hash==='#featured')scrollTo({top:innerHeight*1.6,behavior:'auto'});
 })();

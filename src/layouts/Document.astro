@@ -2,6 +2,7 @@
 import profile from '../data/profile.json';
 import { localPath } from '../lib/paths';
 import '../styles/site.css';
+import '../styles/study-controls.css';
 interface Props { title: string; description?: string; canonicalPath?: string; article?: Record<string, unknown>; noindex?: boolean; home?: boolean; }
 const { title, description = 'Quantum algorithms, error correction, and machine learning. Research by Dantong Li at Yale University.', canonicalPath, article, noindex = import.meta.env.WEBSITE_INDEXABLE !== 'true', home = false } = Astro.props;
 const canonical = new URL(canonicalPath ? localPath(canonicalPath) : Astro.url.pathname, Astro.site);

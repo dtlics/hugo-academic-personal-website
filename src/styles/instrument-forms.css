@@ -1,4 +1,4 @@
-/* Authored forms share the open paper ground with their exact instruments. */
+/* Paper diagrams share the open page ground with their exact controls. */
 .paper-instrument .instrument__mount{width:100%;max-width:none;margin-inline:0}
 .paper-instrument[data-paper-instrument=route] .instrument__mount{max-width:none}
 .paper-instrument .instrument-field{display:grid;grid-template-columns:minmax(260px,400px) minmax(0,1fr);gap:clamp(28px,4vw,64px);align-items:start;min-width:0;background:transparent}
@@ -6,8 +6,10 @@
 .paper-instrument .instrument-form{width:100%;max-width:400px;min-width:0;margin:0;align-self:start}
 .paper-instrument .instrument-form__stage{position:relative;width:100%;height:340px;background:transparent;isolation:isolate}
 .paper-instrument .instrument-form__object{position:absolute;inset:0}
+.paper-instrument .instrument-route-scene .exhibition-scene-canvas{width:100%;height:100%;max-width:none;background:transparent}
 .paper-instrument .instrument-form figcaption{display:flex;flex-direction:column;gap:10px;font:12px/1.6 RFMono,monospace;color:var(--paper-ink,var(--ink));margin-top:14px;max-width:46ch}
 .paper-instrument .instrument-form__note{font-family:RFArchivo,Arial,sans-serif;color:var(--paper-muted,#746a77)}
+.paper-instrument[data-paper-instrument] .paper-instrument__scope>p{font-size:14px;line-height:1.65}
 .paper-instrument .instrument-form--measurement .measurement-object{--mo-ink:#39313e;--mo-rose:#a26377;height:100%}
 .paper-instrument .instrument-form--measurement .measurement-object.mo-fit .mo-stage{height:100%;min-height:0;aspect-ratio:auto;margin:0}
 .paper-instrument .instrument-form--measurement .mo-controls,.paper-instrument .instrument-form--measurement .mo-handle{display:none!important}

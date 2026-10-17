@@ -44,6 +44,7 @@
   function turn(value) {
     orbit = clamp(Number(value)||0,-35,35);
     range.value = String(Math.round(orbit));
+    range.setAttribute('aria-valuenow',String(Math.round(orbit)));
     scene?.setView({overview:true,orbit});
     if (scene?.getState) layout(scene.getState().stations);
   }
@@ -53,7 +54,12 @@
   });
   q('[data-research-clear]').addEventListener('click',() => select(-1));
   root.addEventListener('keydown',event => { if (event.key === 'Escape') select(-1); });
-  range.addEventListener('input',event => turn(event.target.value));
+  range.addEventListener('keydown',event => {
+    if(['ArrowRight','ArrowUp','ArrowLeft','ArrowDown','Home','End'].includes(event.key)){
+      event.preventDefault();turn(event.key==='Home'?-35:event.key==='End'?35:orbit+(['ArrowRight','ArrowUp'].includes(event.key)?3:-3));
+    }
+  });
+  range.addEventListener('click',()=>turn(0));
   host.addEventListener('pointerdown',event => { if (event.button !== 0) return;pointer={id:event.pointerId,x:event.clientX,start:orbit};lastDrag=false;host.setPointerCapture?.(event.pointerId); });
   host.addEventListener('pointermove',event => { if (!pointer || event.pointerId !== pointer.id) return;const delta=event.clientX-pointer.x;if(Math.abs(delta)>5)lastDrag=true;if(lastDrag)turn(pointer.start+delta/root.clientWidth*100); });
   const end = () => {pointer=null;};

@@ -21,7 +21,9 @@ flowchart LR
 
 Keep the same paper IDs in the publication files and exhibition data. All six approved works have individual pages and downloadable citations. The excluded fidelity-divergence paper is not included. The old résumé PDF is kept at its former URL for compatibility; the website does not link to it as a current résumé. Replace it only after the separate résumé update is approved.
 
-The home exhibition combines four editorial sculptures with a route model and a measurement model whose controls use the validated circuit data and exact angle relation. These visual introductions do not replace the papers' results. Paper pages offer three inline tools: the pinned 4 × 4 fermionic compiler, a noiseless one-qubit measurement atlas, and an explorer of the logical-qubit paper's reported Table II results. The third tool selects published data; it does not run a new simulation. Scope notes distinguish each example from the paper's general results.
+The home exhibition uses six related diagrams. Routing positions come from the pinned compiler. The cosine curve and the tiny gate-cancellation circuit are exact teaching examples. The switch view shows coherent order histories and uses the stated one-qubit assumptions. Detection plus cancellation and Transformer-QEC use concept diagrams; they do not run new experiments or learned predictions. Each input changes a working part of its diagram. The interface has no general spin control or shared interaction bar.
+
+Paper pages explain the task and idea before their small example. Four pages include a focused concept diagram. The route page links the exact compiler to its grid view in both directions. The PRL page also has a measurement atlas. The logical-qubit page keeps the paper’s reported Table II results; selecting them does not run a new simulation. Scope notes distinguish teaching calculations, concept diagrams and reported data.
 
 ## Run and check
 

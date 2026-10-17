@@ -14,7 +14,7 @@ const studies = exhibition.map(study=>({...study,paper:papers.find(p=>p.id===stu
       {studies.map((_,i)=><span id={`work-${i+1}`} class="exhibition-anchor" style={`--anchor:${i}`} aria-hidden="true" />)}
       <div class="exhibition-stage">
         <div class="exhibition-world">
-          <div class="exhibition-scene" data-scene role="img" aria-label="Six research forms share one space. Scrolling moves the view between the studies." />
+          <div class="exhibition-scene" data-scene role="group" aria-label="Six research studies share one space. Scroll between them, then use each study’s control." />
           <div class="exhibition-photo-position" data-photo>
             <div class="exhibition-photo">
               <svg viewBox="0 0 1000 1000" role="img" aria-labelledby="portrait-title">
@@ -42,11 +42,6 @@ const studies = exhibition.map(study=>({...study,paper:papers.find(p=>p.id===stu
               <div class="study-links"><a href={localPath(`publication/${study.id}/`)}>Explore study ↗</a><a href={study.paper.data.publicationUrl}>{study.paper.data.status==='Preprint'?'Preprint':'Paper'} ↗</a></div>
             </article>)}
           </div>
-          <div class="exhibition-interaction" data-controls hidden>
-            <div class="object-turn"><span class="mono">Turn the form</span><button type="button" data-turn="-1" aria-label="Turn form left">←</button><button type="button" data-turn="1" aria-label="Turn form right">→</button></div>
-            <label class="object-parameter" data-route-control hidden>Circuit moment <output data-route-output>0</output><input aria-label="Circuit moment" data-route-range type="range" min="0" max="27" value="0" /></label>
-            <label class="object-parameter" data-pair-control hidden>Basis angle <output data-pair-output>52°</output><input aria-label="Basis angle" data-pair-range type="range" min="0" max="180" value="52" /></label>
-          </div>
           <a class="exhibition-end-link" href={localPath('about/')} data-end-link hidden>Behind the work.<span>About me ↗</span></a>
         </div>
         <div class="exhibition-progress"><span data-current-label>00 / Identity and practice</span><span data-scroll-cue>Scroll to begin the research ↓</span><a href={localPath('publication/')}>All work ↗</a></div>
@@ -59,5 +54,6 @@ const studies = exhibition.map(study=>({...study,paper:papers.find(p=>p.id===stu
   <script is:inline defer src={localPath('exhibition/compiler.js')} />
   <script is:inline defer src={localPath('exhibition/source-data.js')} />
   <script is:inline defer src={localPath('exhibition/scene.js')} />
+  <script is:inline defer src={localPath('exhibition/controls.js')} />
   <script is:inline defer src={localPath('exhibition/home.js')} />
 </Document>

@@ -22,4 +22,10 @@ bibtex: |
   }
 ---
 
-The interactive example uses a fixed 4 × 4 grid and the pinned public compiler. It is a bounded example of the method, with no ancillary qubits.
+The qubits store fermionic modes. Each mode can be empty or occupied. To run a circuit, we may need to move these modes to new qubits. A square grid permits gates only between neighbours, so the order of these moves matters.
+
+The method runs local gates in parallel. For N qubits, it achieves optimal depth scaling of O(√N) without extra qubits. It preserves the phase signs required for fermions, as well as the final destinations. Getting only the destinations right is not enough.
+
+Try the transpose on the 4 × 4 grid. Mode 1 moves from row 1, column 2 to row 2, column 1. Follow the mode label through the route. During the Γ steps, a stored bit can represent group parity: whether a group has an odd or even number of occupied modes. It does not always represent one mode’s occupation.
+
+The tool uses the fixed 4 × 4 public compiler. It is one example of the construction. The O(√N) result describes how depth scales as the grid grows. See the [preprint](https://arxiv.org/abs/2605.26041) for the construction and proof.

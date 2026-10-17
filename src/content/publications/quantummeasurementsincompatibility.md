@@ -24,4 +24,10 @@ bibtex: |
   }
 ---
 
-The measurement atlas below is a noiseless one-qubit example. It calculates mutual eigenspace disturbance for each pair of projective measurement bases.
+One quantum measurement can disturb the states associated with another. We need a way to compare this disturbance, including when the measurements are not fully known.
+
+The paper defines mutual eigenspace disturbance, or MED. It then shows how a quantum switch can measure this quantity. The switch uses quantum control over the order of two measurements. The paper also uses MED to group measurements by their compatibility.
+
+Try two axes in the one-qubit tool. Matching axes give MED 0. Axes 45° apart give MED 0.5. Moving the axes changes how much the measurement bases disturb each other. MED is a measure of disturbance, not the probability of an event.
+
+The tool uses known axes in a noiseless one-qubit example. See the [PRL paper](https://doi.org/10.1103/PhysRevLett.130.170201) for the quantum-switch protocol for unknown measurements, the clustering method and the noise analysis.

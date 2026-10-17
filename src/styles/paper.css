@@ -78,3 +78,4 @@
 @media(max-width:700px){.static-measurement text,.static-measurement text.static-measurement__micro,.static-measurement text.static-measurement__formula{font-size:clamp(13px,calc(35px - 3.4vw),26px)}.static-measurement text.static-measurement__value{font-size:64px}}
 
 @media(min-width:701px){.research-current{width:290px;max-width:30%}.research-current h1{font-size:clamp(56px,5.7vw,78px);margin:20px 0}.research-current h2{font-size:32px;max-width:290px;margin:12px 0}.research-current__links{margin-top:12px;gap:8px 20px}}
+.research-viewpoint{display:flex;align-items:center;gap:10px;min-height:44px;font:11px RFMono,monospace;padding:0 8px 0 0;cursor:ew-resize}.research-viewpoint>span{font:32px/1 RFArchivo,Arial,sans-serif;color:#9c6548}.research-viewpoint:focus-visible{outline:1px solid var(--ink);outline-offset:3px}@media(max-width:700px){.research-viewpoint{font-size:10px}}

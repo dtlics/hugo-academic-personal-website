@@ -1,13 +1,14 @@
 type RouteState = { compiled: { layers: unknown[] }; initial: number[]; layer: number; includeGamma: boolean };
 type RouteStudy = { getState(): RouteState; setState(next: { layer: number }): void; pause(): void; destroy(): void };
 type InstrumentHost = HTMLElement & { routeStudy?: RouteStudy; measurementStudy?: { destroy(): void } };
-type RouteForm = { setState(next: RouteState): void; resize(): void; destroy(): void };
+type Companion = { resize(): void; destroy(): void };
+type RouteScene = Companion & { setInteraction(next: { layer: number }): void; setRouteState?: (next: RouteState) => void };
 type PairState = { selection: { edited: string; compared: string; angleDegrees: number } };
-type PairForm = { setState(next: { angle: number }): void; getState(): { angle: number }; resize(): void; destroy(): void };
+type PairForm = Companion & { setState(next: { angle: number }): void; getState(): { angle: number } };
 type ScientificWindow = Window & {
   initRouteStudies?: (scope: HTMLElement) => void;
   initMeasurementStudies?: (scope: HTMLElement) => void;
-  createRouteSculpture?: (host: HTMLElement, state: RouteState) => RouteForm | null;
+  createExhibitionScene?: (host: HTMLElement, options: RouteState & { solo: number }) => RouteScene | null;
   createMeasurementObject?: (host: HTMLElement, options: { angle: number; controls: boolean; showReadout: boolean; showNotes: boolean; fit: boolean }) => PairForm;
   MeasurementAtlas?: { getState(root: HTMLElement): PairState | null };
 };
@@ -47,12 +48,13 @@ for (const section of document.querySelectorAll<HTMLElement>('[data-paper-instru
   const mount = section.querySelector<HTMLElement>('[data-instrument-mount]');
   const status = section.querySelector<HTMLElement>('[data-instrument-status]');
   const base = section.dataset.assetBase;
-  if (!button || !mount || !status || !base) continue;
+  const exhibitionBase = section.dataset.exhibitionBase;
+  if (!button || !mount || !status || !base || !exhibitionBase) continue;
   const kind = section.dataset.paperInstrument;
   button.hidden = false;
   let loaded = false;
   let widget: InstrumentHost | null = null;
-  let form: RouteForm | PairForm | null = null;
+  let companion: Companion | null = null;
   let disconnect = () => {};
   button.addEventListener('click', async () => {
     if (loaded) {
@@ -60,11 +62,11 @@ for (const section of document.querySelectorAll<HTMLElement>('[data-paper-instru
       button.setAttribute('aria-expanded', String(!mount.hidden));
       button.textContent = mount.hidden ? (kind === 'route' ? 'Show circuit ↓' : 'Show atlas ↓') : (kind === 'route' ? 'Hide circuit ↑' : 'Hide atlas ↑');
       if (mount.hidden) widget?.routeStudy?.pause();
-      else form?.resize();
+      else companion?.resize();
       return;
     }
     button.disabled = true;
-    status.textContent = 'Loading the model…';
+    status.textContent = 'Opening the example…';
     try {
       const host = document.createElement('div') as InstrumentHost;
       host.className = kind === 'route' ? 'route-study' : 'measurement-study';
@@ -76,9 +78,7 @@ for (const section of document.querySelectorAll<HTMLElement>('[data-paper-instru
       const stage = document.createElement('div');
       stage.className = 'instrument-form__stage';
       const object = document.createElement('div');
-      object.className = `instrument-form__object${kind === 'route' ? ' ri-gpu-sculpture' : ''}`;
-      object.dataset.sculptureX = '.5';
-      object.dataset.sculptureY = '.5';
+      object.className = `instrument-form__object${kind === 'route' ? ' instrument-route-scene' : ''}`;
       const caption = document.createElement('figcaption');
       const current = document.createElement('span');
       current.className = 'instrument-form__current';
@@ -92,35 +92,49 @@ for (const section of document.querySelectorAll<HTMLElement>('[data-paper-instru
       // Keep the empty mount hidden until all same-origin assets are ready.
       // The widget also auto-initializes on load, so explicit init is idempotent.
       if (kind === 'route') {
-        await Promise.all([loadStyle(`${base}route-study.css`), loadStyle(`${base}route-object.css`), loadScript(`${base}compiler.js`), loadScript(`${base}source-data.js`)]);
+        await Promise.all([loadStyle(`${base}route-study.css`), loadScript(`${base}compiler.js`), loadScript(`${base}source-data.js`)]);
         await loadScript(`${base}route-study.js`);
-        await loadScript(`${base}route-object.js`);
+        await loadScript(`${exhibitionBase}scene.js`);
         if (!scientificWindow.initRouteStudies) throw new Error('Circuit initializer is missing.');
         scientificWindow.initRouteStudies(section);
-        if (!host.routeStudy || !scientificWindow.createRouteSculpture) throw new Error('Circuit form initializer is missing.');
-        const sculpture = scientificWindow.createRouteSculpture(object, host.routeStudy.getState());
-        form = sculpture;
-        note.textContent = 'Drag the clay collar or use the circuit controls. The spatial fold is an authored view of mode histories.';
+        if (!host.routeStudy || !scientificWindow.createExhibitionScene) throw new Error('Circuit scene initializer is missing.');
+        let scene: RouteScene | null = null;
+        let routeKey = '';
+        let syncing = false;
+        companion = { resize: () => scene?.resize(), destroy: () => { scene?.destroy(); scene = null; } };
+        note.textContent = 'Drag across the route to choose a circuit step, or use the controls. The drawing follows the compiled mode positions.';
         const update = (state: RouteState) => {
-          sculpture?.setState({ compiled: state.compiled, initial: state.initial, layer: state.layer, includeGamma: state.includeGamma });
-          current.textContent = `Compiled mode histories · Layer ${state.layer} / ${state.compiled.layers.length}`;
+          const next = { compiled: state.compiled, initial: state.initial, layer: state.layer, includeGamma: state.includeGamma };
+          const key = JSON.stringify({ layers: state.compiled.layers, initial: state.initial, includeGamma: state.includeGamma });
+          syncing = true;
+          try {
+            if (!scene) scene = scientificWindow.createExhibitionScene?.(object, { ...next, solo: 0 }) || null;
+            else if (key !== routeKey) {
+              if (scene.setRouteState) scene.setRouteState(next);
+              else { scene.destroy(); scene = scientificWindow.createExhibitionScene?.(object, { ...next, solo: 0 }) || null; }
+            }
+            scene?.setInteraction({ layer: state.layer });
+            routeKey = key;
+            figure.hidden = !scene;
+            current.textContent = `Circuit step ${state.layer} of ${state.compiled.layers.length}`;
+          } finally { syncing = false; }
         };
         const routeChange = (event: Event) => update((event as CustomEvent<RouteState>).detail);
         const scrub = (event: Event) => {
-          const layer = (event as CustomEvent<{ layer: number }>).detail.layer;
-          if (host.routeStudy && host.routeStudy.getState().layer !== layer) host.routeStudy.setState({ layer });
+          const detail = (event as CustomEvent<{ layer: number; activeIndex: number; reason: string }>).detail;
+          if (syncing || detail.reason !== 'pointer' || detail.activeIndex !== 0 || !Number.isInteger(detail.layer)) return;
+          if (host.routeStudy && host.routeStudy.getState().layer !== detail.layer) host.routeStudy.setState({ layer: detail.layer });
         };
         host.addEventListener('routechange', routeChange);
-        object.addEventListener('routescrub', scrub);
-        disconnect = () => { host.removeEventListener('routechange', routeChange); object.removeEventListener('routescrub', scrub); };
+        object.addEventListener('exhibitioninteraction', scrub);
+        disconnect = () => { host.removeEventListener('routechange', routeChange); object.removeEventListener('exhibitioninteraction', scrub); };
         update(host.routeStudy.getState());
-        if (!sculpture) figure.hidden = true;
       } else {
         await Promise.all([loadStyle(`${base}measurement-study.css`), loadStyle(`${base}measurement-object.css`), loadScript(`${base}measurement-study.js`), loadScript(`${base}measurement-object.js`)]);
         if (!scientificWindow.initMeasurementStudies) throw new Error('Measurement initializer is missing.');
         scientificWindow.initMeasurementStudies(section);
         const initial = scientificWindow.MeasurementAtlas?.getState(host);
-        if (!initial || !scientificWindow.createMeasurementObject) throw new Error('Measurement form initializer is missing.');
+        if (!initial || !scientificWindow.createMeasurementObject) throw new Error('Measurement example initializer is missing.');
         const pair = scientificWindow.createMeasurementObject(object, { angle: initial.selection.angleDegrees, controls: false, showReadout: false, showNotes: false, fit: true });
         // The Atlas is the only input source. The frozen pair renderer keeps its
         // own handle even with controls:false, so make this companion inert.
@@ -132,7 +146,7 @@ for (const section of document.querySelectorAll<HTMLElement>('[data-paper-instru
         const movingLabel = document.createElement('span');
         movingLabel.className = 'mo-axis-label instrument-form__moving-axis';
         object.querySelector('.mo-stage')?.append(movingLabel);
-        note.textContent = 'A view of their relative basis angle. Use the Atlas controls; its values remain authoritative.';
+        note.textContent = 'The rings show the pair’s relative angle in a standard view. Use the controls below for exact values.';
         let selection = initial.selection;
         const positionLabels = () => {
           const { edited, compared } = selection;
@@ -150,7 +164,7 @@ for (const section of document.querySelectorAll<HTMLElement>('[data-paper-instru
           positionLabels();
         };
         const resizePair = () => { pair.resize(); positionLabels(); };
-        form = { ...pair, resize: resizePair };
+        companion = { ...pair, resize: resizePair };
         const pairObserver = new ResizeObserver(resizePair);
         pairObserver.observe(stage);
         const measurementChange = (event: Event) => update((event as CustomEvent<PairState>).detail);
@@ -163,14 +177,20 @@ for (const section of document.querySelectorAll<HTMLElement>('[data-paper-instru
       button.textContent = kind === 'route' ? 'Hide circuit ↑' : 'Hide atlas ↑';
       button.setAttribute('aria-expanded', 'true');
       status.textContent = '';
-      form?.resize();
+      companion?.resize();
     } catch {
+      loaded = false;
       disconnect();
-      form?.destroy();
-      form = null;
+      disconnect = () => {};
+      companion?.destroy();
+      companion = null;
       widget?.routeStudy?.destroy();
+      widget = null;
       mount.replaceChildren();
-      status.textContent = 'The model did not load. Try again, or use the paper and source links above.';
+      mount.hidden = true;
+      button.setAttribute('aria-expanded', 'false');
+      button.textContent = kind === 'route' ? 'Explore the exact circuit ↓' : 'Explore the measurement atlas ↓';
+      status.textContent = 'Could not open this example. Try again, or read the paper above.';
     } finally { button.disabled = false; }
   });
 }

@@ -23,7 +23,7 @@ const payload = works.map(work => ({ ...work, publication: undefined, title: wor
       <div data-research-intro><span class="paper-section-label">Quantum computing</span><h1>Research</h1><p>Choose a study.</p></div>
       <div data-research-detail hidden><button type="button" data-research-clear aria-label="Return to the full research overview">All 06 ↖</button><h2 data-research-headline></h2><div class="research-current__links"><a data-research-page href={localPath('publication/')}>Explore study ↗</a><a data-research-source href={works[0].publication.data.publicationUrl}>Paper ↗</a></div></div>
     </div>
-    <div class="research-overview__controls"><label for="research-orbit">Turn the field <input id="research-orbit" data-research-orbit type="range" min="-35" max="35" step="1" value="0" /></label><span>Drag the open ground · choose a study</span><a href={localPath()}>Return to the studio ↗</a></div>
+    <div class="research-overview__controls"><button type="button" class="research-viewpoint" data-research-orbit role="slider" aria-label="Research viewpoint" aria-valuemin="-35" aria-valuemax="35" aria-valuenow="0" aria-orientation="horizontal"><span aria-hidden="true">◌</span>Viewpoint</button><span>Drag the open ground · choose a study</span><a href={localPath()}>Return to the studio ↗</a></div>
     <script type="application/json" data-research-data set:html={JSON.stringify(payload).replaceAll('<','\\u003c')} />
   </section>
   <script is:inline defer src={localPath('exhibition/compiler.js')}></script>

@@ -5,7 +5,7 @@
     "category": "Quantum compilation",
     "label": "Fermionic routing",
     "headline": ["Optimal depth scaling.", "No extra qubits."],
-    "note": "Fermionic permutations on a two-dimensional grid.",
+    "note": "A two-dimensional grid. Correct positions and phase.",
     "year": 2026,
     "accent": "#ce8758"
   },
@@ -15,7 +15,7 @@
     "category": "Error detection & mitigation",
     "label": "Logical qubits",
     "headline": ["Detection and mitigation.", "Designed together."],
-    "note": "Detection timing and residual noise shape the joint design.",
+    "note": "Sample operations. Check runs. Combine signed results.",
     "year": 2026,
     "accent": "#887989"
   },
@@ -25,7 +25,7 @@
     "category": "Quantum compilation",
     "label": "Local optimization",
     "headline": ["Optimize circuits.", "One part at a time."],
-    "note": "Cut, optimize, and join circuits with local optimality guarantees.",
+    "note": "Inspect a small circuit window. Keep the same operation.",
     "year": 2025,
     "accent": "#d3aab3"
   },
@@ -35,7 +35,7 @@
     "category": "Quantum algorithms",
     "label": "Generalized Hadamard",
     "headline": ["Quantum gradients.", "Higher derivatives."],
-    "note": "Generalized Hadamard tests estimate both.",
+    "note": "Read slopes and higher derivatives from quantum circuits.",
     "year": 2025,
     "accent": "#76977e"
   },
@@ -55,7 +55,7 @@
     "category": "Quantum measurement",
     "label": "Quantum switch",
     "headline": ["Incompatibility,", "measured."],
-    "note": "Measure incompatibility and group quantum observables.",
+    "note": "Use coherent order to read measurement incompatibility.",
     "year": 2023,
     "accent": "#76977e"
   }
