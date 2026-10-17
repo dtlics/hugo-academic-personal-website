@@ -43,9 +43,31 @@ jobs:
       - run: pnpm check
       - run: pnpm build
       - run: pnpm verify
+      - name: Preserve exact-case compatibility paths in the artifact
+        env:
+          WEBSITE_ARCHIVE: ${{ runner.temp }}/website-${{ matrix.name }}.tar
+        run: |
+          tar --create --file "$WEBSITE_ARCHIVE" --directory dist .
+          python3 - <<'PY'
+          import os
+          import tarfile
+          with tarfile.open(os.environ['WEBSITE_ARCHIVE']) as archive:
+              names = {entry.name.removeprefix('./') for entry in archive.getmembers() if entry.isfile()}
+              for path in [
+                  'uploads/resume-dantong-li.pdf',
+                  'uploads/Resume-Dantong-Li.pdf',
+                  'publication/quantummeasurementsincompatibility/index.html',
+                  'publication/QuantumMeasurementsIncompatibility/index.html',
+                  'publication/quantummeasurementsincompatibility/cite.bib',
+                  'publication/QuantumMeasurementsIncompatibility/cite.bib',
+                  'publication/quantummeasurementsincompatibility/featured.png',
+                  'publication/QuantumMeasurementsIncompatibility/featured.png',
+              ]:
+                  assert path in names, f'Missing compatibility path in artifact: {path}'
+          PY
       - uses: actions/upload-artifact@v7
         with:
-          name: website-${{ matrix.name }}
-          path: dist/
+          path: ${{ runner.temp }}/website-${{ matrix.name }}.tar
+          archive: false
           if-no-files-found: error
           retention-days: 7
