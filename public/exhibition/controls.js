@@ -7,7 +7,7 @@
     {key:'repair',choices:[['0','Sample'],['1','Check'],['2','Combine']],label:'Detection and cancellation',hint:'A concept sketch. Signed weights change the estimate, not the quantum state.'},
     {key:'window',min:0,max:2,step:1,label:'Peephole step',verb:'Move the window',hint:'A small identity circuit. Only the selected gates change.'},
     {key:'gradient',min:-1,max:1,step:.02,label:'Circuit angle',verb:'Change the angle',hint:'Exact Y-rotation example. Mean product of X and Z outcomes = derivative.'},
-    {key:'distance',choices:[['5','d = 5'],['7','d = 7'],['9','d = 9']],label:'Code distance',hint:'The same model structure transfers. Each new code size still needs training.'},
+    {key:'distance',choices:[['5','d = 5'],['7','d = 7'],['9','d = 9']],label:'Code distance',hint:'Drag to turn the architecture. Each new code size still needs training.'},
     {key:'order',choices:[['ab','A → B'],['coherent','Coherent'],['ba','B → A']],label:'Quantum-switch order',hint:'Example target: an equal mixture of qubit states 0 and 1.'},
   ];
   const degrees=x=>`${Math.round(x)}°`;
@@ -16,18 +16,21 @@
     const root=document.createElement('div');root.className='study-actions';root.hidden=options.visible===false;
     const guides=document.createElementNS('http://www.w3.org/2000/svg','svg');guides.classList.add('study-guides');guides.setAttribute('aria-hidden','true');
     host.append(root);
-    let index=-1,state=null,visible=options.visible!==false,grips=[],choices=[],resourceGroups=[],markers=[],pointer=null,modeButton=null;
+    let index=-1,state=null,visible=options.visible!==false,grips=[],choices=[],resourceGroups=[],markers=[],pointer=null,modeButton=null,modePoint=null;
+    let annotationView='',annotationPositions=new Map(),captionReserve=0,captionView='';
     const readout=document.createElement('p');readout.className='study-actions__readout';readout.setAttribute('aria-live','polite');readout.setAttribute('aria-atomic','true');
     const hint=document.createElement('p');hint.className='study-actions__hint';
     const caption=document.createElement('div');caption.className='study-caption';caption.append(readout,hint);
     const setText=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
+    function annotationText(node,value){let text=node.querySelector('.study-annotation-text');if(!text){text=document.createElement('span');text.className='study-annotation-text';node.replaceChildren(text);}setText(text,value);}
     const compactAnnotations=()=>(host.ownerDocument?.defaultView?.innerWidth??globalThis.innerWidth??host.clientWidth)<=560;
-    const shortHomeAnnotations=()=>compactAnnotations()&&(host.ownerDocument?.defaultView?.innerHeight??globalThis.innerHeight??1000)<=700&&Boolean(host.classList?.contains('exhibition-scene'));
+    const phoneHomeAnnotations=()=>compactAnnotations()&&Boolean(host.classList?.contains('exhibition-scene'));
+    const shortHomeAnnotations=()=>phoneHomeAnnotations()&&(host.ownerDocument?.defaultView?.innerHeight??globalThis.innerHeight??1000)<=700;
     const tinyHomeAnnotations=()=>shortHomeAnnotations()&&(host.ownerDocument?.defaultView?.innerHeight??globalThis.innerHeight??1000)<=620;
     function send(key,value){scene.setInteraction({[key]:value});update();}
     function createGrip(def){
       const button=document.createElement('button');button.type='button';button.className='study-grip';button.setAttribute('role','slider');button.setAttribute('aria-label',def.label);button.setAttribute('aria-orientation','horizontal');button.dataset.parameter=def.key;
-      const label=document.createElement('span');label.className='study-grip__label';label.textContent=def.verb;button.append(label);
+      const label=document.createElement('span');label.className='study-grip__label';annotationText(label,def.verb);button.append(label);
       button.addEventListener('keydown',event=>{
         const max=def.key==='layer'?(state?.routeLayers||state?.routeSnapshot?.layers||27):def.max;
         let next=Number(state?.[def.key]??def.min),amount=def.step*(event.shiftKey?5:1);
@@ -63,12 +66,13 @@
       root.append(node);resourceGroups.push({node,key,point:null});
     }
     function build(next){
-      index=next;grips=[];choices=[];resourceGroups=[];markers=[];modeButton=null;root.replaceChildren();root.dataset.study=String(index);
+      index=next;grips=[];choices=[];resourceGroups=[];markers=[];modeButton=null;modePoint=null;annotationView='';annotationPositions.clear();captionReserve=0;captionView='';caption.style.minHeight='';root.replaceChildren();root.dataset.study=String(index);
       const def=definitions[index];
       if(def){
         if(def.choices){
           if(def.key==='distance')createResourceGroup('distance','Code distance',[['5','5'],['7','7'],['9','9']],def.label);
           else if(def.key==='repair')createResourceGroup('repair','Stage',def.choices,def.label);
+          else if(def.key==='order')createResourceGroup('order','Order',def.choices,def.label);
           else for(const [value,label]of def.choices)createChoice(def.key,value,label,def.label);
         }else createGrip(def);
         if(index===3)createResourceGroup('derivativeOrder','Order',[['1','1st'],['2','2nd'],['3','3rd']],'Derivative order');
@@ -82,31 +86,34 @@
       root.append(guides,caption);
     }
     function anchor(key,value){const handles=state?.handles||[];return handles.find(h=>h.key===key&&(value===undefined||String(h.value)===String(value)))||handles.find(h=>h.key===key);}
-    function position(node,point,fallback){const x=clamp(Number(point?.x??fallback[0]),.075,.925),y=clamp(Number(point?.y??fallback[1]),.1,.79);node.style.left=`${x*100}%`;node.style.top=`${y*100}%`;node.dataset.side=x>.72?'left':'right';node.dataset.vertical=y>.65?'above':'center';}
+    function position(node,point,fallback){const x=Number(point?.x??fallback[0]),y=Number(point?.y??fallback[1]);node.style.left=`${x*100}%`;node.style.top=`${y*100}%`;node.hidden=point?.visible===false;}
     function update(next,fromDraw=false){
       state=next?.activeIndex!==undefined?next:scene.getState();
       if(!state)return;
       const nextIndex=options.index??state.activeIndex;
       if(nextIndex!==index)build(nextIndex);
-      const shortHome=shortHomeAnnotations(),tinyHome=tinyHomeAnnotations();
-      setText(hint,shortHome&&index===1?'Concept: signed weights change the estimate.':shortHome&&index===2?'Drag the window. The final circuit stays the same.':shortHome&&index===3?'Exact Y rotation; average all X and Z outcome products.':shortHome&&index===4?'Architecture only; transfer still needs training.':definitions[index]?.hint||'Relations learned by a decoder. A concept view of transfer across code sizes.');
-      if(tinyHome){const hints={0:'Drag layers; follow one mode.',2:'Drag the window; keep the operation.',3:'Exact Y rotation; average X/Z products.',5:'Target: equal mixture of 0 and 1.'};if(hints[index])setText(hint,hints[index]);}
+      const phoneHome=phoneHomeAnnotations(),shortHome=shortHomeAnnotations(),tinyHome=tinyHomeAnnotations();
+      setText(hint,shortHome&&index===1?'Concept: signed weights change the estimate.':shortHome&&index===2?'Drag the window. The final circuit stays the same.':shortHome&&index===3?'Exact Y rotation; average all X and Z outcome products.':shortHome&&index===4?'Drag to turn; new code sizes still need training.':definitions[index]?.hint||'Relations learned by a decoder. A concept view of transfer across code sizes.');
+      if(tinyHome){const hints={0:'Drag layers; follow one mode.',2:'Drag the window; keep the operation.',3:'Exact Y rotation; average X/Z products.',4:'Drag to turn; new sizes need training.',5:'Target: equal mixture of 0 and 1.'};if(hints[index])setText(hint,hints[index]);}
+      if(phoneHome&&index===3)setText(hint,'Exact Y rotation; average joint X/Z products.');
+      if(phoneHome&&index===4)setText(hint,'Drag to turn; transfer still needs training.');
       root.hidden=!visible||!state.ready;
+      const nextCaptionView=host.clientWidth+'x'+host.clientHeight+':'+shortHome+':'+tinyHome;
+      if(nextCaptionView!==captionView){captionView=nextCaptionView;captionReserve=0;caption.style.minHeight='';}
       for(const {button,def}of grips){
         const value=Number(state[def.key]??def.min),max=def.key==='layer'?(state.routeLayers||27):def.max;
         button.setAttribute('aria-valuemin',String(def.min));button.setAttribute('aria-valuemax',String(max));button.setAttribute('aria-valuenow',String(value));
         button.setAttribute('aria-valuetext',def.key==='angle'?degrees(value):def.key==='gradient'?`θ ${compact(value*Math.PI)} radians`:String(value));
         position(button,anchor(def.key),def.key==='angle'?[.7,.55]:[.69,.5]);
       }
-      for(let i=0;i<choices.length;i++){const {button,key,value}=choices[i];button.setAttribute('aria-pressed',String(String(state[key]??(key==='distance'?5:key==='derivativeOrder'?1:''))===value));if(button.closest('.study-resource-group'))continue;let point=anchor(key,value);if(index===5&&value==='coherent'&&compactAnnotations()&&host.clientWidth<360&&point)point={...point,x:point.x-10/host.clientWidth,y:point.y-18/host.clientHeight};position(button,point,[.34+i*.16,.75]);}
+      for(const {button,key,value}of choices)button.setAttribute('aria-pressed',String(String(state[key]??(key==='distance'?5:key==='derivativeOrder'?1:''))===value));
       for(const group of resourceGroups){const points=(state.handles||[]).filter(item=>item.key===group.key);group.point=points.length?{x:points.reduce((sum,item)=>sum+item.x,0)/points.length,y:points.reduce((sum,item)=>sum+item.y,0)/points.length}:{x:.5,y:.35};position(group.node,group.point,[.5,.25]);}
       if(modeButton){
         const mode=state.selectedMode??1;setText(modeButton,`Mode ${mode} ↻`);modeButton.setAttribute('aria-label',`Select next fermionic mode. Current mode ${mode}. Modes 0 to 15.`);
-        const board=state.stations?.find(item=>item.index===0)?.bounds,point=anchor('layer');
-        position(modeButton,{x:clamp((board?.left??.25)-46/Math.max(1,host.clientWidth),.105,.85),y:point?.y??.25},[.12,.4]);
+        modePoint=anchor('selectedMode')||anchor('layer');
       }
       let text='';
-      if(index===0)text=`Layer ${state.layer??0} / ${state.routeLayers||27} · relative phase ${state.routeSnapshot?.phase===1?'−1':'+1'}`;
+      if(index===0){const stage=state.example?.route?.stageIndex??-1,name=['Row A','Γ first','Column','Γ second','Row B'][stage]||'Input';text=`${name} · ${state.layer??0} / ${state.routeLayers||27} · relative phase ${state.routeSnapshot?.phase===1?'−1':'+1'}`;}
       if(index===1)text=(shortHome?['Sample signed operations.','Reject flagged runs.','Combine accepted, signed results.']:['Sample the PEC operations with signed weights.','Use error checks to reject flagged runs.','Combine the accepted, signed results.'])[state.repair||0];
       if(index===2)text=['4 gates · each half stays unchanged on its own.','2 gates · H H cancels at the seam. X X remains.','0 gates · X X cancels. The circuit is the identity.'][state.window||0];
       if(index===3){const example=state.example?.gradient,order=state.derivativeOrder||1,theta=(state.gradient||0)*Math.PI,derivative=example?.kthDerivative??Math.cos(theta+order*Math.PI/2);text=`Order ${order} · θ ${compact(theta)} rad · joint readout ${compact(example?.jointExpectation??derivative)}`;}
@@ -117,8 +124,8 @@
         if(tinyHome)text=`θ ${degrees(angle)} · p(−) ${(port*100).toFixed(1)}% · ${coherent?`MED ${med.toFixed(3)}`:'no inferred MED'}`;
       }
       if(tinyHome&&index===2)text=['4 → 4 gates · local window','4 → 2 gates · cancel H H','2 → 0 gates · cancel X X'][state.window||0];
-      if(tinyHome&&index===3){const order=state.derivativeOrder||1,theta=(state.gradient||0)*Math.PI; text=`Order ${order} · θ ${compact(theta)} rad · mean ${compact(state.example?.gradient?.jointExpectation??Math.cos(theta+order*Math.PI/2))}`;}
-      if(tinyHome&&index===4)text=`d = ${state.distance||5} · proposal → residual decoder`;
+      if(phoneHome&&index===3){const order=state.derivativeOrder||1,theta=(state.gradient||0)*Math.PI; text=`Order ${order} · θ ${compact(theta)} rad · mean ${compact(state.example?.gradient?.jointExpectation??Math.cos(theta+order*Math.PI/2))}`;}
+      if(phoneHome&&index===4)text=`d = ${state.distance||5} · proposal → residual decoder`;
       if(state.transition?.active&&state.transition.kind==='peephole'&&index===2)text='Rewriting the selected gates…';
       if(state.transition?.active&&state.transition.kind==='route'&&index===0)text=`Moving to layer ${state.layer} / ${state.routeLayers||27}…`;
       if(state.transition?.active&&state.transition.kind==='derivativeOrder'&&index===3)text='Changing the control registers…';
@@ -126,81 +133,140 @@
       setText(readout,text);
       const choiceLabels=new Set(choices.map(item=>item.button.textContent));
       const readoutLabels=new Set(['Keep / discard','Move to the seam','Open the seam','H H → I','X X → I','Coherent order control','Definite order','Random order','Tangent','Input grid']);
-      let data=(state.markers||[]).filter(item=>!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(modeButton&&item.text.startsWith('Mode '))&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
-      if(shortHome&&index===3)data=data.filter(item=>/ancilla|Controlled Y|X factors/.test(item.text)).map(item=>({...item,text:/ancilla/.test(item.text)?`${state.derivativeOrder||2} control qubits`:item.text==='X factors × Z'?'Joint X…X × Z':item.text}));
-      if(shortHome&&index===4)data=data.filter(item=>['Syndrome + positions','Encoder → Decoder','Residual → global decoder → XOR'].includes(item.text)).map(item=>({...item,text:item.text==='Encoder → Decoder'?'Transformer':item.text.startsWith('Residual')?'Residual decoder / XOR':item.text}));
+      let data=(state.markers||[]).filter(item=>item.id!=='route-stage'&&!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(modeButton&&item.text.startsWith('Mode '))&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
+      if(phoneHome&&index===3)data=data.filter(item=>['gradient-ancillas','gradient-control','gradient-factors'].includes(item.id)).map(item=>({...item,text:item.id==='gradient-ancillas'?`${state.derivativeOrder||2} control qubits`:item.id==='gradient-factors'?'Joint X…X × Z':item.text}));
+      if(tinyHome&&index===3)data=data.filter(item=>item.id!=='gradient-factors');
+      if(phoneHome&&index===4)data=data.filter(item=>['transformer-input','transformer-model','transformer-residual'].includes(item.id)).map(item=>({...item,text:item.id==='transformer-model'?'Transformer':item.text}));
+      data=data.map(item=>item.id==='transformer-residual'?{...item,text:'Residual decoder'}:item);
       while(markers.length>data.length)markers.pop().remove();
       while(markers.length<data.length){const label=document.createElement('span');label.className='study-marker';label.setAttribute('aria-hidden','true');root.append(label);markers.push(label);}
-      data.forEach((item,i)=>{setText(markers[i],item.text);position(markers[i],item,[.5,.5]);});
-      const budget=`${shortHome}:${data.length}:${caption.offsetHeight}`,previousBudget=root.dataset.layoutBudget,budgetChanged=previousBudget!==budget,reflowShortBudget=budgetChanged&&(shortHome||previousBudget?.startsWith('true:'));root.dataset.layoutBudget=budget;
-      if(reflowShortBudget){for(const group of resourceGroups)group.placement=null;scene.resize?.();}
+      data.forEach((item,i)=>{annotationText(markers[i],item.text);markers[i].dataset.annotation=item.id||item.text.replace(/\d+/g,'#');});
+      captionReserve=Math.max(captionReserve,caption.offsetHeight);caption.style.minHeight=`${captionReserve}px`;
+      const budget=`${phoneHome}:${captionReserve}`,previousBudget=root.dataset.layoutBudget,budgetChanged=previousBudget!==budget,reflowShortBudget=budgetChanged&&(phoneHome||previousBudget?.startsWith('true:'));root.dataset.layoutBudget=budget;
+      if(reflowShortBudget)scene.resize?.();
       layoutAnnotations(data,fromDraw&&!reflowShortBudget);
       root.dataset.parameter=definitions[index]?.key||'none';
     }
     function layoutAnnotations(data,fromDraw=false){
       if(root.hidden)return;
-      const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;const compact=compactAnnotations();
-      const origin=root.getBoundingClientRect(),captionBox=caption.getBoundingClientRect(),limit=captionBox.top-origin.top-18;
-      const box=state.stations?.find(item=>item.index===index)?.bounds;root.dataset.activeBounds=JSON.stringify(box||null);
+      const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;
+      const compact=compactAnnotations(),origin=root.getBoundingClientRect(),captionBox=caption.getBoundingClientRect();
+      const limit=Math.max(45,captionBox.top-origin.top-12);
+      // Parameter values and changing mesh bounds are deliberately absent.
+      const view=[index,w,h,Boolean(state.solo!==null&&state.solo!==undefined),Number(state.travel||0).toFixed(3),Number(state.arrival??1).toFixed(3),shortHomeAnnotations()].join(':');
+      if(view!==annotationView){annotationView=view;annotationPositions.clear();}
+      const px=point=>({x:Number(point?.x??.5)*w,y:Number(point?.y??.5)*h,visible:point?.visible!==false});
+      const targetOf=item=>px(item?.target||item);
+      const preferredOf=item=>px(item?.layoutPoint||item);
+      const rect=(x,y,rw,rh)=>({left:x-rw/2,right:x+rw/2,top:y-rh/2,bottom:y+rh/2});
+      const areaOverlap=(a,b,pad=0)=>Math.max(0,Math.min(a.right+pad,b.right)-Math.max(a.left-pad,b.left))*Math.max(0,Math.min(a.bottom+pad,b.bottom)-Math.max(a.top-pad,b.top));
+      const occupied=[],background=[],cores=[],lines=[];
+      const box=state.stations?.find(item=>item.index===index)?.bounds;
+      root.dataset.activeBounds=JSON.stringify(box||null);
       const active=box?{left:box.left*w,right:box.right*w,top:box.top*h,bottom:box.bottom*h}:null;
-      const occupied=[],background=[],lines=[];
-      const story=host.closest('[data-exhibition]')?.querySelector('[data-story][aria-hidden="false"]');if(story){const r=story.getBoundingClientRect();occupied.push({left:r.left-origin.left-12,right:r.right-origin.left+12,top:r.top-origin.top-12,bottom:r.bottom-origin.top+16});}
-      for(const station of state.stations||[]){if(station.index===index||!station.bounds)continue;const b=station.bounds;background.push({left:b.left*w-16,right:b.right*w+16,top:b.top*h-16,bottom:b.bottom*h+16});}
-      const rectFor=node=>{const b=node.getBoundingClientRect();return {left:b.left-origin.left,right:b.right-origin.left,top:b.top-origin.top,bottom:b.bottom-origin.top};};
-      const overlap=(a,b,pad=9)=>Math.max(0,Math.min(a.right+pad,b.right)-Math.max(a.left-pad,b.left))*Math.max(0,Math.min(a.bottom+pad,b.bottom)-Math.max(a.top-pad,b.top));
-      if(compact&&data.length)occupied.push({left:0,right:w,top:0,bottom:Math.ceil(data.length/(data.length>3?3:data.length))*40+4});
-      const buttons=[...root.querySelectorAll('.study-grip'),...root.querySelectorAll('.study-choice')].filter(node=>!node.closest('.study-resource-group'));
-      for(const node of buttons){
-        const original=rectFor(node),bw=original.right-original.left,bh=original.bottom-original.top,cx=(original.left+original.right)/2,cy=(original.top+original.bottom)/2;
-        const candidates=[[cx,cy],[cx,cy-52],[cx,cy+52],[cx-66,cy],[cx+66,cy],[cx-66,cy-52],[cx+66,cy-52]];
-        if(node.classList.contains('study-choice')&&active)candidates.push([active.left-bw/2-18,cy],[active.right+bw/2+18,cy],[cx,active.top-bh/2-18],[cx,active.bottom+bh/2+18]);
-        for(const y of[110,162,214,limit-bh/2])for(const x of[30,w*.25,w*.5,w*.75,w-30])candidates.push([x,y]);
-        let best=null;
-        for(let [x,y]of candidates){x=clamp(x,bw/2+8,w-bw/2-8);y=clamp(y,bh/2+14,Math.max(bh/2+14,limit-bh/2));const area={left:x-bw/2,right:x+bw/2,top:y-bh/2,bottom:y+bh/2};let score=Math.hypot(x-cx,y-cy);for(const other of occupied)score+=overlap(area,other,6)*1000000;for(const other of background)score+=overlap(area,other,8)*100;if(node.classList.contains('study-choice')&&active)score+=overlap(area,active,12)*10000;if(!best||score<best.score)best={x,y,area,score};}
-        if(best){node.style.left=`${best.x}px`;node.style.top=`${best.y}px`;occupied.push(best.area);if(Math.hypot(best.x-cx,best.y-cy)>14)lines.push(`<path d="M${cx.toFixed(1)},${cy.toFixed(1)} L${best.x.toFixed(1)},${best.y.toFixed(1)}"/>`);}
+      const story=host.closest('[data-exhibition]')?.querySelector('[data-story][aria-hidden="false"]');
+      if(story){const r=story.getBoundingClientRect();occupied.push({left:r.left-origin.left-8,right:r.right-origin.left+8,top:r.top-origin.top-8,bottom:r.bottom-origin.top+10});}
+      for(const station of state.stations||[]){
+        if(station.index===index||!station.bounds)continue;
+        const b=station.bounds;background.push({left:b.left*w-5,right:b.right*w+5,top:b.top*h-5,bottom:b.bottom*h+5});
       }
-      // A resource count is one ordered choice, not three different model parts.
-      // Move the complete text row; its native44px buttons keep their order.
+      for(const item of [...data,...(state.handles||[])]){
+        const p=targetOf(item);if(p.visible)cores.push(rect(p.x,p.y,14,14));
+      }
+      function apply(node,p,isGrip=false){
+        node.hidden=false;
+        if(isGrip){const parent=node.parentElement.getBoundingClientRect();node.style.left=(p.x-(parent.left-origin.left))+'px';node.style.top=(p.y-(parent.top-origin.top))+'px';node.style.right='auto';}
+        else{node.style.left=p.x+'px';node.style.top=p.y+'px';}
+        node.style.transform='translate(-50%,-50%)';
+      }
+      function leader(id,target,area){
+        const edge={x:clamp(target.x,area.left-3,area.right+3),y:clamp(target.y,area.top-3,area.bottom+3)};
+        const distance=Math.hypot(target.x-edge.x,target.y-edge.y);
+        if(distance<9||distance>(compact?115:165))return;
+        const elbow=Math.abs(target.x-edge.x)>Math.abs(target.y-edge.y)?{x:edge.x+(target.x-edge.x)*.35,y:edge.y}:{x:edge.x,y:edge.y+(target.y-edge.y)*.35};
+        const number=n=>n.toFixed(1);
+        lines.push('<path data-annotation="'+id.replace(/[^a-zA-Z0-9_-]/g,'-')+'" d="M'+number(edge.x)+','+number(edge.y)+' L'+number(elbow.x)+','+number(elbow.y)+' L'+number(target.x)+','+number(target.y)+'"/><circle cx="'+number(target.x)+'" cy="'+number(target.y)+'" r="1.6"/>');
+      }
+      function place(node,id,item,kind='marker',preferredOverride=null){
+        const target=targetOf(item),preferred=preferredOverride||preferredOf(item);
+        if(!target.visible||target.x<0||target.x>w||target.y<0||target.y>h){node.hidden=true;return;}
+        node.hidden=false;
+        if(kind==='marker'||kind==='grip-label'){
+          const short=/^(Before|After|Input|Output|Ry\(θ\)|\d+ gates)$/.test(node.textContent);
+          node.style.width=(id==='marker-gradient-control'&&compact?110:short?62:compact?92:120)+'px';node.style.maxWidth='none';
+        }
+        const b=node.getBoundingClientRect(),rw=b.width,rh=b.height;if(!rw||!rh)return;
+        const cached=annotationPositions.get(id);
+        const followLayout=(index===4&&kind!=='resource')||id==='selected-mode';
+        let best=cached?{x:cached.x+(followLayout?preferred.x-cached.referenceX:0),y:cached.y+(followLayout?preferred.y-cached.referenceY:0)}:null;
+        if(!best){
+          const reach=compact?90:138,dx=preferred.x-target.x,dy=preferred.y-target.y,length=Math.hypot(dx,dy);
+          const local=length>reach?{x:target.x+dx/length*reach,y:target.y+dy/length*reach}:preferred;
+          const above=rh/2+18,side=rw/2+18;
+          const semanticSides={
+            'marker-switch-control':{side:'left',gap:18},
+            'marker-logical-estimate':{side:'right',gap:18},
+            'marker-gradient-factors':{side:'above',gap:compact?28:32},
+            'marker-gradient-control':{side:'below',gap:compact?14:30},
+            'marker-transformer-input':{side:'above',gap:52,dx:compact?-32:-14},
+            'marker-transformer-model':{side:'above',gap:36,dx:compact?16:0}
+          },rule=semanticSides[id];
+          let candidates=[[local.x,local.y],[target.x,target.y-above],[target.x,target.y+above],[target.x-side,target.y],[target.x+side,target.y],[target.x-46,target.y-above],[target.x+46,target.y-above],[target.x-46,target.y+above],[target.x+46,target.y+above]];
+          if(rule){
+            const x=target.x+(rule.dx||0)+(rule.side==='left'?-rw/2-rule.gap:rule.side==='right'?rw/2+rule.gap:0),y=target.y+(rule.side==='above'?-rh/2-rule.gap:rule.side==='below'?rh/2+rule.gap:0);
+            candidates=rule.side==='left'||rule.side==='right'?[[x,y],[x,y-16],[x,y+16],[x+(rule.side==='left'?-14:14),y]]:[[x,y],[x-12,y],[x+12,y],[x,y+(rule.side==='above'?-14:12)]];
+          }
+          for(let [x,y]of candidates){
+            x=clamp(x,rw/2+7,Math.max(rw/2+7,w-rw/2-7));y=clamp(y,rh/2+7,Math.max(rh/2+7,limit-rh/2));
+            if(Math.hypot(x-target.x,y-target.y)>reach+Math.max(rw,rh)/2)continue;
+            const area=rect(x,y,rw,rh);
+            let score=Math.hypot(x-target.x,y-target.y)+(preferredOverride?1.6:.35)*Math.hypot(x-local.x,y-local.y);
+            for(const other of occupied)score+=areaOverlap(area,other,4)*240;
+            for(const other of background)score+=areaOverlap(area,other,3)*12;
+            if(kind!=='resource')for(const other of cores)score+=areaOverlap(area,other,5)*70;
+            if(!best||score<best.score)best={x,y,score};
+          }
+          if(best&&fromDraw)annotationPositions.set(id,{x:best.x,y:best.y,referenceX:preferred.x,referenceY:preferred.y});
+        }
+        if(!best){node.hidden=true;return;}
+        best={x:clamp(best.x,rw/2+7,Math.max(rw/2+7,w-rw/2-7)),y:clamp(best.y,rh/2+7,Math.max(rh/2+7,limit-rh/2))};
+        apply(node,best,kind==='grip-label');
+        const area=rect(best.x,best.y,rw,rh);occupied.push(area);
+        const ink=node.querySelector('.study-annotation-text')?.getBoundingClientRect();
+        const inkArea=ink?{left:ink.left-origin.left,right:ink.right-origin.left,top:ink.top-origin.top,bottom:ink.bottom-origin.top}:area;
+        if(kind!=='resource')leader(id,target,inkArea);
+      }
+      // The manipulation point stays on the physical part. Only its text moves.
+      for(const {button,def}of grips){
+        const point=anchor(def.key);if(!point)continue;
+        position(button,point,[.5,.5]);if(button.hidden)continue;
+        const p=px(point);occupied.push(rect(p.x,p.y,28,28));
+      }
+      // A code distance, derivative order or stage is one selector, not a part.
+      // It has no leader that could be mistaken for a circuit connection.
       for(const group of resourceGroups){
-        const node=group.node,r=rectFor(node),bw=r.right-r.left,bh=r.bottom-r.top,target={x:group.point.x*w,y:group.point.y*h},x=clamp(target.x,bw/2+10,w-bw/2-10);
-        const placementKey=`${w}x${h}:${compact?'phone':'desktop'}:${tinyHomeAnnotations()?'tiny':shortHomeAnnotations()?'short':'regular'}:${Number(state.travel||0).toFixed(4)}:${Number(state.arrival??1).toFixed(4)}`;
-        const narrow=compact,paintTop=narrow?(shortHomeAnnotations()?captionBox.top-origin.top-24:Math.min((active?.bottom??84)+4,captionBox.top-origin.top-19)):null;
-        const candidates=narrow?[[w/2,paintTop+bh/2],[w/2+20,paintTop+bh/2],[w/2-20,paintTop+bh/2]]:[[x,bh/2]];let best=null;
-        for(let [cx,cy]of candidates){cx=clamp(cx,bw/2+10,w-bw/2-10);if(!narrow)cy=clamp(cy,bh/2,Math.max(bh/2,limit-bh/2));const area={left:cx-bw/2,right:cx+bw/2,top:cy-bh/2,bottom:cy+bh/2},paint={...area,bottom:area.top+18};let score=Math.hypot(cx-target.x,cy-target.y);for(const other of occupied)score+=overlap(area,other,2)*1000000;if(active)score+=overlap(paint,active,4)*100;for(const other of background)score+=overlap(paint,other,5)*10;if(!best||score<best.score)best={x:cx,y:cy,area,paint,score};}
-        if(group.placement?.key===placementKey)best=group.placement.value;
-        else if(best&&fromDraw)group.placement={key:placementKey,value:best};
-        if(best){node.style.left=`${best.x}px`;node.style.top=`${best.y}px`;occupied.push(narrow?best.paint:best.area);const edge={x:clamp(target.x,best.area.left+8,best.area.right-8),y:best.area.top+19};if(Math.hypot(edge.x-target.x,edge.y-target.y)>14)lines.push(`<path class="study-group-leader" d="M${target.x.toFixed(1)},${target.y.toFixed(1)} L${edge.x.toFixed(1)},${edge.y.toFixed(1)}"/>`);}
+        const b=group.node.getBoundingClientRect();
+        if(compact){
+          const y=captionBox.top-origin.top-25+b.height/2;
+          const p={x:w/2,y};apply(group.node,p);occupied.push({left:p.x-b.width/2,right:p.x+b.width/2,top:y-b.height/2,bottom:y-b.height/2+18});
+          continue;
+        }
+        const p={x:w/2,y:b.height/2+2};
+        apply(group.node,p);occupied.push(rect(p.x,p.y,b.width,b.height));
       }
-      guides.setAttribute('viewBox',`0 0 ${w} ${h}`);
-      const place=(node,point,isGrip=false)=>{
-        const r=node.getBoundingClientRect(),rw=r.width,rh=r.height,target={x:point.x*w,y:point.y*h};
-        if(!rw||!rh)return;
-        const candidates=[];
-        if(active){
-          const top=Math.max(18,active.top-25-rh/2),bottom=Math.min(limit-rh/2,active.bottom+25+rh/2);
-          candidates.push([target.x,top],[active.left-20-rw/2,target.y],[active.right+20+rw/2,target.y],[target.x,bottom]);
-          for(const dx of[-110,110,-220,220])candidates.push([target.x+dx,top]);
-        }
-        candidates.push([target.x,target.y-27],[target.x,target.y+27]);
-        if(!compact)for(const y of[36,h*.28,h*.48,h*.64,limit-rh/2])for(const x of[rw/2+10,w*.25,w*.5,w*.75,w*.85,w-rw/2-10])candidates.push([x,y]);
-        let best=null;
-        for(let [x,y]of candidates){x=clamp(x,rw/2+10,w-rw/2-10);y=clamp(y,rh/2+14,Math.max(rh/2+14,limit-rh/2));const area={left:x-rw/2,right:x+rw/2,top:y-rh/2,bottom:y+rh/2};let score=Math.hypot(x-target.x,y-target.y);
-          for(const other of occupied)score+=overlap(area,other)*(compact?1000:1000000);
-          for(const other of background)score+=overlap(area,other)*(compact?20:4000);
-          if(active)score+=overlap(area,active,10)*(compact?30:8000);
-          if(!best||score<best.score)best={x,y,area,score};
-        }
-        if(!best)return;occupied.push(best.area);
-        if(isGrip){const parent=node.parentElement.getBoundingClientRect();node.style.left=`${best.x-(parent.left-origin.left)}px`;node.style.top=`${best.y-(parent.top-origin.top)}px`;node.style.right='auto';node.style.width=`${Math.min(112,w*.33)}px`;node.style.transform='translate(-50%,-50%)';node.style.textAlign='center';}
-        else{node.style.left=`${best.x}px`;node.style.top=`${best.y}px`;}
-        if(Math.hypot(best.x-target.x,best.y-target.y)>24)lines.push(`<path d="M${target.x.toFixed(1)},${target.y.toFixed(1)} L${best.x.toFixed(1)},${best.y.toFixed(1)}"/>`);
-      };
-      if(compact){
-        const columns=data.length>3?3:Math.max(1,data.length),gap=10,slot=(w-20)/columns;
-        data.forEach((item,i)=>{const node=markers[i],x=10+slot*(i%columns+.5),y=24+Math.floor(i/columns)*40;node.style.left=`${x}px`;node.style.top=`${y}px`;node.style.width=`${Math.min(slot-gap,116)}px`;node.style.maxWidth='none';const target={x:item.x*w,y:item.y*h};occupied.push(rectFor(node));if(Math.hypot(x-target.x,y-target.y)>24)lines.push(`<path d="M${target.x.toFixed(1)},${target.y.toFixed(1)} L${x.toFixed(1)},${y.toFixed(1)+12}"/>`);});
-      }else data.forEach((item,i)=>place(markers[i],item));
-      for(const {button,def}of grips){const label=button.querySelector('.study-grip__label');if(label&&getComputedStyle(label).display!=='none'){const point=anchor(def.key);if(point)place(label,point,true);}}
+      for(const {button,key,value}of choices){
+        if(button.closest('.study-resource-group'))continue;
+        const point=anchor(key,value);if(point)place(button,'choice-'+key+'-'+value,point,'choice');
+      }
+      if(modeButton&&modePoint)place(modeButton,'selected-mode',modePoint,'choice');
+      data.forEach((item,i)=>{const p=targetOf(item),preferred=item.id==='switch-bases'?{x:p.x-30,y:p.y-56}:item.id==='transformer-residual'?{x:p.x,y:p.y+30}:null;place(markers[i],'marker-'+(item.id||item.text.replace(/\d+/g,'#')),item,'marker',preferred);});
+      for(const {button,def}of grips){
+        const label=button.querySelector('.study-grip__label'),point=anchor(def.key);
+        if(point&&label&&getComputedStyle(label).display!=='none'&&!button.hidden){const p=targetOf(point),before=data.find(item=>item.id==='peephole-before'),after=data.find(item=>item.id==='peephole-after'),preferred=def.key==='window'?{x:p.x,y:before&&after?(targetOf(before).y+targetOf(after).y)/2:p.y+34}:null;place(label,'grip-label-'+def.key,point,'grip-label',preferred);}
+      }
+      guides.setAttribute('viewBox','0 0 '+w+' '+h);
       const markup=lines.join('');if(guides.innerHTML!==markup)guides.innerHTML=markup;
+      root.dataset.annotationLayout='local-stable';
     }
     const draw=()=>update(undefined,true);host.addEventListener('exhibitionscenedraw',draw);update();
     return {update,setVisible(value){visible=Boolean(value);update();},destroy(){host.removeEventListener('exhibitionscenedraw',draw);root.remove();}};

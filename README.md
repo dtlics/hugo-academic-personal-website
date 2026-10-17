@@ -19,7 +19,7 @@ flowchart LR
 | About composition | `src/pages/about.astro` |
 | Portrait and other static files | `public/images/` |
 
-The header's Profiles link opens the contact and account links beside the About introduction. Instagram uses the stable local path `/instagram/`, which sends visitors to the `instagram` URL in `src/data/profile.json`. After an Instagram username change, update that one value and rebuild. The local path stays the same; it does not detect account renames automatically.
+The header links directly to Instagram and X. About opens the biography, with the contact and other account links beside its introduction. Instagram uses the stable local path `/instagram/`, which sends visitors to the `instagram` URL in `src/data/profile.json`. After an Instagram username change, update that one value and rebuild. The local path stays the same; it does not detect account renames automatically.
 
 Keep the same paper IDs in the publication files and exhibition data. All six approved works have individual pages and downloadable citations. The excluded fidelity-divergence paper is not included. The old résumé PDF is kept at its former URL for compatibility; the website does not link to it as a current résumé. Replace it only after the separate résumé update is approved.
 
