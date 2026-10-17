@@ -21,6 +21,10 @@ const statistics = profile.skills.Statistics;
         <a class="about-research-link" href={localPath('publication/')}>Explore my research <span aria-hidden="true">↗</span></a>
       </div>
     </section>
+    <section class="about-outside" id="outside-research" aria-labelledby="outside-title">
+      <h2 id="outside-title">Outside research</h2>
+      <p>On the side, I vibe-code engineering projects, including quant trading tools. I’m also into cars and racing (that’s me at the track in the photo), experimental music, and League of Legends.</p>
+    </section>
     <section class="about-education" aria-labelledby="education-title">
       <h2 id="education-title">Education</h2>
       <div class="education-yale">
@@ -56,6 +60,9 @@ const statistics = profile.skills.Statistics;
   .about-introduction p+p{margin-top:20px}
   .about-research-link{display:inline-flex;align-items:center;gap:12px;min-height:44px;margin-top:18px;font-size:15px}
   .about-page h2{font-size:clamp(24px,2.5vw,36px);font-weight:480;line-height:1.1;letter-spacing:-.04em}
+  .about-outside{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;padding-block:24px 78px;scroll-margin-top:30px}
+  .about-outside h2{grid-column:1/5}
+  .about-outside>p{grid-column:6/-1;max-width:42ch;font-size:clamp(23px,2.35vw,32px);line-height:1.4;letter-spacing:-.025em;text-wrap:pretty}
   .about-education,.about-skills{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px;align-items:start;padding-block:72px}
   .about-education h2{grid-column:1/5}
   .education-yale{grid-column:6/-1}
@@ -86,6 +93,9 @@ const statistics = profile.skills.Statistics;
     .about-opening .about-portrait{grid-column:2/-1;grid-row:3;margin-top:35px;max-width:420px;justify-self:end}
     .about-introduction{grid-column:1/-1;grid-row:4;margin-top:35px;font-size:17px;max-width:44ch}
     .about-introduction .about-role{font-size:23px;margin-bottom:23px}
+    .about-outside{grid-template-columns:repeat(6,minmax(0,1fr));gap:24px 16px;padding-block:16px 38px}
+    .about-outside h2,.about-outside>p{grid-column:1/-1}
+    .about-outside>p{font-size:24px;line-height:1.45}
     .about-education,.about-skills{grid-template-columns:repeat(6,minmax(0,1fr));gap:0 16px;padding-block:38px}
     .about-education h2,.about-skills h2{grid-column:1/-1;margin-bottom:39px}
     .education-yale{grid-column:2/-1}
