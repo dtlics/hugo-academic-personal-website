@@ -62,3 +62,7 @@
 /* Dials are taken by touch in any direction once the finger is on them. */
 .study-grip[data-parameter=gradient],.study-grip[data-parameter=angle]{touch-action:none}
 @media(max-width:560px){.study-caption .study-actions__readout{font-size:12px}}
+/* While a model changes shape its labels step out, then return in place. */
+.study-actions .study-marker,.study-actions .study-guides,.study-actions .study-grip__label{transition:opacity .22s ease-out}
+.study-actions[data-reshaping=true] :is(.study-marker,.study-guides,.study-grip__label){opacity:0;transition-duration:.08s}
+@media(prefers-reduced-motion:reduce){.study-actions :is(.study-marker,.study-guides,.study-grip__label){transition:none}}

@@ -92,7 +92,7 @@
     root.style.setProperty('--presence',presence.toFixed(3));
     controls?.setVisible(presence>.01&&!reduced.matches&&phase<=10.3,presence);
     q('[data-current-label]').textContent=phase<1.1?'00 / Identity and practice':phase>=10.5?'Six works / 2023–2026':`${String(current+1).padStart(2,'0')} / ${String(count).padStart(2,'0')}`;
-    const cueText=phase<.6?'Scroll to begin the research ↓':phase<10.3?'Scroll through the work ↓':'More to explore ↓';if(q('[data-scroll-cue]').textContent!==cueText)q('[data-scroll-cue]').textContent=cueText;
+    const cueText=phase<.6?'Scroll to begin the research ↓':phase<1.1+1.65*(count-1)?'Scroll through the work ↓':phase<10.3?'Behind the work ↓':'More to explore ↓';if(q('[data-scroll-cue]').textContent!==cueText)q('[data-scroll-cue]').textContent=cueText;
     root.dataset.phase=phase.toFixed(3);root.dataset.study=String(active);root.dataset.travel=(cameraPosition/(count-1)).toFixed(4);root.dataset.presence=presence.toFixed(3);root.dataset.trail=(reduced.matches?0:step(phase,10.85,11.05)).toFixed(3);
   }
   function inkRight(){const range=document.createRange();let right=0;for(const story of stories)for(const part of story.querySelectorAll('.study-identity,h2>span,.study-note,.study-links')){range.selectNodeContents(part);right=Math.max(right,range.getBoundingClientRect().right,part.getBoundingClientRect().left);}return right;}
@@ -132,7 +132,9 @@
   const cue=q('[data-scroll-cue]');
   cue?.addEventListener('click',event=>{
     if(phase>=10.3){event.preventDefault();const footer=document.getElementById('contact');footer?.scrollIntoView({behavior:reduced.matches||event.detail===0?'auto':'smooth'});if(event.detail===0)footer?.querySelector('a')?.focus({preventScroll:true});return;}
-    event.preventDefault();goTo(phase<1.1?0:Math.min(count-1,Number(root.dataset.study)>=0?Number(root.dataset.study)+1:current+1),event.detail===0);
+    event.preventDefault();
+    if(phase>=1.1&&current>=count-1){const start=scrollY+track.getBoundingClientRect().top;scrollTo({top:start+10.85*innerHeight,behavior:event.detail===0||reduced.matches?'instant':'smooth'});if(event.detail===0){render();coda.querySelector('a')?.focus({preventScroll:true});}return;}
+    goTo(phase<1.1?0:Math.min(count-1,Number(root.dataset.study)>=0?Number(root.dataset.study)+1:current+1),event.detail===0);
   });
   // In the coda each work in the trail carries its name: the trail is an index.
   const trailLinks=Array.from(root.querySelectorAll('[data-trail]'));

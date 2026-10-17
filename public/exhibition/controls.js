@@ -58,6 +58,7 @@
         if(!pointer.engaged)return;
         if(event.cancelable)event.preventDefault();
         const direct=scene.valueAt?.(def.key,event.clientX,event.clientY,pointer.start,dx);if(direct!==null&&direct!==undefined){send(def.key,direct);return;}
+        if(def.key==='transformerYaw'){send('transformerYaw',clamp(pointer.start+dx/170,def.min,def.max));return;}
         const max=def.key==='layer'?(state?.routeLayers||27):def.max;
         const next=pointer.start+dx/Math.max(200,host.clientWidth)*(max-def.min)*1.8;
         send(def.key,clamp(Math.round(next/def.step)*def.step,def.min,max));
@@ -156,6 +157,7 @@
       if(reflowShortBudget)scene.resize?.();
       layoutAnnotations(data,fromDraw&&!reflowShortBudget);
       root.dataset.parameter=definitions[index]?.key||'none';
+      root.dataset.reshaping=String(Boolean(state.transition?.active&&['derivativeOrder','distance','peephole'].includes(state.transition.kind)));
     }
     function layoutAnnotations(data,fromDraw=false){
       if(root.hidden)return;
