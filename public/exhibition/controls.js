@@ -135,7 +135,7 @@
       const readoutLabels=new Set(['Keep / discard','Move to the seam','Open the seam','H H → I','X X → I','Coherent order control','Definite order','Random order','Tangent','Input grid']);
       let data=(state.markers||[]).filter(item=>item.id!=='route-stage'&&!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(modeButton&&item.text.startsWith('Mode '))&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
       if(phoneHome&&index===3)data=data.filter(item=>['gradient-ancillas','gradient-control','gradient-factors'].includes(item.id)).map(item=>({...item,text:item.id==='gradient-ancillas'?`${state.derivativeOrder||2} control qubits`:item.id==='gradient-factors'?'Joint X…X × Z':item.text}));
-      if(tinyHome&&index===3)data=data.filter(item=>item.id!=='gradient-factors');
+      if(tinyHome&&index===3)data=data.filter(item=>item.id==='gradient-control');
       if(phoneHome&&index===4)data=data.filter(item=>['transformer-input','transformer-model','transformer-residual'].includes(item.id)).map(item=>({...item,text:item.id==='transformer-model'?'Transformer':item.text}));
       data=data.map(item=>item.id==='transformer-residual'?{...item,text:'Residual decoder'}:item);
       while(markers.length>data.length)markers.pop().remove();
