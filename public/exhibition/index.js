@@ -10,7 +10,8 @@
   const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
   const phone = [[.28,.13],[.75,.27],[.25,.34],[.76,.70],[.25,.81],[.72,.92]];
   const fallback = [[.19,.19],[.71,.13],[.88,.50],[.72,.84],[.24,.84],[.10,.53]];
-  let orbit = 0, active = -1, scene = null, stations = [], pointer = null, lastDrag = false, returningFocus = false;
+  let orbit = 0, active = -1, scene = null, stations = [], pointer = null, returningFocus = false;
+  const suppressedClicks = new WeakSet();
   function layout(next) {
     if (next) stations = next;
     const narrow = root.clientWidth <= 700;
@@ -43,8 +44,9 @@
   }
   function turn(value) {
     orbit = clamp(Number(value)||0,-35,35);
-    range.value = String(Math.round(orbit));
     range.setAttribute('aria-valuenow',String(Math.round(orbit)));
+    range.setAttribute('aria-valuetext',Math.abs(orbit)<.5?'Centred':`${Math.round(Math.abs(orbit))} degrees ${orbit<0?'left':'right'}`);
+    range.querySelector('[aria-hidden]')?.style.setProperty('transform',`rotate(${orbit*2}deg)`);
     scene?.setView({overview:true,orbit});
     if (scene?.getState) layout(scene.getState().stations);
   }
@@ -69,12 +71,45 @@
       event.preventDefault();turn(event.key==='Home'?-35:event.key==='End'?35:orbit+(['ArrowRight','ArrowUp'].includes(event.key)?3:-3));
     }
   });
-  range.addEventListener('click',()=>turn(0));
-  host.addEventListener('pointerdown',event => { if (event.button !== 0) return;pointer={id:event.pointerId,x:event.clientX,start:orbit};lastDrag=false;host.setPointerCapture?.(event.pointerId); });
-  host.addEventListener('pointermove',event => { if (!pointer || event.pointerId !== pointer.id) return;const delta=event.clientX-pointer.x;if(Math.abs(delta)>5)lastDrag=true;if(lastDrag)turn(pointer.start+delta/root.clientWidth*100); });
-  const end = () => {pointer=null;};
-  host.addEventListener('pointerup',end);host.addEventListener('pointercancel',end);
-  host.addEventListener('click',() => {if(lastDrag){lastDrag=false;return;}select(-1);});
+  q('[data-research-reset]').addEventListener('click',()=>turn(0));
+  function finishPointer(event,abort=false) {
+    if (!pointer || event.pointerId!==pointer.id) return;
+    const finished=pointer;
+    pointer=null;
+    root.dataset.turning='false';
+    if (finished.engaged) suppressedClicks.add(finished.target);
+    if (finished.target.hasPointerCapture?.(finished.id)) finished.target.releasePointerCapture(finished.id);
+  }
+  for (const target of [host,range]) {
+    target.addEventListener('pointerdown',event => {
+      if (event.button!==0||event.isPrimary===false||pointer) return;
+      suppressedClicks.delete(target);
+      pointer={id:event.pointerId,x:event.clientX,y:event.clientY,start:orbit,target,touch:event.pointerType==='touch',engaged:false};
+    });
+    target.addEventListener('pointermove',event => {
+      if (!pointer||event.pointerId!==pointer.id||pointer.target!==target) return;
+      const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;
+      if (!pointer.engaged) {
+        if (pointer.touch&&Math.abs(dy)>6&&Math.abs(dy)>Math.abs(dx)) {finishPointer(event,true);return;}
+        if (Math.abs(dx)<=5||Math.abs(dx)<=Math.abs(dy)*1.15) return;
+        pointer.engaged=true;
+        root.dataset.turning='true';
+        target.setPointerCapture?.(event.pointerId);
+      }
+      if (event.cancelable) event.preventDefault();
+      turn(pointer.start+dx/Math.max(160,root.clientWidth)*100);
+    });
+    target.addEventListener('pointerup',event=>finishPointer(event));
+    target.addEventListener('pointercancel',event=>finishPointer(event,true));
+    target.addEventListener('lostpointercapture',event=>finishPointer(event,true));
+    target.addEventListener('pointerleave',event=>{if(pointer&&!pointer.engaged)finishPointer(event,true);});
+    target.addEventListener('click',event=>{
+      if (!suppressedClicks.has(target)) return;
+      suppressedClicks.delete(target);
+      event.preventDefault();event.stopImmediatePropagation();
+    });
+  }
+  host.addEventListener('click',()=>select(-1));
   root.addEventListener('exhibitionscenedraw',event => {root.dataset.ready=String(Boolean(event.detail.ready));layout(event.detail.stations);});
   try {
     const source=window.ROUTE_SOURCE,compiler=window.RouteCompiler;
@@ -88,7 +123,8 @@
   } catch {root.dataset.ready='false';layout();}
   const observer = new ResizeObserver(() => {scene?.resize?.();layout(scene?.getState?.().stations);});
   observer.observe(root);
-  window.addEventListener('pagehide',event => {if(!event.persisted){observer.disconnect();scene?.destroy?.();}});
+  window.addEventListener('blur',()=>{if(pointer)finishPointer({pointerId:pointer.id},true);});
+  window.addEventListener('pagehide',event => {if(pointer)finishPointer({pointerId:pointer.id},true);if(!event.persisted){observer.disconnect();scene?.destroy?.();}});
   window.addEventListener('pageshow',event => {if(event.persisted){scene?.resize?.();scene?.setView?.({overview:true,orbit});layout(scene?.getState?.().stations);}});
   const hash=decodeURIComponent(location.hash.slice(1));const selected=works.findIndex(work=>work.id===hash);if(selected>=0)select(selected);
 })();

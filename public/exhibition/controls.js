@@ -3,12 +3,12 @@
   'use strict';
   const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
   const definitions=[
-    {key:'layer',min:0,max:27,step:1,label:'Circuit layer',verb:'Trace a layer',hint:'Drag to move a circuit layer. One path follows the selected mode.'},
-    {key:'repair',choices:[['0','Sample'],['1','Check'],['2','Combine']],label:'Detection and cancellation',hint:'A concept sketch. Signed weights change the estimate, not the quantum state.'},
-    {key:'window',min:0,max:2,step:1,label:'Peephole step',verb:'Move the window',hint:'A small identity circuit. Only the selected gates change.'},
-    {key:'gradient',min:-1,max:1,step:.02,label:'Circuit angle',verb:'Change the angle',hint:'Exact Y-rotation example. Mean product of X and Z outcomes = derivative.'},
-    {key:'distance',choices:[['5','d = 5'],['7','d = 7'],['9','d = 9']],label:'Code distance',hint:'Drag to turn the architecture. Each new code size still needs training.'},
-    {key:'order',choices:[['ab','A → B'],['coherent','Coherent'],['ba','B → A']],label:'Quantum-switch order',hint:'Example target: an equal mixture of qubit states 0 and 1.'},
+    {key:'layer',min:0,max:27,step:1,label:'Circuit layer',verb:'Trace a layer',hint:'Drag the marked point to trace layers. Click Mode to change paths.'},
+    {key:'repair',choices:[['0','Sample'],['1','Check'],['2','Combine']],label:'Detection and cancellation',hint:'Click a stage. Signed weights change the estimate, not the quantum state.'},
+    {key:'window',min:0,max:2,step:1,label:'Peephole step',verb:'Move the window',hint:'Drag the window, or click the gates to step through this identity rewrite.'},
+    {key:'gradient',min:-1,max:1,step:.02,label:'Circuit angle',verb:'Change the angle',hint:'Drag the angle marker. For this Y rotation, mean X/Z products give the derivative.'},
+    {key:'distance',choices:[['5','d = 5'],['7','d = 7'],['9','d = 9']],label:'Code distance',hint:'Drag the model to turn it. Each new code size still needs training.'},
+    {key:'order',choices:[['ab','A → B'],['coherent','Coherent'],['ba','B → A']],label:'Quantum-switch order',hint:'Drag the marked axis to turn the bases. Target: equal mixture of 0 and 1.'},
   ];
   const degrees=x=>`${Math.round(x)}°`;
   function compact(x){return Math.abs(x)<.0005?'0':Number(x).toFixed(2).replace(/\.00$/,'');}
@@ -47,14 +47,14 @@
       button.addEventListener('pointermove',event=>{
         if(!pointer||pointer.button!==button||event.pointerId!==pointer.id)return;
         const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;
-        if(!pointer.engaged&&Math.abs(dx)>4&&Math.abs(dx)>Math.abs(dy)*1.15){pointer.engaged=true;button.setPointerCapture(event.pointerId);}
+        if(!pointer.engaged&&Math.abs(dx)>4&&Math.abs(dx)>Math.abs(dy)*1.15){pointer.engaged=true;button.dataset.dragging='true';button.setPointerCapture(event.pointerId);}
         if(!pointer.engaged)return;
         if(event.cancelable)event.preventDefault();
         const max=def.key==='layer'?(state?.routeLayers||27):def.max;
         const next=pointer.start+dx/Math.max(200,host.clientWidth)*(max-def.min)*1.8;
         send(def.key,clamp(Math.round(next/def.step)*def.step,def.min,max));
       });
-      const end=event=>{if(pointer?.button===button&&event.pointerId===pointer.id){if(button.hasPointerCapture(event.pointerId))button.releasePointerCapture(event.pointerId);pointer=null;}};
+      const end=event=>{if(pointer?.button===button&&event.pointerId===pointer.id){button.dataset.dragging='false';if(button.hasPointerCapture(event.pointerId))button.releasePointerCapture(event.pointerId);pointer=null;}};
       button.addEventListener('pointerup',end);button.addEventListener('pointercancel',end);button.addEventListener('lostpointercapture',end);
       root.append(button);grips.push({button,def});
     }
@@ -93,9 +93,9 @@
       const nextIndex=options.index??state.activeIndex;
       if(nextIndex!==index)build(nextIndex);
       const phoneHome=phoneHomeAnnotations(),shortHome=shortHomeAnnotations(),tinyHome=tinyHomeAnnotations();
-      setText(hint,shortHome&&index===1?'Concept: signed weights change the estimate.':shortHome&&index===2?'Drag the window. The final circuit stays the same.':shortHome&&index===3?'Exact Y rotation; average all X and Z outcome products.':shortHome&&index===4?'Drag to turn; new code sizes still need training.':definitions[index]?.hint||'Relations learned by a decoder. A concept view of transfer across code sizes.');
-      if(tinyHome){const hints={0:'Drag layers; follow one mode.',2:'Drag the window; keep the operation.',3:'Exact Y rotation; average X/Z products.',4:'Drag to turn; new sizes need training.',5:'Target: equal mixture of 0 and 1.'};if(hints[index])setText(hint,hints[index]);}
-      if(phoneHome&&index===3)setText(hint,'Exact Y rotation; average joint X/Z products.');
+      setText(hint,shortHome&&index===1?'Click a stage; weights change the estimate.':shortHome&&index===2?'Drag the window. The final circuit stays the same.':shortHome&&index===3?'Drag the angle; exact Y rotation, joint X/Z products.':shortHome&&index===4?'Drag to turn; new code sizes still need training.':definitions[index]?.hint||'Relations learned by a decoder. A concept view of transfer across code sizes.');
+      if(tinyHome){const hints={0:'Drag the marker; click Mode to change paths.',2:'Drag the window; keep the operation.',3:'Drag angle; exact Y rotation, X/Z products.',4:'Drag to turn; new sizes need training.',5:'Drag the axis. Target: equal mix of 0 and 1.'};if(hints[index])setText(hint,hints[index]);}
+      if(phoneHome&&index===3)setText(hint,'Drag angle; exact Y rotation, joint X/Z products.');
       if(phoneHome&&index===4)setText(hint,'Drag to turn; transfer still needs training.');
       root.hidden=!visible||!state.ready;
       const nextCaptionView=host.clientWidth+'x'+host.clientHeight+':'+shortHome+':'+tinyHome;

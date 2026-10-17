@@ -22,7 +22,7 @@
 .measurement-object .mo-controls{padding:8px 4% 0}
 .measurement-object .mo-controls>label{display:flex;justify-content:space-between;gap:16px;font-size:12px;line-height:1.4}
 .measurement-object .mo-controls output{font-variant-numeric:tabular-nums}
-.measurement-object .mo-controls input[type=range]{appearance:none;display:block;width:100%;height:44px;margin:0;background:transparent;cursor:ew-resize;accent-color:var(--mo-ink)}
+.measurement-object .mo-controls input[type=range]{appearance:none;display:block;width:100%;height:44px;margin:0;background:transparent;cursor:pointer;accent-color:var(--mo-ink)}
 .measurement-object .mo-controls input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--mo-ink)}
 .measurement-object .mo-controls input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;margin-top:-8px;border:1px solid var(--mo-ink);border-radius:50%;background:#d7acb5}
 .measurement-object .mo-controls input[type=range]::-moz-range-track{height:2px;background:var(--mo-ink)}
