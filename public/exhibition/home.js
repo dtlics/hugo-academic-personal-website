@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const root=document.querySelector('[data-exhibition]');if(!root)return;
-  const q=s=>root.querySelector(s),world=q('.exhibition-world'),track=q('.exhibition-track');
+  const q=s=>root.querySelector(s),world=q('.exhibition-world'),track=q('.exhibition-track'),sceneHost=q('[data-scene]');
   const stories=Array.from(root.querySelectorAll('[data-story]')),count=stories.length;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),mix=(a,b,t)=>a+(b-a)*t;
@@ -27,6 +27,7 @@
     const cameraPosition=at+step(fraction,.60,1);scene?.setView({arrival,travel:cameraPosition/(count-1)});current=Math.min(count-1,Math.floor(position+.22));
     let active=-1;
     stories.forEach((story,i)=>{const delta=position-i,entry=i===0?step(phase,.95,1.4):step(delta,-.24,.04),exit=1-step(delta,.60,.86),alpha=reduced.matches?0:entry*exit;story.style.opacity=alpha.toFixed(4);story.style.visibility=alpha>.005?'visible':'hidden';story.style.transform=`translate3d(${(step(delta,.60,.86)*-24).toFixed(2)}px,${((1-entry)*38-step(delta,.6,.86)*30).toFixed(2)}px,0)`;story.style.filter=`blur(${((1-alpha)*3).toFixed(2)}px)`;const visible=alpha>.55;story.inert=!visible;story.setAttribute('aria-hidden',String(!visible));if(visible)active=i;});
+    if(narrow&&active>=0){const links=stories[active].querySelector('.study-links').getBoundingClientRect(),worldTop=world.getBoundingClientRect().top;sceneHost.style.top=`${Math.min(Math.max(h*.48,links.bottom-worldTop+14),h-220)}px`;}else sceneHost.style.removeProperty('top');
     controls?.setVisible(active>=0&&!reduced.matches&&phase<=10.7);
     q('[data-current-label]').textContent=phase<1.1?'00 / Identity and practice':`${String(current+1).padStart(2,'0')} / ${String(count).padStart(2,'0')}`;
     q('[data-scroll-cue]').textContent=phase<.6?'Scroll to begin the research ↓':phase<10.6?'Scroll through the work ↓':'More to explore ↓';q('[data-end-link]').hidden=phase<10.7||reduced.matches;

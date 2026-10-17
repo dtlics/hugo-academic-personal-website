@@ -7,3 +7,14 @@
 @media print{.exhibition-track{height:auto!important}.exhibition-stage{height:500px;position:relative}.exhibition-static{display:block}.exhibition-scene,.exhibition-story{display:none}}
 .exhibition{--intro:1.6}.exhibition:not(.is-ready) .exhibition-track{height:100svh}.exhibition:not(.is-ready) .exhibition-static{display:block}.exhibition-static article:nth-child(even){margin-left:25%;max-width:1000px}@media(max-width:560px){.exhibition-static article:nth-child(even){margin-left:6%}}
 .exhibition.no-scene .exhibition-track{height:var(--stage-h)!important}.exhibition.no-scene .exhibition-stage{position:relative}.exhibition.no-scene :is(.exhibition-stories,.exhibition-interaction){display:none!important}@media(max-width:560px){.exhibition:not(.is-ready) .exhibition-name{transform:translate(3vw,5vh)}.exhibition:not(.is-ready) .exhibition-photo-position{transform:translate(25vw,30vh)}}
+
+/* One named study occupies the reading space; it is never a publication card. */
+.study-identity{display:flex;align-items:center;gap:16px;min-height:48px}
+.study-number{font:42px/1 RFMono,monospace;letter-spacing:-.075em;color:#9c6548}
+.study-title{font-size:20px;line-height:1.2;letter-spacing:-.025em;margin-bottom:5px}
+.study-identity .mono{font-size:10px;color:#665b68}
+.exhibition-story h2{margin-top:18px}
+@media(min-width:561px){.exhibition-scene{top:15%;bottom:3%}}
+@media(max-width:850px) and (min-width:561px){.study-title{font-size:18px}.study-number{font-size:36px}.study-identity{gap:12px}.study-identity .mono{font-size:9px}}
+@media(max-width:560px){.study-identity{min-height:34px;gap:12px}.study-number{font-size:29px}.study-title{font-size:15px;margin-bottom:3px}.study-identity .mono{font-size:9px}.exhibition-story h2{margin-top:12px}.exhibition-scene{top:48%;bottom:2%}}
+@media(max-height:650px) and (min-width:561px){.study-number{font-size:28px}.study-title{font-size:16px}.study-identity{min-height:32px}.exhibition-story h2{margin-top:10px}.exhibition-scene{top:33%}}

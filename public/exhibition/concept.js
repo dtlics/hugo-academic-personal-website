@@ -7,7 +7,7 @@
     const compiled=compiler.compile(source.fixtures[0].perm,source.gammaLayers);
     const scene=window.createExhibitionScene(host,{compiled,initial:source.fixtures[0].witnessBits,solo:index});
     if(!scene)continue;
-    scene.setInteraction({gradient:.2,repair:0,window:0,order:'coherent',angle:45});
+    scene.setInteraction({gradient:.2,derivativeOrder:2,repair:0,window:0,order:'coherent',angle:45});
     const controls=window.createStudyControls?.(host,scene,{index});
     addEventListener('pagehide',event=>{if(!event.persisted){controls?.destroy();scene.destroy();}});
     addEventListener('pageshow',event=>{if(event.persisted){scene.resize();controls?.update();}});

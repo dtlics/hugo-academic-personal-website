@@ -36,7 +36,7 @@ const studies = exhibition.map(study=>({...study,paper:papers.find(p=>p.id===stu
           </div>
           <div class="exhibition-stories" id="featured" aria-label="Research highlights">
             {studies.map((study,i)=><article class="exhibition-story" data-story={i} aria-hidden="true" inert>
-              <span class="mono">{study.index} / {study.category} / {study.year}</span>
+              <div class="study-identity"><span class="study-number" aria-hidden="true">{study.index}</span><div><p class="study-title">{study.label}</p><p class="mono">{study.category} / {study.year}</p></div></div>
               <h2>{study.headline.map(line=><span>{line}</span>)}</h2>
               <p class="study-note">{study.note}</p>
               <div class="study-links"><a href={localPath(`publication/${study.id}/`)}>Explore study ↗</a><a href={study.paper.data.publicationUrl}>{study.paper.data.status==='Preprint'?'Preprint':'Paper'} ↗</a></div>
