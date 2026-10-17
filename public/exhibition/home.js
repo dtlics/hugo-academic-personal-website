@@ -60,7 +60,10 @@
       profile.style.top=`${mix(h*.7,dockTop+dockSize+20,arrival).toFixed(1)}px`;profile.style.left=`${mix(.04*w,liLeft,arrival).toFixed(1)}px`;
     }
     q('[data-name] .mono').style.fontSize=(11/nameScale).toFixed(2)+'px';
-    profile.hidden=narrow&&phase>.08&&!reduced.matches;if(!narrow)profile.style.opacity=String(phase<.42?1-step(phase,.1,.4):step(phase,.74,.99));
+    // Phone: the full role fades as the identity docks; a short role returns under the name.
+    const role=q('.name-role');role.style.fontSize=(10/nameScale).toFixed(2)+'px';role.style.opacity=narrow&&!reduced.matches?step(phase,.7,1).toFixed(3):'0';
+    if(narrow&&!reduced.matches)profile.style.opacity=String(1-step(phase,0,.22));
+    profile.hidden=narrow&&phase>.22&&!reduced.matches;if(!narrow)profile.style.opacity=String(phase<.42?1-step(phase,.1,.4):step(phase,.74,.99));
     if(narrow)profile.style.removeProperty('top'),profile.style.removeProperty('left');
     const position=clamp((phase-1.1)/1.65,0,count-1),at=Math.floor(position),fraction=position-at;
     // Reserve the full reading space before fitting the sculpture.
@@ -71,7 +74,8 @@
     sceneHost.style.top=`${sceneTop}px`;
     // The readout and hint share the story's left edge (or the band's, beside a story column).
     sceneHost.style.setProperty('--read-left',`${(narrow?Math.max(18,readLeft):side?readRight:readLeft).toFixed(1)}px`);
-    scene?.setView({layout:{mode:side?'side':narrow?'phone':'stage',readTop:side?0:readingSpace-sceneTop-field.top+world.getBoundingClientRect().top,readLeft,readRight,identityRight:Math.round(identityRight)}});
+    const captionHeight=sceneHost.querySelector('.study-caption')?.offsetHeight||0;
+    scene?.setView({layout:{caption:captionHeight,mode:side?'side':narrow?'phone':'stage',readTop:side?0:readingSpace-sceneTop-field.top+world.getBoundingClientRect().top,readLeft,readRight,identityRight:Math.round(identityRight)}});
     // A reading pause, then a shared eased move; no hard chapter cuts. After
     // the last reading pause the works gather into one trail: a coda, not a cut.
     const close=reduced.matches?0:step(phase,10.3,10.95),cameraPosition=at+step(fraction,.60,1);scene?.setView({arrival,travel:cameraPosition/(count-1),coda:close});current=Math.min(count-1,Math.floor(position+.22));

@@ -19,13 +19,14 @@ const studies = exhibition.map(study=>({...study,paper:papers.find(p=>p.id===stu
               <svg viewBox="0 0 1000 1000" role="img" aria-labelledby="portrait-title">
                 <title id="portrait-title">Dantong Li in a racing suit, holding a helmet beside a race car</title>
                 <defs><clipPath id="portrait-cut"><path d="M178 0H1000V1000H0V418H178Z" /></clipPath></defs>
-                <image href={localPath('images/portrait.jpg')} width="1000" height="1000" clip-path="url(#portrait-cut)" />
+                <g clip-path="url(#portrait-cut)"><image href={localPath('images/portrait.jpg')} width="1000" height="1000" /><rect class="portrait-ink" width="1000" height="1000" /></g>
               </svg>
             </div>
           </div>
           <div class="exhibition-name" data-name>
             <span class="mono">Quantum computing</span>
             <h1 aria-label="Dantong Li"><span class="name-first">Dantong</span><br /><span class="name-last">Li</span></h1>
+            <span class="mono name-role" aria-hidden="true">Ph.D. Candidate, Yale</span>
           </div>
           <div class="exhibition-profile" id="about">
             <p class="desktop-role">Computer Science<br />Ph.D. Candidate<br />Yale University</p>

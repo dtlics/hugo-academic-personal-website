@@ -101,3 +101,10 @@
 
 /* The kicker never wraps while the name scales, so the name's measured lines hold. */
 .exhibition-name .mono{white-space:nowrap}
+
+/* The photograph's deepest tones take the type's ink, so portrait and name
+   share one dark. A global tone limit only; nothing in the picture is altered. */
+.portrait-ink{fill:var(--ink,#39313e);mix-blend-mode:lighten}
+.exhibition-photo image{filter:saturate(.84)}
+.name-role{display:block;margin-top:10px;opacity:0;white-space:nowrap}
+@media(min-width:561px){.name-role{display:none}}
