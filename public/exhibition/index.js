@@ -24,7 +24,7 @@
     const rect = node => { const r = node.getBoundingClientRect(); return {left:r.left-origin.left,right:r.right-origin.left,top:r.top-origin.top,bottom:r.bottom-origin.top}; };
     const overlap = (a,b,pad=0) => Math.max(0,Math.min(a.right+pad,b.right)-Math.max(a.left-pad,b.left))*Math.max(0,Math.min(a.bottom+pad,b.bottom)-Math.max(a.top-pad,b.top));
     const panel = rect(q('.research-current')), top = rect(q('.research-overview__meta')).bottom+6, bottom = rect(q('.research-overview__controls')).top-6;
-    const boxes = labels.map((_,i) => { const b = stations.find(s => s.index === i)?.bounds; return b ? {left:b.left*W,right:b.right*W,top:b.top*H,bottom:b.bottom*H} : null; });
+    const boxes = labels.map((_,i) => { const b = stations.find(s => s.id === works[i].station)?.bounds; return b ? {left:b.left*W,right:b.right*W,top:b.top*H,bottom:b.bottom*H} : null; });
     const centre = {x:(panel.left+panel.right)/2,y:(panel.top+panel.bottom)/2};
     const placed = [];
     const order = labels.map((_,i) => i).sort((a,b) => (sides.has(b)?1:0)-(sides.has(a)?1:0));
@@ -72,7 +72,7 @@
     q('[data-research-intro]').hidden = index >= 0;
     q('[data-research-detail]').hidden = index < 0;
     root.dataset.active = String(index);
-    scene?.setView({overview:true,orbit,focus:index});
+    scene?.setView({overview:true,orbit,focus:index >= 0 ? works[index].station : -1});
     if (index < 0) return;
     const work = works[index];
     q('[data-research-headline]').replaceChildren(...work.headline.map(line => { const span=document.createElement('span');span.textContent=line;return span; }));
@@ -81,10 +81,11 @@
     q('[data-research-source]').textContent = work.status === 'Preprint' ? 'Preprint ↗' : 'Paper ↗';
   }
   function turn(value) {
-    orbit = clamp(Number(value)||0,-35,35);
-    range.setAttribute('aria-valuenow',String(Math.round(orbit)));
-    range.setAttribute('aria-valuetext',Math.abs(orbit)<.5?'Centred':`${Math.round(Math.abs(orbit))} degrees ${orbit<0?'left':'right'}`);
-    range.querySelector('[aria-hidden]')?.style.setProperty('transform',`rotate(${orbit*2}deg)`);
+    orbit = (((Number(value)||0) % 360) + 360) % 360;
+    const shown = Math.round(orbit) % 360;
+    range.setAttribute('aria-valuenow',String(shown));
+    range.setAttribute('aria-valuetext',shown === 0 ? 'Front' : `Turned ${shown} degrees`);
+    range.querySelector('[aria-hidden]')?.style.setProperty('transform',`rotate(${orbit}deg)`);
     scene?.setView({overview:true,orbit});
     if (scene?.getState) layout(scene.getState().stations);
   }
@@ -106,7 +107,7 @@
   document.addEventListener('keydown',event => { if (event.key === 'Escape' && active >= 0) clearSelection(); });
   range.addEventListener('keydown',event => {
     if(['ArrowRight','ArrowUp','ArrowLeft','ArrowDown','Home','End'].includes(event.key)){
-      event.preventDefault();turn(event.key==='Home'?-35:event.key==='End'?35:orbit+(['ArrowRight','ArrowUp'].includes(event.key)?3:-3));
+      event.preventDefault();turn(event.key==='Home'?0:event.key==='End'?180:orbit+(['ArrowRight','ArrowUp'].includes(event.key)?1:-1)*(event.shiftKey?60:15));
     }
   });
   q('[data-research-reset]').addEventListener('click',()=>turn(0));
@@ -135,7 +136,7 @@
         target.setPointerCapture?.(event.pointerId);
       }
       if (event.cancelable) event.preventDefault();
-      turn(pointer.start+dx/Math.max(160,root.clientWidth)*100);
+      turn(pointer.start+dx/Math.max(160,root.clientWidth)*300);
     });
     target.addEventListener('pointerup',event=>finishPointer(event));
     target.addEventListener('pointercancel',event=>finishPointer(event,true));
@@ -147,7 +148,7 @@
       event.preventDefault();event.stopImmediatePropagation();
     });
   }
-  const stationAt = event => { const box = host.getBoundingClientRect(), x = (event.clientX-box.left)/box.width, y = (event.clientY-box.top)/box.height; const hit = stations.filter(s => s.bounds && x >= s.bounds.left && x <= s.bounds.right && y >= s.bounds.top && y <= s.bounds.bottom).sort((a,b) => (a.bounds.right-a.bounds.left)-(b.bounds.right-b.bounds.left))[0]; return hit ? hit.index : -1; };
+  const stationAt = event => { const box = host.getBoundingClientRect(), x = (event.clientX-box.left)/box.width, y = (event.clientY-box.top)/box.height; const hit = stations.filter(s => s.bounds && x >= s.bounds.left && x <= s.bounds.right && y >= s.bounds.top && y <= s.bounds.bottom).sort((a,b) => (a.bounds.right-a.bounds.left)-(b.bounds.right-b.bounds.left))[0]; return hit ? works.findIndex(work => work.station === hit.id) : -1; };
   host.addEventListener('click',event=>{const i=stationAt(event);if(i>=0)location.href=works[i].page;else select(-1);});
   host.addEventListener('pointermove',event=>{if(pointer?.engaged||event.pointerType==='touch')return;const i=stationAt(event);host.style.cursor=i>=0?'pointer':'';if(i>=0)select(i);});
   root.addEventListener('exhibitionscenedraw',event => {root.dataset.ready=String(Boolean(event.detail.ready));layout(event.detail.stations);});
@@ -155,7 +156,7 @@
     const source=window.ROUTE_SOURCE,compiler=window.RouteCompiler;
     if (source && compiler && window.createExhibitionScene) {
       const compiled=compiler.compile(source.fixtures[0].perm,source.gammaLayers);
-      scene=window.createExhibitionScene(host,{compiled,initial:source.fixtures[0].witnessBits,overview:true,orbit:0});
+      scene=window.createExhibitionScene(host,{compiled,initial:source.fixtures[0].witnessBits,overview:true,orbit:0,order:works.map(work=>work.station)});
       scene?.setView({overview:true,orbit:0});
       root.dataset.ready=String(Boolean(scene?.getState?.().ready));
       layout(scene?.getState?.().stations);

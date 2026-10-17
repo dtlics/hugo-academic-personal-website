@@ -8,7 +8,9 @@
   const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),mix=(a,b,t)=>a+(b-a)*t;
   const ease=x=>{x=clamp(x);return x*x*(3-2*x)},step=(p,a,b)=>ease((p-a)/(b-a));
   const compiled=window.ROUTE_SOURCE&&window.RouteCompiler?.compile(window.ROUTE_SOURCE.fixtures[0].perm,window.ROUTE_SOURCE.gammaLayers);
-  const scene=compiled&&window.createExhibitionScene?.(q('[data-scene]'),{compiled,initial:window.ROUTE_SOURCE.fixtures[0].witnessBits});
+  const scene=compiled&&window.createExhibitionScene?.(q('[data-scene]'),{compiled,initial:window.ROUTE_SOURCE.fixtures[0].witnessBits,order:stories.map(story=>story.dataset.station)});
+  // Stories are in display order; the scene knows each work by its station.
+  const stationOf=(stations,rank)=>stations?.find(s=>s.id===stories[rank]?.dataset.station);
   const controls=scene&&window.createStudyControls?.(q('[data-scene]'),scene,{visible:false});
   if(!scene)root.classList.add('no-scene');root.classList.add('is-ready');
   let raf=0,phase=0,current=0,viewportHeight=0;
@@ -104,13 +106,13 @@
     const reading=Number(root.dataset.study),presence=Number(root.dataset.presence)||0,settled=reading>=0&&!reduced.matches&&presence>.01&&Math.abs(Number(root.dataset.travel)*(count-1)-reading)<.001;
     const box=sceneHost.getBoundingClientRect(),origin=world.getBoundingClientRect();
     contextLinks.forEach(link=>{
-      const target=reading+(link.dataset.context==='next'?1:-1),station=stations?.find(s=>s.index===target),b=station?.bounds;
+      const target=reading+(link.dataset.context==='next'?1:-1),station=stationOf(stations,target),b=station?.bounds;
       link.hidden=!settled||!b||target<0||target>=count;if(link.hidden)return;
       const info=contextOf(target);link.textContent=`${info.number} ${info.label} ${link.dataset.context==='next'?'→':'←'}`;link.href=`#work-${target+1}`;link.dataset.target=String(target);
       // Below the object if that is clear of the study's own labels, else above it, else not at all.
       // Left-aligned under an earlier work, right-aligned under the next one.
       const w=link.offsetWidth,h=link.offsetHeight,objLeft=box.left-origin.left+b.left*box.width,objRight=box.left-origin.left+b.right*box.width,x=clamp(link.dataset.context==='next'?objRight-w/2:objLeft+w/2,w/2+8,origin.width-w/2-8);
-      const active=stations?.find(s=>s.index===reading)?.bounds,busy=Array.from(sceneHost.querySelectorAll('.study-marker:not([hidden]),.study-grip__label:not([hidden]),.study-resource-group,.study-caption')).map(node=>node.getBoundingClientRect()).filter(r=>r.width).map(r=>({left:r.left-40,right:r.right+40,top:r.top,bottom:r.bottom}));
+      const active=stationOf(stations,reading)?.bounds,busy=Array.from(sceneHost.querySelectorAll('.study-marker:not([hidden]),.study-grip__label:not([hidden]),.study-resource-group,.study-caption')).map(node=>node.getBoundingClientRect()).filter(r=>r.width).map(r=>({left:r.left-40,right:r.right+40,top:r.top,bottom:r.bottom}));
       const story=stories[reading];if(story)for(const part of story.querySelectorAll('.study-identity,h2,.study-note,.study-links')){const r=part.getBoundingClientRect();if(r.width)busy.push({left:r.left-12,right:r.right+12,top:r.top-6,bottom:r.bottom+6});}
       for(const node of[q('.exhibition-profile'),q('[data-photo] .exhibition-photo')]){const r=node.getBoundingClientRect();if(r.width&&!node.hidden)busy.push({left:r.left-16,right:r.right+16,top:r.top-8,bottom:r.bottom+8});}
       if(active)busy.push({left:box.left+active.left*box.width-12,right:box.left+active.right*box.width+12,top:box.top+active.top*box.height-8,bottom:box.top+active.bottom*box.height+8});
@@ -140,7 +142,7 @@
   const trailLinks=Array.from(root.querySelectorAll('[data-trail]'));
   function placeTrail(stations){
     const alpha=Number(root.dataset.trail)||0,box=sceneHost.getBoundingClientRect(),origin=world.getBoundingClientRect();
-    trailLinks.forEach(link=>{const b=stations?.find(s=>s.index===Number(link.dataset.trail))?.bounds;link.hidden=alpha<.01||!b;if(link.hidden)return;
+    trailLinks.forEach(link=>{const b=stationOf(stations,Number(link.dataset.trail))?.bounds;link.hidden=alpha<.01||!b;if(link.hidden)return;
       // Beside the work on the open side: right if it fits, else left.
       const h=link.offsetHeight,lw=link.offsetWidth,right=box.left-origin.left+b.right*box.width+10,left=box.left-origin.left+b.left*box.width-10-lw,x=right+lw<=origin.width-6?right:Math.max(6,left),y=box.top-origin.top+(b.top+b.bottom)/2*box.height-h/2;
       link.style.left=`${x.toFixed(1)}px`;link.style.top=`${y.toFixed(1)}px`;link.style.opacity=alpha.toFixed(3);link.style.pointerEvents=alpha>.9?'':'none';});

@@ -3,7 +3,7 @@
   'use strict';
   const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
   const definitions=[
-    {key:'layer',min:0,max:27,step:1,label:'Circuit layer',verb:'Drag to trace\u00a0↔',hint:'Drag the marked point to trace the moments. Click Mode to follow another path.'},
+    {key:'layer',min:0,max:27,step:1,label:'Circuit stage',verb:'Drag through the stages\u00a0↔',hint:'Drag along the braid to move stage by stage. Click Mode to follow another strand.'},
     {key:'repair',choices:[['0','Sample'],['1','Check'],['2','Combine']],label:'Detection and cancellation',hint:'Click a stage. Signed weights change the estimate, not the quantum state.'},
     {key:'window',min:0,max:2,step:1,label:'Peephole step',verb:'Move the window\u00a0↔',hint:'Drag the window, or click the gates to step through this identity rewrite.'},
     {key:'gradient',min:-1,max:1,step:.02,label:'Circuit angle',verb:'Turn the angle\u00a0↻',hint:'Drag the angle marker. For this Y rotation, mean X/Z products give the derivative.'},
@@ -38,6 +38,9 @@
       button.addEventListener('keydown',event=>{
         const max=def.key==='layer'?(state?.routeLayers||state?.routeSnapshot?.layers||27):def.max;
         let next=Number(state?.[def.key]??def.min),amount=def.step*(event.shiftKey?5:1);
+        const stops=def.key==='layer'?state?.example?.route?.milestones:null;
+        if(stops&&!event.shiftKey&&['ArrowRight','ArrowUp','ArrowLeft','ArrowDown'].includes(event.key)){const forward=['ArrowRight','ArrowUp'].includes(event.key),target=forward?stops.find(v=>v>next):[...stops].reverse().find(v=>v<next);event.preventDefault();if(target!==undefined)send('layer',target);return;}
+        if(stops&&event.shiftKey)amount=def.step;
         if(event.key==='ArrowRight'||event.key==='ArrowUp')next+=amount;
         else if(event.key==='ArrowLeft'||event.key==='ArrowDown')next-=amount;
         else if(event.key==='Home')next=def.min;

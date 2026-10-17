@@ -1,6 +1,7 @@
 [
   {
     "id": "fermionic-permutation",
+    "station": "fermionic",
     "index": "01",
     "category": "Quantum compilation",
     "label": "Fermionic routing",
@@ -10,38 +11,9 @@
     "accent": "#ce8758"
   },
   {
-    "id": "logical-error-management",
-    "index": "02",
-    "category": "Error detection & mitigation",
-    "label": "Logical qubits",
-    "headline": ["Detection and mitigation.", "Designed together."],
-    "note": "Sample operations. Check runs. Combine signed results.",
-    "year": 2026,
-    "accent": "#887989"
-  },
-  {
-    "id": "local-optimization",
-    "index": "03",
-    "category": "Quantum compilation",
-    "label": "Local optimization",
-    "headline": ["Optimize circuits.", "One part at a time."],
-    "note": "Inspect a small circuit window. Keep the same operation.",
-    "year": 2025,
-    "accent": "#d3aab3"
-  },
-  {
-    "id": "generalized-hadamard",
-    "index": "04",
-    "category": "Quantum algorithms",
-    "label": "Generalized Hadamard",
-    "headline": ["Quantum gradients.", "Higher derivatives."],
-    "note": "Read slopes and higher derivatives from quantum circuits.",
-    "year": 2025,
-    "accent": "#76977e"
-  },
-  {
     "id": "transformer-qec",
-    "index": "05",
+    "station": "transformer",
+    "index": "02",
     "category": "Machine learning",
     "label": "Transformer-QEC",
     "headline": ["Quantum decoding.", "Built to transfer."],
@@ -51,12 +23,46 @@
   },
   {
     "id": "quantummeasurementsincompatibility",
-    "index": "06",
+    "station": "measurement",
+    "index": "03",
     "category": "Quantum measurement",
     "label": "Quantum switch",
     "headline": ["Incompatibility,", "measured."],
     "note": "Use coherent order to read measurement incompatibility.",
     "year": 2023,
     "accent": "#76977e"
+  },
+  {
+    "id": "generalized-hadamard",
+    "station": "gradient",
+    "index": "04",
+    "category": "Quantum algorithms",
+    "label": "Generalized Hadamard",
+    "headline": ["Quantum gradients.", "Higher derivatives."],
+    "note": "Read slopes and higher derivatives from quantum circuits.",
+    "year": 2025,
+    "accent": "#76977e"
+  },
+  {
+    "id": "local-optimization",
+    "station": "optimization",
+    "index": "05",
+    "category": "Quantum compilation",
+    "label": "Local optimization",
+    "headline": ["Optimize circuits.", "One part at a time."],
+    "note": "Inspect a small circuit window. Keep the same operation.",
+    "year": 2025,
+    "accent": "#d3aab3"
+  },
+  {
+    "id": "logical-error-management",
+    "station": "logical",
+    "index": "06",
+    "category": "Error detection & mitigation",
+    "label": "Logical qubits",
+    "headline": ["Detection and mitigation.", "Designed together."],
+    "note": "Sample operations. Check runs. Combine signed results.",
+    "year": 2026,
+    "accent": "#887989"
   }
 ]
