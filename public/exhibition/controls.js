@@ -22,6 +22,8 @@
     const caption=document.createElement('div');caption.className='study-caption';caption.append(readout,hint);
     const setText=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
     const compactAnnotations=()=>(host.ownerDocument?.defaultView?.innerWidth??globalThis.innerWidth??host.clientWidth)<=560;
+    const shortHomeAnnotations=()=>compactAnnotations()&&(host.ownerDocument?.defaultView?.innerHeight??globalThis.innerHeight??1000)<=700&&Boolean(host.classList?.contains('exhibition-scene'));
+    const tinyHomeAnnotations=()=>shortHomeAnnotations()&&(host.ownerDocument?.defaultView?.innerHeight??globalThis.innerHeight??1000)<=620;
     function send(key,value){scene.setInteraction({[key]:value});update();}
     function createGrip(def){
       const button=document.createElement('button');button.type='button';button.className='study-grip';button.setAttribute('role','slider');button.setAttribute('aria-label',def.label);button.setAttribute('aria-orientation','horizontal');button.dataset.parameter=def.key;
@@ -66,6 +68,7 @@
       if(def){
         if(def.choices){
           if(def.key==='distance')createResourceGroup('distance','Code distance',[['5','5'],['7','7'],['9','9']],def.label);
+          else if(def.key==='repair')createResourceGroup('repair','Stage',def.choices,def.label);
           else for(const [value,label]of def.choices)createChoice(def.key,value,label,def.label);
         }else createGrip(def);
         if(index===3)createResourceGroup('derivativeOrder','Order',[['1','1st'],['2','2nd'],['3','3rd']],'Derivative order');
@@ -85,6 +88,9 @@
       if(!state)return;
       const nextIndex=options.index??state.activeIndex;
       if(nextIndex!==index)build(nextIndex);
+      const shortHome=shortHomeAnnotations(),tinyHome=tinyHomeAnnotations();
+      setText(hint,shortHome&&index===1?'Concept: signed weights change the estimate.':shortHome&&index===2?'Drag the window. The final circuit stays the same.':shortHome&&index===3?'Exact Y rotation; average all X and Z outcome products.':shortHome&&index===4?'Architecture only; transfer still needs training.':definitions[index]?.hint||'Relations learned by a decoder. A concept view of transfer across code sizes.');
+      if(tinyHome){const hints={0:'Drag layers; follow one mode.',2:'Drag the window; keep the operation.',3:'Exact Y rotation; average X/Z products.',5:'Target: equal mixture of 0 and 1.'};if(hints[index])setText(hint,hints[index]);}
       root.hidden=!visible||!state.ready;
       for(const {button,def}of grips){
         const value=Number(state[def.key]??def.min),max=def.key==='layer'?(state.routeLayers||27):def.max;
@@ -101,14 +107,18 @@
       }
       let text='';
       if(index===0)text=`Layer ${state.layer??0} / ${state.routeLayers||27} · relative phase ${state.routeSnapshot?.phase===1?'−1':'+1'}`;
-      if(index===1)text=['Sample the PEC operations with signed weights.','Use error checks to reject flagged runs.','Combine the accepted, signed results.'][state.repair||0];
+      if(index===1)text=(shortHome?['Sample signed operations.','Reject flagged runs.','Combine accepted, signed results.']:['Sample the PEC operations with signed weights.','Use error checks to reject flagged runs.','Combine the accepted, signed results.'])[state.repair||0];
       if(index===2)text=['4 gates · each half stays unchanged on its own.','2 gates · H H cancels at the seam. X X remains.','0 gates · X X cancels. The circuit is the identity.'][state.window||0];
       if(index===3){const example=state.example?.gradient,order=state.derivativeOrder||1,theta=(state.gradient||0)*Math.PI,derivative=example?.kthDerivative??Math.cos(theta+order*Math.PI/2);text=`Order ${order} · θ ${compact(theta)} rad · joint readout ${compact(example?.jointExpectation??derivative)}`;}
-      if(index===4)text=`Code distance ${state.distance||5} · shared transformer → local proposals → residual decoder`;
+      if(index===4)text=shortHome?`d = ${state.distance||5} · local proposal → residual decoder`:`Code distance ${state.distance||5} · shared transformer → local proposals → residual decoder`;
       if(index===5){
         const angle=Number(state.angle??52),med=Math.abs(Math.sin(angle*Math.PI/180))/Math.SQRT2,coherent=state.order==='coherent',port=coherent?med*med/2:.5;
         text=`θ ${degrees(angle)} · minus port ${(port*100).toFixed(1)}% · ${coherent?`MED ${med.toFixed(3)}`:'MED not inferred'}`;
+        if(tinyHome)text=`θ ${degrees(angle)} · p(−) ${(port*100).toFixed(1)}% · ${coherent?`MED ${med.toFixed(3)}`:'no inferred MED'}`;
       }
+      if(tinyHome&&index===2)text=['4 → 4 gates · local window','4 → 2 gates · cancel H H','2 → 0 gates · cancel X X'][state.window||0];
+      if(tinyHome&&index===3){const order=state.derivativeOrder||1,theta=(state.gradient||0)*Math.PI; text=`Order ${order} · θ ${compact(theta)} rad · mean ${compact(state.example?.gradient?.jointExpectation??Math.cos(theta+order*Math.PI/2))}`;}
+      if(tinyHome&&index===4)text=`d = ${state.distance||5} · proposal → residual decoder`;
       if(state.transition?.active&&state.transition.kind==='peephole'&&index===2)text='Rewriting the selected gates…';
       if(state.transition?.active&&state.transition.kind==='route'&&index===0)text=`Moving to layer ${state.layer} / ${state.routeLayers||27}…`;
       if(state.transition?.active&&state.transition.kind==='derivativeOrder'&&index===3)text='Changing the control registers…';
@@ -116,11 +126,15 @@
       setText(readout,text);
       const choiceLabels=new Set(choices.map(item=>item.button.textContent));
       const readoutLabels=new Set(['Keep / discard','Move to the seam','Open the seam','H H → I','X X → I','Coherent order control','Definite order','Random order','Tangent','Input grid']);
-      const data=(state.markers||[]).filter(item=>!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(modeButton&&item.text.startsWith('Mode '))&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
+      let data=(state.markers||[]).filter(item=>!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(modeButton&&item.text.startsWith('Mode '))&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
+      if(shortHome&&index===3)data=data.filter(item=>/ancilla|Controlled Y|X factors/.test(item.text)).map(item=>({...item,text:/ancilla/.test(item.text)?`${state.derivativeOrder||2} control qubits`:item.text==='X factors × Z'?'Joint X…X × Z':item.text}));
+      if(shortHome&&index===4)data=data.filter(item=>['Syndrome + positions','Encoder → Decoder','Residual → global decoder → XOR'].includes(item.text)).map(item=>({...item,text:item.text==='Encoder → Decoder'?'Transformer':item.text.startsWith('Residual')?'Residual decoder / XOR':item.text}));
       while(markers.length>data.length)markers.pop().remove();
       while(markers.length<data.length){const label=document.createElement('span');label.className='study-marker';label.setAttribute('aria-hidden','true');root.append(label);markers.push(label);}
       data.forEach((item,i)=>{setText(markers[i],item.text);position(markers[i],item,[.5,.5]);});
-      layoutAnnotations(data,fromDraw);
+      const budget=`${shortHome}:${data.length}:${caption.offsetHeight}`,previousBudget=root.dataset.layoutBudget,budgetChanged=previousBudget!==budget,reflowShortBudget=budgetChanged&&(shortHome||previousBudget?.startsWith('true:'));root.dataset.layoutBudget=budget;
+      if(reflowShortBudget){for(const group of resourceGroups)group.placement=null;scene.resize?.();}
+      layoutAnnotations(data,fromDraw&&!reflowShortBudget);
       root.dataset.parameter=definitions[index]?.key||'none';
     }
     function layoutAnnotations(data,fromDraw=false){
@@ -149,8 +163,8 @@
       // Move the complete text row; its native44px buttons keep their order.
       for(const group of resourceGroups){
         const node=group.node,r=rectFor(node),bw=r.right-r.left,bh=r.bottom-r.top,target={x:group.point.x*w,y:group.point.y*h},x=clamp(target.x,bw/2+10,w-bw/2-10);
-        const placementKey=`${w}x${h}:${compact?'phone':'desktop'}:${Number(state.travel||0).toFixed(4)}:${Number(state.arrival??1).toFixed(4)}`;
-        const narrow=compact,paintTop=narrow?Math.min((active?.bottom??84)+4,captionBox.top-origin.top-19):null;
+        const placementKey=`${w}x${h}:${compact?'phone':'desktop'}:${tinyHomeAnnotations()?'tiny':shortHomeAnnotations()?'short':'regular'}:${Number(state.travel||0).toFixed(4)}:${Number(state.arrival??1).toFixed(4)}`;
+        const narrow=compact,paintTop=narrow?(shortHomeAnnotations()?captionBox.top-origin.top-24:Math.min((active?.bottom??84)+4,captionBox.top-origin.top-19)):null;
         const candidates=narrow?[[w/2,paintTop+bh/2],[w/2+20,paintTop+bh/2],[w/2-20,paintTop+bh/2]]:[[x,bh/2]];let best=null;
         for(let [cx,cy]of candidates){cx=clamp(cx,bw/2+10,w-bw/2-10);if(!narrow)cy=clamp(cy,bh/2,Math.max(bh/2,limit-bh/2));const area={left:cx-bw/2,right:cx+bw/2,top:cy-bh/2,bottom:cy+bh/2},paint={...area,bottom:area.top+18};let score=Math.hypot(cx-target.x,cy-target.y);for(const other of occupied)score+=overlap(area,other,2)*1000000;if(active)score+=overlap(paint,active,4)*100;for(const other of background)score+=overlap(paint,other,5)*10;if(!best||score<best.score)best={x:cx,y:cy,area,paint,score};}
         if(group.placement?.key===placementKey)best=group.placement.value;
