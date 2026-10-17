@@ -1,0 +1,86 @@
+.measurement-study {
+  --measurement-ink: #1e2927;
+  --measurement-muted: #465550;
+  --measurement-rule: #7d8982;
+  --measurement-surface: #f4f3eb;
+  --measurement-accent: #194a45;
+  --measurement-a: #194a45;
+  --measurement-b: #7c342c;
+  color: var(--measurement-ink);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  container-type: inline-size;
+}
+.measurement-study *, .measurement-study *::before, .measurement-study *::after { box-sizing: border-box; }
+.measurement-study h3, .measurement-study h4, .measurement-study p { margin: 0; }
+.measurement-study .ms-heading h3 { font: inherit; font-size: clamp(23px, 4vw, 30px); letter-spacing: -.035em; line-height: 1.15; }
+.measurement-study .ms-heading p { margin-top: 8px; font-size: 15px; }
+.measurement-study .ms-scope, .measurement-study .ms-meta { color: var(--measurement-muted); font-size: 12px; line-height: 1.5; }
+.measurement-study > .ms-scope { margin-top: 10px; }
+.measurement-study h4, .measurement-study legend { font: inherit; font-weight: 600; font-size: 14px; }
+.measurement-study .ms-work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; margin-top: 24px; }
+.measurement-study .ms-pair-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.measurement-study .ms-pair-heading > div { display: flex; align-items: baseline; gap: 9px; }
+.measurement-study [data-ms-med] { font-size: 28px; font-variant-numeric: tabular-nums; letter-spacing: -.025em; line-height: 1.2; }
+.measurement-study [data-ms-visual] { max-width: 360px; margin: auto; }
+.measurement-study [data-ms-visual] svg { width: 100%; height: auto; display: block; overflow: visible; }
+.measurement-study [data-ms-visual] svg text { font-family: inherit; font-size: 15px; fill: var(--measurement-ink); }
+.measurement-study .ms-sphere { fill: none; stroke: var(--measurement-rule); stroke-width: 1; }
+.measurement-study .ms-sphere text { stroke: none; fill: var(--measurement-muted); }
+.measurement-study .ms-sphere ellipse, .measurement-study .ms-sphere line { stroke-dasharray: 2 4; }
+.measurement-study .ms-axis-a { stroke: var(--measurement-a); stroke-width: 3; }
+.measurement-study .ms-axis-b { stroke: var(--measurement-b); stroke-width: 3; stroke-dasharray: 6 4; }
+.measurement-study .ms-tip-a { fill: var(--measurement-a); }
+.measurement-study .ms-tip-b { fill: var(--measurement-b); }
+.measurement-study .ms-origin { fill: var(--measurement-ink); }
+.measurement-study .ms-angle-arc { stroke: var(--measurement-ink); stroke-width: 1.5; }
+.measurement-study .ms-pair-note { font-size: 12px; color: var(--measurement-muted); min-height: 36px; }
+.measurement-study fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
+.measurement-study legend { padding: 0; margin-bottom: 8px; }
+.measurement-study [data-ms-axis-buttons] { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; margin-bottom: 14px; }
+.measurement-study button, .measurement-study select { font: inherit; font-size: 14px; color: var(--measurement-ink); border: 1px solid var(--measurement-rule); border-radius: 0; background: var(--measurement-surface); min-height: 44px; }
+.measurement-study button { cursor: pointer; padding: 8px 10px; }
+.measurement-study button[aria-pressed="true"] { border-color: var(--measurement-ink); outline: 1px solid var(--measurement-ink); outline-offset: -2px; font-weight: 700; }
+.measurement-study button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.measurement-study :focus-visible { outline: 2px solid var(--measurement-accent); outline-offset: 3px; }
+.measurement-study .ms-range-label { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; font-size: 14px; }
+.measurement-study .ms-range-label output { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.measurement-study input[type="range"] { display: block; width: 100%; min-width: 0; min-height: 44px; height: 44px; margin: 0; padding: 0; accent-color: var(--measurement-accent); cursor: pointer; }
+.measurement-study .ms-orientation { margin-bottom: 13px; }
+.measurement-study .ms-compare-label { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.measurement-study select { min-width: 88px; padding: 8px 12px; }
+.measurement-study .ms-actions { display: flex; gap: 8px; margin: 12px 0 8px; }
+.measurement-study .ms-actions button:first-child { flex: 1; }
+.measurement-study .ms-bottom { display: grid; grid-template-columns: minmax(288px, 1.1fr) minmax(0, 1fr); gap: 28px; margin-top: 24px; }
+.measurement-study .ms-matrix-area > .ms-meta { margin-top: 5px; margin-bottom: 10px; }
+.measurement-study .ms-matrix-scroll { max-width: 100%; overflow-x: auto; }
+.measurement-study .ms-matrix { border-collapse: collapse; border-spacing: 0; width: 100%; min-width: 288px; table-layout: fixed; font-size: 14px; font-variant-numeric: tabular-nums; }
+.measurement-study .ms-matrix th { font-weight: 600; text-align: center; height: 28px; }
+.measurement-study .ms-matrix th:first-child { width: 24px; }
+.measurement-study .ms-matrix td { padding: 0; text-align: center; vertical-align: middle; }
+.measurement-study .ms-matrix button { position: relative; display: block; width: 100%; min-width: 44px; min-height: 44px; border: 1px solid var(--measurement-surface); padding: 0; font-size: 14px; background: color-mix(in srgb, var(--measurement-accent) calc(var(--ms-amount, .1) * 100%), var(--measurement-surface)); }
+.measurement-study .ms-matrix button[aria-pressed="true"] { outline: 2px solid var(--measurement-ink); outline-offset: -3px; border-color: var(--measurement-surface); }
+.measurement-study .ms-self { display: flex; align-items: center; justify-content: center; min-height: 44px; color: var(--measurement-muted); }
+.measurement-study .ms-group-area h4 { margin-bottom: 15px; }
+.measurement-study .ms-groups { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 7px 0 15px; }
+.measurement-study .ms-group { display: flex; flex-direction: column; gap: 3px; min-width: 64px; }
+.measurement-study .ms-group strong { font-size: 15px; font-weight: 600; letter-spacing: .06em; }
+.measurement-study .ms-result { font-size: 12px; min-height: 18px; margin-top: 20px; color: var(--measurement-muted); }
+.measurement-study .ms-not-probability { margin-top: 8px; }
+.measurement-study .ms-method { margin-top: 14px; font-size: 12px; color: var(--measurement-muted); }
+.measurement-study .ms-method summary { min-height: 44px; display: list-item; padding: 12px 0; cursor: pointer; color: var(--measurement-ink); font-size: 14px; }
+.measurement-study .ms-method p { margin: 0 0 10px; }
+.measurement-study .ms-method a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.measurement-study .ms-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@container (max-width: 650px) {
+  .measurement-study .ms-work { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .measurement-study .ms-bottom { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .measurement-study .ms-pair-note { min-height: 0; }
+  .measurement-study [data-ms-visual] { max-width: 320px; }
+}
+@container (max-width: 290px) { .measurement-study [data-ms-axis-buttons] { grid-template-columns: repeat(3, minmax(44px, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .measurement-study *, .measurement-study *::before, .measurement-study *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

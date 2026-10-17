@@ -1,0 +1,11 @@
+.ri-gpu-sculpture{position:absolute;inset:0;isolation:isolate;pointer-events:none;overflow:hidden;contain:layout paint}
+.ri-gpu-sculpture .ri-sculpture-canvas{display:block;width:100%;height:100%;opacity:0;pointer-events:none}
+.ri-gpu-sculpture[data-sculpture-ready="true"] .ri-sculpture-canvas{opacity:1}
+.ri-gpu-sculpture .ri-route-hit-area{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;opacity:0}
+.ri-gpu-sculpture[data-sculpture-ready="true"] .ri-route-hit-area{opacity:1}
+.ri-gpu-sculpture .ri-route-handle{pointer-events:none}
+.ri-gpu-sculpture[data-sculpture-ready="true"] .ri-route-hit-path{pointer-events:stroke;touch-action:none;cursor:grab}
+.ri-gpu-sculpture[data-scrubbing="true"] .ri-route-hit-path{cursor:grabbing}
+.ri-gpu-sculpture .ri-route-drag-label{position:absolute;z-index:2;display:none;pointer-events:none;padding:7px 9px;background:#302936;color:#eee8dc;font:12px/1.1 ui-monospace,monospace;white-space:nowrap;border-radius:2px;box-shadow:0 1px 6px #211b2920}
+.ri-gpu-sculpture[data-scrubbing="true"] .ri-route-drag-label{display:block}
+@media(prefers-reduced-motion:reduce){.ri-gpu-sculpture *{transition:none!important;animation:none!important}}

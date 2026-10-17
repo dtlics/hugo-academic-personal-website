@@ -1,51 +1,66 @@
-# [Hugo Academic Theme](https://github.com/wowchemy/starter-hugo-academic)
+# Dantong Li
 
-[![Screenshot](./preview.png)](https://wowchemy.com/hugo-themes/)
+A static Astro website for GitHub Pages. Content stays in this repository. The domain stays in AWS Route 53.
 
-The Hugo **Academic Resumé Template** empowers you to easily create your job-winning online resumé, showcase your academic publications, and create online courses or knowledge bases to grow your audience.
+```mermaid
+flowchart LR
+  A[Content and code in GitHub] --> B[Actions checks and builds the site]
+  B --> C[GitHub Pages serves the files]
+  D[AWS Route 53 resolves the domain] --> C
+```
 
-[![Get Started](https://img.shields.io/badge/-Get%20started-ff4655?style=for-the-badge)](https://wowchemy.com/hugo-themes/)
-[![Discord](https://img.shields.io/discord/722225264733716590?style=for-the-badge)](https://discord.com/channels/722225264733716590/742892432458252370/742895548159492138)  
-[![Twitter Follow](https://img.shields.io/twitter/follow/wowchemy?label=Follow%20on%20Twitter)](https://twitter.com/wowchemy)
+## Edit content
 
-️**Trusted by 250,000+ researchers, educators, and students.** Highly customizable via the integrated **no-code, widget-based Wowchemy page builder**, making every site truly personalized ⭐⭐⭐⭐⭐
+| Change | File |
+| --- | --- |
+| Name, degree, contact links and skills | `src/data/profile.json` |
+| Paper title, ordered authors, venue, links and BibTeX | `src/content/publications/*.md` |
+| Exhibition order, short headlines and colours | `src/data/exhibition.json` |
+| About composition | `src/pages/about.astro` |
+| Portrait and other static files | `public/images/` |
 
-Easily write technical content with plain text Markdown, LaTeX math, diagrams, RMarkdown, or Jupyter, and import publications from BibTeX.
+Keep the same paper IDs in the publication files and exhibition data. All six approved works have individual pages and downloadable citations. The excluded fidelity-divergence paper is not included. The old résumé PDF is kept at its former URL for compatibility; the website does not link to it as a current résumé. Replace it only after the separate résumé update is approved.
 
-[Check out the latest demo](https://academic-demo.netlify.app/) of what you'll get in less than 10 minutes, or [get inspired by our academics and research groups](https://wowchemy.com/creators/).
+The home exhibition combines four editorial sculptures with a route model and a measurement model whose controls use the validated circuit data and exact angle relation. These visual introductions do not replace the papers' results. Paper pages offer three inline tools: the pinned 4 × 4 fermionic compiler, a noiseless one-qubit measurement atlas, and an explorer of the logical-qubit paper's reported Table II results. The third tool selects published data; it does not run a new simulation. Scope notes distinguish each example from the paper's general results.
 
-The integrated [**Wowchemy**](https://wowchemy.com) website builder and CMS makes it easy to create a beautiful website for free. Edit your site in the CMS (or your favorite editor), generate it with [Hugo](https://github.com/gohugoio/hugo), and deploy with GitHub or Netlify. Customize anything on your site with widgets, light/dark themes, and language packs.
+## Run and check
 
-- 👉 [**Get Started**](https://wowchemy.com/hugo-themes/)
-- 📚 [View the **documentation**](https://wowchemy.com/docs/)
-- 💬 [Chat with the **Wowchemy research community**](https://discord.gg/z8wNYzb) or [**Hugo community**](https://discourse.gohugo.io)
-- 🐦 Twitter: [@wowchemy](https://twitter.com/wowchemy) [@GeorgeCushen](https://twitter.com/GeorgeCushen) [#MadeWithWowchemy](https://twitter.com/search?q=%23MadeWithWowchemy&src=typed_query)
-- ⬇️ **Automatically import your publications from BibTeX** with the [Hugo Academic CLI](https://github.com/wowchemy/hugo-academic-cli)
-- 💡 [Suggest an improvement](https://github.com/wowchemy/wowchemy-hugo-themes/issues)
-- ⬆️ **Updating?** View the [Update Guide](https://wowchemy.com/docs/hugo-tutorials/update/) and [Release Notes](https://github.com/wowchemy/wowchemy-hugo-themes/releases)
+Use Node 24.19.0 and pnpm 11.25.0, as pinned in `package.json`.
 
-## We ask you, humbly, to support this open source movement
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm check
+pnpm build
+pnpm verify
+pnpm preview
+```
 
-Today we ask you to defend the open source independence of the Wowchemy website builder and themes 🐧
+The build writes `dist/`. Run `verify` with the same environment values as `build`.
 
-We're an open source movement that depends on your support to stay online and thriving, but 99.9% of our creators don't give; they simply look the other way.
+| Build setting | Default | Purpose |
+| --- | --- | --- |
+| `WEBSITE_ORIGIN` | `https://www.dantongli.com` | Canonical origin; no path |
+| `WEBSITE_BASE` | `/` | `/` for the domain; `/repository-name/` for a project site |
+| `WEBSITE_INDEXABLE` | `false` | Set to `true` only for the approved public build |
 
-### [❤️ Click here to become a GitHub Sponsor, unlocking awesome perks such as _exclusive academic templates and widgets_](https://github.com/sponsors/gcushen)
+Preview builds include `noindex, nofollow` metadata and a blocking `robots.txt`. A production build with `WEBSITE_INDEXABLE=true` removes that metadata from normal pages and allows crawling. The 404 page remains unindexed. These settings control indexing; they do not make a public preview private.
 
-<p align="center"><a href="https://wowchemy.com/templates/" target="_blank" rel="noopener"><img src="https://wowchemy.com/uploads/readmes/academic_logo_200px.png" alt="Hugo Academic Theme for Wowchemy Website Builder"></a></p>
+The validation workflow checks a domain preview, a project-path preview and an indexable domain build. It verifies all six papers, author order, source links, citations, local links, profile corrections and the indexing policy. Linux builds also create and verify the former mixed-case PRL and résumé URLs. Windows cannot create those case-only copies, so local Windows verification reports that limit.
 
-## Demo image credits
+Paper text, citations, sources and navigation work without JavaScript. The two larger computational tools load when requested, within the paper page. Reduced-motion users receive a static presentation. Keyboard and touch users can use the same page links and controls. Visual inspection at desktop and phone widths is still needed when changing layout or motion.
 
-- [Open book](https://unsplash.com/photos/J4kK8b9Fgj8)
-- [Course](https://unsplash.com/photos/JKUTrJ4vK00)
+## Publish after review
 
-## Latest news
+No hosting or DNS change is performed by a local build. The included deployment workflow runs only when manually started.
 
-<!--START_SECTION:news-->
+The existing Netlify connection can still build branch and pull request previews with `netlify.toml`. It now uses Astro, `dist/`, the pinned Node and pnpm versions, and disabled indexing. It skips production Git builds; a second guard stops forced production builds before new files can be published. No new Netlify site is created. Remove this temporary configuration after the GitHub Pages cutover. See [Netlify deploy contexts](https://docs.netlify.com/build/configure-builds/file-based-configuration/) and [ignore-build rules](https://docs.netlify.com/build/configure-builds/ignore-builds/).
 
-- [Easily make an academic CV website to get more cites and grow your audience 🚀](https://wowchemy.com/blog/easily-make-academic-website/)
-- [What&#39;s new in v5.2?](https://wowchemy.com/blog/whats-new-in-v5.2/)
-- [What&#39;s new in v5.1?](https://wowchemy.com/blog/whats-new-in-v5.1/)
-- [Version 5.0 (February 2021)](https://wowchemy.com/blog/version-5.0-february-2021/)
-- [Version 5.0 Beta 3 (February 2021)](https://wowchemy.com/blog/version-5.0-beta-3-february-2021/)
-<!--END_SECTION:news-->
+1. Put this folder at the root of the chosen GitHub repository. Preserve the existing site's repository and Netlify deployment until cutover is complete.
+2. Set the repository's Pages source to **GitHub Actions**. Run **Publish website to GitHub Pages**, with indexing disabled, to check the hosted preview. The workflow reads the configured Pages address and uses its correct origin and project path.
+3. After design approval, verify the custom domain in GitHub, set the Pages custom domain to `www.dantongli.com`, and update only the website records in Route 53 using GitHub's current domain instructions. Preserve email and other DNS records. Check the apex redirect, `www`, HTTPS, old PRL links and citations before removing the old host.
+4. Run the workflow again with indexing enabled. Keep the prior DNS values for rollback. Automatic publishing on each push can be enabled after this first cutover.
+
+The workflow uses the repository's `GITHUB_TOKEN`; no AWS credentials or personal access token belong in this source. GitHub may require one-time Pages or domain settings in the account. The workflows are prepared for GitHub Pages; a local check does not claim that a hosted workflow or deployment has run.
+
+Official setup references: [custom GitHub Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [custom domains](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site), [Pages metadata action](https://github.com/actions/configure-pages), [Node setup action](https://github.com/actions/setup-node).

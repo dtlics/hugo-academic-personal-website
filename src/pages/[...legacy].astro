@@ -1,0 +1,15 @@
+---
+import { getCollection } from 'astro:content';
+import Document from '../layouts/Document.astro';
+import { localPath } from '../lib/paths';
+export function getStaticPaths() {
+  return ['tag/quantum_measurements','publication-type/2','publication_types','tags'].map(legacy=>({params:{legacy}}));
+}
+const publications=(await getCollection('publications')).filter(p=>p.id==='quantummeasurementsincompatibility');
+---
+<Document title="Quantum measurements" canonicalPath="publication/">
+  <section class="legacy-reading"><span class="mono">Quantum measurement / 2023</span><h1>Incompatibility,<br />measured.</h1>
+  {publications.map(p=><div class="legacy-source"><a href={localPath(`publication/${p.id}/`)}>{p.data.title} ↗</a><p>{p.data.summary}</p><a href={p.data.publicationUrl}>{p.data.citationLabel} ↗</a></div>)}
+  <a class="legacy-all" href={localPath('publication/')}>All research ↗</a></section>
+</Document>
+<style>.legacy-reading{max-width:1250px;margin:0 auto;padding:65px var(--gutter) 90px}.legacy-reading h1{font-size:clamp(42px,7vw,100px);line-height:1;letter-spacing:-.06em;margin:35px 0 60px}.legacy-source{margin-left:24%;max-width:650px}.legacy-source>a:first-child{display:block;font-size:27px;line-height:1.2;letter-spacing:-.03em}.legacy-source p{margin:24px 0}.legacy-source>a:last-child{font-size:13px;text-decoration:underline}.legacy-all{display:inline-flex;align-items:center;min-height:44px;margin-top:60px;text-decoration:underline}@media(max-width:560px){.legacy-reading{padding-block:40px 70px}.legacy-source{margin-left:8%}.legacy-source>a:first-child{font-size:23px}.legacy-reading h1{font-size:11vw}}</style>

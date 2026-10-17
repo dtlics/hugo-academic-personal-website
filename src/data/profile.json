@@ -1,0 +1,19 @@
+{
+  "name": "Dantong Li",
+  "role": "Computer Science Ph.D. Candidate",
+  "institution": "Yale University",
+  "advisor": "Yongshan Ding",
+  "advisorUrl": "https://www.yongshanding.com/",
+  "expectedGraduation": 2028,
+  "masters": "M.S. in Computer Science, en route, 2024",
+  "areas": ["Quantum algorithms and compilation", "Quantum error correction and mitigation", "Machine learning"],
+  "email": "dtlics2000@gmail.com",
+  "github": "https://github.com/dtlics",
+  "scholar": "https://scholar.google.com/citations?user=3Ycv7wwAAAAJ&hl=en",
+  "linkedin": "https://www.linkedin.com/in/dantongli/",
+  "skills": {
+    "Programming and quantum software": ["Python", "C++", "PennyLane", "Qiskit"],
+    "Machine learning": ["Deep learning", "Graph neural networks", "Reinforcement learning", "Natural language processing"],
+    "Statistics": ["Probability", "Computational statistics"]
+  }
+}

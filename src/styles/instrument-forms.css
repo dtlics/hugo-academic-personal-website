@@ -1,0 +1,24 @@
+/* Authored forms share the open paper ground with their exact instruments. */
+.paper-instrument .instrument__mount{width:100%;max-width:none;margin-inline:0}
+.paper-instrument[data-paper-instrument=route] .instrument__mount{max-width:none}
+.paper-instrument .instrument-field{display:grid;grid-template-columns:minmax(260px,400px) minmax(0,1fr);gap:clamp(28px,4vw,64px);align-items:start;min-width:0;background:transparent}
+.paper-instrument .instrument-field--route{grid-template-columns:minmax(260px,400px) minmax(0,560px);justify-content:space-between}
+.paper-instrument .instrument-form{width:100%;max-width:400px;min-width:0;margin:0;align-self:start}
+.paper-instrument .instrument-form__stage{position:relative;width:100%;height:340px;background:transparent;isolation:isolate}
+.paper-instrument .instrument-form__object{position:absolute;inset:0}
+.paper-instrument .instrument-form figcaption{display:flex;flex-direction:column;gap:10px;font:12px/1.6 RFMono,monospace;color:var(--paper-ink,var(--ink));margin-top:14px;max-width:46ch}
+.paper-instrument .instrument-form__note{font-family:RFArchivo,Arial,sans-serif;color:var(--paper-muted,#746a77)}
+.paper-instrument .instrument-form--measurement .measurement-object{--mo-ink:#39313e;--mo-rose:#a26377;height:100%}
+.paper-instrument .instrument-form--measurement .measurement-object.mo-fit .mo-stage{height:100%;min-height:0;aspect-ratio:auto;margin:0}
+.paper-instrument .instrument-form--measurement .mo-controls,.paper-instrument .instrument-form--measurement .mo-handle{display:none!important}
+.paper-instrument .instrument-form--measurement .mo-axis-label{font-size:12px;pointer-events:none}
+.paper-instrument .instrument-form--measurement .instrument-form__moving-axis{background:#d3aab3;color:#39313e;min-width:28px;width:auto;padding:0 7px;white-space:nowrap}
+.paper-instrument .instrument-field>.route-study,.paper-instrument .instrument-field>.measurement-study{min-width:0;width:100%;background:transparent}
+.paper-instrument .instrument-field .route-study__canvas{background:transparent;border:0;padding:0}
+.paper-instrument .instrument-field .route-study__canvas svg{max-height:300px}
+.paper-instrument .instrument-field .route-study :is(button,select,summary){min-height:44px}
+.paper-instrument .instrument-field .route-study__range-label input{min-height:44px}
+@media(max-width:1050px){.paper-instrument .instrument-field--measurement{grid-template-columns:1fr}.paper-instrument .instrument-form--measurement{justify-self:center}.paper-instrument .instrument-field--route{grid-template-columns:minmax(220px,340px) minmax(0,1fr);gap:28px}}
+@media(max-width:800px){.paper-instrument .instrument-field--route{grid-template-columns:1fr}.paper-instrument .instrument-form{justify-self:center}.paper-instrument .instrument-field>.route-study{max-width:560px;justify-self:center}}
+@media(max-width:700px){.paper-instrument .instrument-field{gap:30px}.paper-instrument .instrument-form{max-width:400px}.paper-instrument .instrument-form__stage{height:260px}.paper-instrument .instrument-form figcaption{margin-top:8px;font-size:12px}.paper-instrument .instrument-field .route-study__canvas svg{max-height:280px}}
+@media(prefers-reduced-motion:reduce){.paper-instrument .instrument-form *{transition:none!important;animation:none!important}}

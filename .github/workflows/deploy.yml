@@ -1,0 +1,64 @@
+name: Publish website to GitHub Pages
+
+# Publication stays manual until the domain cutover has been approved.
+on:
+  workflow_dispatch:
+    inputs:
+      indexable:
+        description: Allow search indexing (enable only for the approved public site)
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+      WEBSITE_INDEXABLE: ${{ inputs.indexable && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Read the configured Pages address
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Install the pinned package manager
+        run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - name: Build and verify
+        env:
+          WEBSITE_ORIGIN: ${{ steps.pages.outputs.origin }}
+          WEBSITE_BASE: ${{ steps.pages.outputs.base_path || '/' }}
+        run: |
+          pnpm build
+          pnpm verify
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish the verified build
+        id: deployment
+        uses: actions/deploy-pages@v4

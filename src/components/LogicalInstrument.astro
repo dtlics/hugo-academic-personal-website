@@ -1,0 +1,65 @@
+---
+import { localPath } from '../lib/paths';
+interface Props { id?: string; }
+const { id = 'logical-study' } = Astro.props;
+const exactId = `${id}-exact`;
+const exactTitleId = `${id}-exact-title`;
+---
+<link rel="stylesheet" href={localPath('logical-study/study.css')} />
+<section class="logical-study logical-instrument" id={id} data-logical-study aria-labelledby={`${id}-title`}>
+  <header class="ls-heading">
+    <div><span class="ls-eyebrow">Compare reported results</span><h2 id={`${id}-title`}>One budget.<br />Four methods.</h2></div>
+    <p>Compare endpoint error and uncertainty at the same <strong>100,000 attempted shots.</strong></p>
+  </header>
+  <div class="ls-depth-control"><span>QAOA depth</span><div class="ls-depth-options" role="group" aria-label="Published QAOA depth"><button type="button" data-depth="4" aria-pressed="true">4</button><button type="button" data-depth="6" aria-pressed="false">6</button><button type="button" data-depth="8" aria-pressed="false">8</button></div><span>Choose a reported result</span></div>
+  <div class="ls-explore">
+    <div class="ls-field">
+      <div class="ls-field-heading"><span>Error and uncertainty</span><span>Lower left = less of both</span></div>
+      <div class="ls-chart" data-chart aria-label="Four reported results"></div>
+      <p class="ls-scale-note">Reported simulation endpoints. Both axes use logarithmic scales and MaxCut cost units. Marks are not probability distributions.</p>
+    </div>
+    <div class="ls-inspection">
+      <div class="ls-protocols" role="group" aria-label="Inspect a method">
+        <button type="button" data-protocol="Unmitigated" aria-pressed="false"><i class="ls-symbol ls-cross" aria-hidden="true"></i>Unmitigated</button>
+        <button type="button" data-protocol="QED only" aria-pressed="false"><i class="ls-symbol ls-circle" aria-hidden="true"></i>QED only</button>
+        <button type="button" data-protocol="PEC only" aria-pressed="false"><i class="ls-symbol ls-diamond" aria-hidden="true"></i>PEC only</button>
+        <button type="button" data-protocol="PEC+QED" aria-pressed="true"><i class="ls-symbol ls-square" aria-hidden="true"></i>PEC + QED</button>
+      </div>
+      <div class="ls-result" aria-live="polite" aria-atomic="true">
+        <p class="ls-eyebrow" data-selected-label>Selected / PEC + QED</p>
+        <p class="ls-result-caption">Reported MSE</p><strong class="ls-result-value" data-mse></strong>
+        <dl>
+          <div><dt>Endpoint absolute error</dt><dd data-error></dd></div>
+          <div><dt>Standard error</dt><dd data-se></dd></div>
+          <div><dt>QED acceptance</dt><dd data-acceptance></dd></div>
+          <div><dt>PEC norm γ</dt><dd data-gamma></dd></div>
+        </dl>
+        <p class="ls-method-note" data-method-note></p>
+      </div>
+      <button class="ls-exact-action" data-inspect type="button" aria-expanded="false" aria-controls={exactId}>Show reported values ↓</button>
+    </div>
+  </div>
+  <div class="ls-schedule">
+    <div class="ls-schedule-title"><span data-schedule-title>Detection schedule / PEC + QED</span><span data-interval></span></div>
+    <div class="ls-schedule-plot" data-schedule></div><p data-schedule-note></p>
+  </div>
+  <section class="ls-exact" id={exactId} data-exact hidden aria-labelledby={exactTitleId}>
+    <div class="ls-exact-heading"><h3 id={exactTitleId} data-exact-title tabindex="-1">Same depth. Exact printed values.</h3><button data-close type="button">Hide table ↑</button></div>
+    <p>Reported simulation endpoints at 100,000 attempted shots. Values retain the paper’s printed precision.</p>
+    <div class="ls-table-scroll"><table><caption data-table-caption></caption><thead><tr><th scope="col">Method</th><th scope="col">Abs. error</th><th scope="col">SE</th><th scope="col">MSE</th><th scope="col">γ</th><th scope="col">Acceptance</th></tr></thead><tbody data-table></tbody></table></div>
+    <p>Absolute error is the deviation of this finite-shot estimate from the ideal cost. It is not an independently measured true-bias floor. Reported MSE is preserved; rounded columns need not reproduce it exactly.</p>
+    <a href="https://arxiv.org/html/2604.19871v1#S6.T2" target="_blank" rel="noopener">Read Table II and its method ↗</a>
+  </section>
+  <div class="ls-scope">
+    <p>Error detection filters runs. Probabilistic error cancellation changes the estimator and its sampling cost. The paper studies how to combine them.</p>
+    <details><summary>Methods, scope and source</summary>
+      <p>QED means quantum error detection. PEC means probabilistic error cancellation. QED-only and PEC + QED use the [[6,4,2]] Iceberg code with four logical qubits. PEC-only uses physical qubits. The study uses the paper’s QAOA MaxCut instance and depolarizing noise: one-qubit error 10<sup>−4</sup>, two-qubit error 10<sup>−3</sup>.</p>
+      <p>The two detection checks occur at the midpoint and end. The reported depths 4, 6 and 8 correspond to detection intervals of 20, 30 and 40 layers. The comparison uses attempted shots; the accepted counts can differ.</p>
+      <p>The display selects published endpoints. It does not run a new simulation, estimate a new optimum or predict performance at another shot budget.</p>
+      <p><a href="https://arxiv.org/abs/2604.19871" target="_blank" rel="noopener">Co-Designing Error Mitigation and Error Detection for Logical Qubits ↗</a><br />Rohan S. Kumar, Takahiro Tsunoda, Sophia H. Xue, Dantong Li, Robert J. Schoelkopf, Yongshan Ding. Preprint, 2026.</p>
+    </details>
+  </div>
+  <noscript><p>Enable JavaScript to select the reported results, or <a href="https://arxiv.org/html/2604.19871v1#S6.T2">read all printed values in Table II</a>.</p></noscript>
+</section>
+<script is:inline defer src={localPath('logical-study/results.js')}></script>
+<script is:inline defer src={localPath('logical-study/study.js')}></script>

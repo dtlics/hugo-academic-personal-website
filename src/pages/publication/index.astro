@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import Document from '../../layouts/Document.astro';
+import exhibition from '../../data/exhibition.json';
+import { localPath } from '../../lib/paths';
+import '../../styles/paper.css';
+const publications = await getCollection('publications');
+const works = exhibition.map(display => {
+  const publication = publications.find(p => p.id === display.id);
+  if (!publication) throw new Error(`Missing publication: ${display.id}`);
+  return { ...display, publication };
+});
+const payload = works.map(work => ({ ...work, publication: undefined, title: work.publication.data.title, status: work.publication.data.status, page: localPath(`publication/${work.id}/`), source: work.publication.data.publicationUrl, code: work.publication.data.codeUrl, bibtex: localPath(`publication/${work.id}/cite.bib`) }));
+---
+<Document title="Research" description="Six studies in quantum compilation, algorithms, error correction and measurement." canonicalPath="publication/">
+  <section class="research-overview" aria-label="An open field of six research studies" data-research-overview>
+    <div class="research-overview__meta"><span>All work</span><span>2023—2026</span></div>
+    <div class="research-overview__canvas" data-research-scene aria-hidden="true"></div>
+    <div class="research-overview__labels" aria-label="Choose a study">
+      {works.map((work,i)=><a class={`research-label research-label--${i+1}`} href={localPath(`publication/${work.id}/`)} id={work.id} data-research-label={i} aria-label={`${work.publication.data.title}. ${work.year}. Open study.`} style={`--work-accent:${work.accent}`}><span class="research-label__number">{work.index}</span><span><strong>{work.label}</strong><small>{work.year} / {work.publication.data.status === 'Preprint' ? 'Preprint' : work.publication.data.venue.includes('Letters') ? 'PRL' : work.publication.data.venue.includes('Workshop') ? 'Workshop' : 'IEEE QCE'}</small></span><span class="research-label__arrow" aria-hidden="true">↗</span></a>)}
+    </div>
+    <div class="research-current" data-research-current>
+      <div data-research-intro><span class="paper-section-label">Quantum computing</span><h1>Research</h1><p>Choose a study.</p></div>
+      <div data-research-detail hidden><button type="button" data-research-clear aria-label="Return to the full research overview">All 06 ↖</button><h2 data-research-headline></h2><div class="research-current__links"><a data-research-page href={localPath('publication/')}>Explore study ↗</a><a data-research-source href={works[0].publication.data.publicationUrl}>Paper ↗</a></div></div>
+    </div>
+    <div class="research-overview__controls"><label for="research-orbit">Turn the field <input id="research-orbit" data-research-orbit type="range" min="-35" max="35" step="1" value="0" /></label><span>Drag the open ground · choose a study</span><a href={localPath()}>Return to the studio ↗</a></div>
+    <script type="application/json" data-research-data set:html={JSON.stringify(payload).replaceAll('<','\\u003c')} />
+  </section>
+  <script is:inline defer src={localPath('exhibition/compiler.js')}></script>
+  <script is:inline defer src={localPath('exhibition/source-data.js')}></script>
+  <script is:inline defer src={localPath('exhibition/scene.js')}></script>
+  <script is:inline defer src={localPath('exhibition/index.js')}></script>
+</Document>

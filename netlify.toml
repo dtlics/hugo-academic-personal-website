@@ -1,21 +1,16 @@
+# Temporary compatibility for the existing site's branch and PR previews.
+# GitHub Pages is the publication target. This file does not publish production.
 [build]
-  command = "hugo --gc --minify -b $URL"
-  publish = "public"
+  base = "."
+  publish = "dist"
+  ignore = "node -e \"process.exit(['deploy-preview','branch-deploy'].includes(process.env.CONTEXT) ? 1 : 0)\""
+  command = "node -e \"if (!['deploy-preview','branch-deploy'].includes(process.env.CONTEXT)) { console.error('Only preview builds are enabled.'); process.exit(1); }\" && pnpm check && pnpm build && pnpm verify"
 
 [build.environment]
-  HUGO_VERSION = "0.97.3"
-  HUGO_ENABLEGITINFO = "true"
-
-[context.production.environment]
-  HUGO_ENV = "production"
-
-[context.deploy-preview]
-  command = "hugo --gc --minify --buildFuture -b $DEPLOY_PRIME_URL"
-
-[context.branch-deploy]
-  command = "hugo --gc --minify -b $DEPLOY_PRIME_URL"
-
-[[plugins]]
-  package = "netlify-plugin-hugo-cache-resources"
-  [plugins.inputs]
-    debug = true
+  NODE_VERSION = "24.19.0"
+  # package.json pins pnpm@11.25.0; Netlify reads it through Corepack.
+  PNPM_FLAGS = "--frozen-lockfile"
+  WEBSITE_BASE = "/"
+  WEBSITE_ORIGIN = "https://www.dantongli.com"
+  WEBSITE_INDEXABLE = "false"
+  ASTRO_TELEMETRY_DISABLED = "1"
