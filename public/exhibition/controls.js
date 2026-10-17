@@ -134,8 +134,8 @@
       const choiceLabels=new Set(choices.map(item=>item.button.textContent));
       const readoutLabels=new Set(['Keep / discard','Move to the seam','Open the seam','H H → I','X X → I','Coherent order control','Definite order','Random order','Tangent','Input grid']);
       let data=(state.markers||[]).filter(item=>item.id!=='route-stage'&&!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(modeButton&&item.text.startsWith('Mode '))&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
-      if(phoneHome&&index===3)data=data.filter(item=>['gradient-ancillas','gradient-control','gradient-factors'].includes(item.id)).map(item=>({...item,text:item.id==='gradient-ancillas'?`${state.derivativeOrder||2} control qubits`:item.id==='gradient-factors'?'Joint X…X × Z':item.text}));
-      if(tinyHome&&index===3)data=data.filter(item=>item.id==='gradient-control');
+      if(phoneHome&&index===3)data=data.filter(item=>['gradient-ancillas','gradient-factors'].includes(item.id)).map(item=>({...item,text:item.id==='gradient-ancillas'?`${state.derivativeOrder||2} control qubits`:item.id==='gradient-factors'?'Joint X…X × Z':item.text}));
+      if(tinyHome&&index===3)data=[];
       if(phoneHome&&index===4)data=data.filter(item=>['transformer-input','transformer-model','transformer-residual'].includes(item.id)).map(item=>({...item,text:item.id==='transformer-model'?'Transformer':item.text}));
       data=data.map(item=>item.id==='transformer-residual'?{...item,text:'Residual decoder'}:item);
       while(markers.length>data.length)markers.pop().remove();
@@ -163,6 +163,7 @@
       const occupied=[],background=[],cores=[],lines=[];
       const box=state.stations?.find(item=>item.index===index)?.bounds;
       root.dataset.activeBounds=JSON.stringify(box||null);
+      root.dataset.resourceBounds=JSON.stringify(state.resourceBounds||null);
       const active=box?{left:box.left*w,right:box.right*w,top:box.top*h,bottom:box.bottom*h}:null;
       const story=host.closest('[data-exhibition]')?.querySelector('[data-story][aria-hidden="false"]');
       if(story){const r=story.getBoundingClientRect();occupied.push({left:r.left-origin.left-8,right:r.right-origin.left+8,top:r.top-origin.top-8,bottom:r.bottom-origin.top+10});}
@@ -205,7 +206,7 @@
           const above=rh/2+18,side=rw/2+18;
           const semanticSides={
             'marker-switch-control':{side:'left',gap:18},
-            'marker-logical-estimate':{side:'right',gap:18},
+            'marker-logical-estimate':state.resourcePlacement==='side'?{side:'above',gap:60,dx:-24}:{side:'right',gap:18},
             'marker-gradient-factors':{side:'above',gap:compact?28:32},
             'marker-gradient-control':{side:'below',gap:compact?14:30},
             'marker-transformer-input':{side:'above',gap:52,dx:compact?-32:-14},
@@ -245,13 +246,21 @@
       // A code distance, derivative order or stage is one selector, not a part.
       // It has no leader that could be mistaken for a circuit connection.
       for(const group of resourceGroups){
+        const side=!compact&&state.resourcePlacement==='side';
+        group.node.dataset.placement=side?'side':'bottom';
         const b=group.node.getBoundingClientRect();
         if(compact){
           const y=captionBox.top-origin.top-25+b.height/2;
           const p={x:w/2,y};apply(group.node,p);occupied.push({left:p.x-b.width/2,right:p.x+b.width/2,top:y-b.height/2,bottom:y-b.height/2+18});
           continue;
         }
-        const p={x:w/2,y:b.height/2+2};
+        const envelope=state.resourceBounds||box;
+        const centre=envelope?(envelope.left+envelope.right)*w/2:w/2;
+        const modelBottom=envelope?envelope.bottom*h:h*.65;
+        const gap=index===3?38:24;
+        const preferredX=side&&envelope?envelope.right*w+24+b.width/2:centre;
+        const preferredY=side&&envelope?(envelope.top+envelope.bottom)*h/2:modelBottom+gap+b.height/2;
+        const p={x:clamp(preferredX,b.width/2+7,w-b.width/2-7),y:clamp(preferredY,b.height/2+7,captionBox.top-origin.top-16-b.height/2)};
         apply(group.node,p);occupied.push(rect(p.x,p.y,b.width,b.height));
       }
       for(const {button,key,value}of choices){
