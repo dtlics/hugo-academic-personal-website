@@ -16,11 +16,12 @@
     const root=document.createElement('div');root.className='study-actions';root.hidden=options.visible===false;
     const guides=document.createElementNS('http://www.w3.org/2000/svg','svg');guides.classList.add('study-guides');guides.setAttribute('aria-hidden','true');
     host.append(root);
-    let index=-1,state=null,visible=options.visible!==false,grips=[],choices=[],markers=[],pointer=null,modeButton=null;
+    let index=-1,state=null,visible=options.visible!==false,grips=[],choices=[],resourceGroups=[],markers=[],pointer=null,modeButton=null;
     const readout=document.createElement('p');readout.className='study-actions__readout';readout.setAttribute('aria-live','polite');readout.setAttribute('aria-atomic','true');
     const hint=document.createElement('p');hint.className='study-actions__hint';
     const caption=document.createElement('div');caption.className='study-caption';caption.append(readout,hint);
     const setText=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
+    const compactAnnotations=()=>(host.ownerDocument?.defaultView?.innerWidth??globalThis.innerWidth??host.clientWidth)<=560;
     function send(key,value){scene.setInteraction({[key]:value});update();}
     function createGrip(def){
       const button=document.createElement('button');button.type='button';button.className='study-grip';button.setAttribute('role','slider');button.setAttribute('aria-label',def.label);button.setAttribute('aria-orientation','horizontal');button.dataset.parameter=def.key;
@@ -52,15 +53,22 @@
       button.addEventListener('pointerup',end);button.addEventListener('pointercancel',end);button.addEventListener('lostpointercapture',end);
       root.append(button);grips.push({button,def});
     }
-    function createChoice(key,value,label,name){const button=document.createElement('button');button.type='button';button.className='study-choice';button.textContent=label;button.setAttribute('aria-label',`${name}: ${label}`);button.dataset.choice=value;button.dataset.parameter=key;button.addEventListener('click',()=>send(key,['repair','derivativeOrder','distance'].includes(key)?Number(value):value));root.append(button);choices.push({button,key,value});}
+    function createChoice(key,value,label,name,parent=root){const button=document.createElement('button');button.type='button';button.className='study-choice';button.textContent=label;button.setAttribute('aria-label',`${name}: ${label}`);button.dataset.choice=value;button.dataset.parameter=key;button.addEventListener('click',()=>send(key,['repair','derivativeOrder','distance'].includes(key)?Number(value):value));parent.append(button);choices.push({button,key,value});}
+    function createResourceGroup(key,prefix,items,name){
+      const node=document.createElement('div');node.className='study-resource-group';node.dataset.resourceGroup=key;node.setAttribute('role','group');node.setAttribute('aria-label',name);
+      const label=document.createElement('span');label.className='study-resource-group__label';label.textContent=prefix;node.append(label);
+      for(const [value,text]of items)createChoice(key,value,text,name,node);
+      root.append(node);resourceGroups.push({node,key,point:null});
+    }
     function build(next){
-      index=next;grips=[];choices=[];markers=[];modeButton=null;root.replaceChildren();root.dataset.study=String(index);
+      index=next;grips=[];choices=[];resourceGroups=[];markers=[];modeButton=null;root.replaceChildren();root.dataset.study=String(index);
       const def=definitions[index];
       if(def){
         if(def.choices){
-          for(const [value,label]of def.choices)createChoice(def.key,value,label,def.label);
+          if(def.key==='distance')createResourceGroup('distance','Code distance',[['5','5'],['7','7'],['9','9']],def.label);
+          else for(const [value,label]of def.choices)createChoice(def.key,value,label,def.label);
         }else createGrip(def);
-        if(index===3)for(const [value,label]of [['1','1st'],['2','2nd'],['3','3rd']])createChoice('derivativeOrder',value,label,'Derivative order');
+        if(index===3)createResourceGroup('derivativeOrder','Order',[['1','1st'],['2','2nd'],['3','3rd']],'Derivative order');
         if(index===5)createGrip({key:'angle',min:0,max:180,step:1,label:'Measurement basis angle',verb:'Change the bases'});
         hint.textContent=def.hint;
       }else hint.textContent='Relations learned by a decoder. A concept view of transfer across code sizes.';
@@ -72,7 +80,7 @@
     }
     function anchor(key,value){const handles=state?.handles||[];return handles.find(h=>h.key===key&&(value===undefined||String(h.value)===String(value)))||handles.find(h=>h.key===key);}
     function position(node,point,fallback){const x=clamp(Number(point?.x??fallback[0]),.075,.925),y=clamp(Number(point?.y??fallback[1]),.1,.79);node.style.left=`${x*100}%`;node.style.top=`${y*100}%`;node.dataset.side=x>.72?'left':'right';node.dataset.vertical=y>.65?'above':'center';}
-    function update(next){
+    function update(next,fromDraw=false){
       state=next?.activeIndex!==undefined?next:scene.getState();
       if(!state)return;
       const nextIndex=options.index??state.activeIndex;
@@ -84,7 +92,8 @@
         button.setAttribute('aria-valuetext',def.key==='angle'?degrees(value):def.key==='gradient'?`θ ${compact(value*Math.PI)} radians`:String(value));
         position(button,anchor(def.key),def.key==='angle'?[.7,.55]:[.69,.5]);
       }
-      for(let i=0;i<choices.length;i++){const {button,key,value}=choices[i];button.setAttribute('aria-pressed',String(String(state[key]??(key==='distance'?5:key==='derivativeOrder'?1:''))===value));let point=anchor(key,value);if(index===5&&value==='coherent'&&host.clientWidth<360&&point)point={...point,x:point.x-10/host.clientWidth,y:point.y-18/host.clientHeight};position(button,point,[.34+i*.16,.75]);}
+      for(let i=0;i<choices.length;i++){const {button,key,value}=choices[i];button.setAttribute('aria-pressed',String(String(state[key]??(key==='distance'?5:key==='derivativeOrder'?1:''))===value));if(button.closest('.study-resource-group'))continue;let point=anchor(key,value);if(index===5&&value==='coherent'&&compactAnnotations()&&host.clientWidth<360&&point)point={...point,x:point.x-10/host.clientWidth,y:point.y-18/host.clientHeight};position(button,point,[.34+i*.16,.75]);}
+      for(const group of resourceGroups){const points=(state.handles||[]).filter(item=>item.key===group.key);group.point=points.length?{x:points.reduce((sum,item)=>sum+item.x,0)/points.length,y:points.reduce((sum,item)=>sum+item.y,0)/points.length}:{x:.5,y:.35};position(group.node,group.point,[.5,.25]);}
       if(modeButton){
         const mode=state.selectedMode??1;setText(modeButton,`Mode ${mode} ↻`);modeButton.setAttribute('aria-label',`Select next fermionic mode. Current mode ${mode}. Modes 0 to 15.`);
         const board=state.stations?.find(item=>item.index===0)?.bounds,point=anchor('layer');
@@ -106,17 +115,17 @@
       if(state.transition?.active&&state.transition.kind==='distance'&&index===4)text='Changing the code size…';
       setText(readout,text);
       const choiceLabels=new Set(choices.map(item=>item.button.textContent));
-      const readoutLabels=new Set(['Keep / discard','Open the seam','H H → I','X X → I','Coherent order control','Definite order','Random order','Tangent','Input grid']);
+      const readoutLabels=new Set(['Keep / discard','Move to the seam','Open the seam','H H → I','X X → I','Coherent order control','Definite order','Random order','Tangent','Input grid']);
       const data=(state.markers||[]).filter(item=>!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(modeButton&&item.text.startsWith('Mode '))&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
       while(markers.length>data.length)markers.pop().remove();
       while(markers.length<data.length){const label=document.createElement('span');label.className='study-marker';label.setAttribute('aria-hidden','true');root.append(label);markers.push(label);}
       data.forEach((item,i)=>{setText(markers[i],item.text);position(markers[i],item,[.5,.5]);});
-      layoutAnnotations(data);
+      layoutAnnotations(data,fromDraw);
       root.dataset.parameter=definitions[index]?.key||'none';
     }
-    function layoutAnnotations(data){
+    function layoutAnnotations(data,fromDraw=false){
       if(root.hidden)return;
-      const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;
+      const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;const compact=compactAnnotations();
       const origin=root.getBoundingClientRect(),captionBox=caption.getBoundingClientRect(),limit=captionBox.top-origin.top-18;
       const box=state.stations?.find(item=>item.index===index)?.bounds;root.dataset.activeBounds=JSON.stringify(box||null);
       const active=box?{left:box.left*w,right:box.right*w,top:box.top*h,bottom:box.bottom*h}:null;
@@ -125,8 +134,8 @@
       for(const station of state.stations||[]){if(station.index===index||!station.bounds)continue;const b=station.bounds;background.push({left:b.left*w-16,right:b.right*w+16,top:b.top*h-16,bottom:b.bottom*h+16});}
       const rectFor=node=>{const b=node.getBoundingClientRect();return {left:b.left-origin.left,right:b.right-origin.left,top:b.top-origin.top,bottom:b.bottom-origin.top};};
       const overlap=(a,b,pad=9)=>Math.max(0,Math.min(a.right+pad,b.right)-Math.max(a.left-pad,b.left))*Math.max(0,Math.min(a.bottom+pad,b.bottom)-Math.max(a.top-pad,b.top));
-      if(w<=560&&data.length)occupied.push({left:0,right:w,top:0,bottom:Math.ceil(data.length/(data.length>3?3:data.length))*40+4});
-      const buttons=[...root.querySelectorAll('.study-grip'),...root.querySelectorAll('.study-choice')];
+      if(compact&&data.length)occupied.push({left:0,right:w,top:0,bottom:Math.ceil(data.length/(data.length>3?3:data.length))*40+4});
+      const buttons=[...root.querySelectorAll('.study-grip'),...root.querySelectorAll('.study-choice')].filter(node=>!node.closest('.study-resource-group'));
       for(const node of buttons){
         const original=rectFor(node),bw=original.right-original.left,bh=original.bottom-original.top,cx=(original.left+original.right)/2,cy=(original.top+original.bottom)/2;
         const candidates=[[cx,cy],[cx,cy-52],[cx,cy+52],[cx-66,cy],[cx+66,cy],[cx-66,cy-52],[cx+66,cy-52]];
@@ -135,6 +144,18 @@
         let best=null;
         for(let [x,y]of candidates){x=clamp(x,bw/2+8,w-bw/2-8);y=clamp(y,bh/2+14,Math.max(bh/2+14,limit-bh/2));const area={left:x-bw/2,right:x+bw/2,top:y-bh/2,bottom:y+bh/2};let score=Math.hypot(x-cx,y-cy);for(const other of occupied)score+=overlap(area,other,6)*1000000;for(const other of background)score+=overlap(area,other,8)*100;if(node.classList.contains('study-choice')&&active)score+=overlap(area,active,12)*10000;if(!best||score<best.score)best={x,y,area,score};}
         if(best){node.style.left=`${best.x}px`;node.style.top=`${best.y}px`;occupied.push(best.area);if(Math.hypot(best.x-cx,best.y-cy)>14)lines.push(`<path d="M${cx.toFixed(1)},${cy.toFixed(1)} L${best.x.toFixed(1)},${best.y.toFixed(1)}"/>`);}
+      }
+      // A resource count is one ordered choice, not three different model parts.
+      // Move the complete text row; its native44px buttons keep their order.
+      for(const group of resourceGroups){
+        const node=group.node,r=rectFor(node),bw=r.right-r.left,bh=r.bottom-r.top,target={x:group.point.x*w,y:group.point.y*h},x=clamp(target.x,bw/2+10,w-bw/2-10);
+        const placementKey=`${w}x${h}:${compact?'phone':'desktop'}:${Number(state.travel||0).toFixed(4)}:${Number(state.arrival??1).toFixed(4)}`;
+        const narrow=compact,paintTop=narrow?Math.min((active?.bottom??84)+4,captionBox.top-origin.top-19):null;
+        const candidates=narrow?[[w/2,paintTop+bh/2],[w/2+20,paintTop+bh/2],[w/2-20,paintTop+bh/2]]:[[x,bh/2]];let best=null;
+        for(let [cx,cy]of candidates){cx=clamp(cx,bw/2+10,w-bw/2-10);if(!narrow)cy=clamp(cy,bh/2,Math.max(bh/2,limit-bh/2));const area={left:cx-bw/2,right:cx+bw/2,top:cy-bh/2,bottom:cy+bh/2},paint={...area,bottom:area.top+18};let score=Math.hypot(cx-target.x,cy-target.y);for(const other of occupied)score+=overlap(area,other,2)*1000000;if(active)score+=overlap(paint,active,4)*100;for(const other of background)score+=overlap(paint,other,5)*10;if(!best||score<best.score)best={x:cx,y:cy,area,paint,score};}
+        if(group.placement?.key===placementKey)best=group.placement.value;
+        else if(best&&fromDraw)group.placement={key:placementKey,value:best};
+        if(best){node.style.left=`${best.x}px`;node.style.top=`${best.y}px`;occupied.push(narrow?best.paint:best.area);const edge={x:clamp(target.x,best.area.left+8,best.area.right-8),y:best.area.top+19};if(Math.hypot(edge.x-target.x,edge.y-target.y)>14)lines.push(`<path class="study-group-leader" d="M${target.x.toFixed(1)},${target.y.toFixed(1)} L${edge.x.toFixed(1)},${edge.y.toFixed(1)}"/>`);}
       }
       guides.setAttribute('viewBox',`0 0 ${w} ${h}`);
       const place=(node,point,isGrip=false)=>{
@@ -147,11 +168,12 @@
           for(const dx of[-110,110,-220,220])candidates.push([target.x+dx,top]);
         }
         candidates.push([target.x,target.y-27],[target.x,target.y+27]);
+        if(!compact)for(const y of[36,h*.28,h*.48,h*.64,limit-rh/2])for(const x of[rw/2+10,w*.25,w*.5,w*.75,w*.85,w-rw/2-10])candidates.push([x,y]);
         let best=null;
         for(let [x,y]of candidates){x=clamp(x,rw/2+10,w-rw/2-10);y=clamp(y,rh/2+14,Math.max(rh/2+14,limit-rh/2));const area={left:x-rw/2,right:x+rw/2,top:y-rh/2,bottom:y+rh/2};let score=Math.hypot(x-target.x,y-target.y);
-          for(const other of occupied)score+=overlap(area,other)*1000;
-          for(const other of background)score+=overlap(area,other)*20;
-          if(active)score+=overlap(area,active,10)*30;
+          for(const other of occupied)score+=overlap(area,other)*(compact?1000:1000000);
+          for(const other of background)score+=overlap(area,other)*(compact?20:4000);
+          if(active)score+=overlap(area,active,10)*(compact?30:8000);
           if(!best||score<best.score)best={x,y,area,score};
         }
         if(!best)return;occupied.push(best.area);
@@ -159,14 +181,14 @@
         else{node.style.left=`${best.x}px`;node.style.top=`${best.y}px`;}
         if(Math.hypot(best.x-target.x,best.y-target.y)>24)lines.push(`<path d="M${target.x.toFixed(1)},${target.y.toFixed(1)} L${best.x.toFixed(1)},${best.y.toFixed(1)}"/>`);
       };
-      if(w<=560){
+      if(compact){
         const columns=data.length>3?3:Math.max(1,data.length),gap=10,slot=(w-20)/columns;
         data.forEach((item,i)=>{const node=markers[i],x=10+slot*(i%columns+.5),y=24+Math.floor(i/columns)*40;node.style.left=`${x}px`;node.style.top=`${y}px`;node.style.width=`${Math.min(slot-gap,116)}px`;node.style.maxWidth='none';const target={x:item.x*w,y:item.y*h};occupied.push(rectFor(node));if(Math.hypot(x-target.x,y-target.y)>24)lines.push(`<path d="M${target.x.toFixed(1)},${target.y.toFixed(1)} L${x.toFixed(1)},${y.toFixed(1)+12}"/>`);});
       }else data.forEach((item,i)=>place(markers[i],item));
       for(const {button,def}of grips){const label=button.querySelector('.study-grip__label');if(label&&getComputedStyle(label).display!=='none'){const point=anchor(def.key);if(point)place(label,point,true);}}
       const markup=lines.join('');if(guides.innerHTML!==markup)guides.innerHTML=markup;
     }
-    const draw=()=>update();host.addEventListener('exhibitionscenedraw',draw);update();
+    const draw=()=>update(undefined,true);host.addEventListener('exhibitionscenedraw',draw);update();
     return {update,setVisible(value){visible=Boolean(value);update();},destroy(){host.removeEventListener('exhibitionscenedraw',draw);root.remove();}};
   };
 })();

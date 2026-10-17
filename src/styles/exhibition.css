@@ -18,3 +18,24 @@
 @media(max-width:850px) and (min-width:561px){.study-title{font-size:18px}.study-number{font-size:36px}.study-identity{gap:12px}.study-identity .mono{font-size:9px}}
 @media(max-width:560px){.study-identity{min-height:34px;gap:12px}.study-number{font-size:29px}.study-title{font-size:15px;margin-bottom:3px}.study-identity .mono{font-size:9px}.exhibition-story h2{margin-top:12px}.exhibition-scene{top:48%;bottom:2%}}
 @media(max-height:650px) and (min-width:561px){.study-number{font-size:28px}.study-title{font-size:16px}.study-identity{min-height:32px}.exhibition-story h2{margin-top:10px}.exhibition-scene{top:33%}}
+
+/* Keep a full sculptural reading area on ordinary landscape laptops. */
+@media(max-height:820px) and (min-width:561px){
+  .study-identity{min-height:36px;gap:12px}
+  .study-number{font-size:34px}
+  .study-title{font-size:17px;margin-bottom:3px}
+  .exhibition-story h2{font-size:clamp(29px,2.85vw,40px);margin-top:12px;line-height:1.01}
+  .exhibition-story .study-note{font-size:15px;line-height:1.4;margin-top:12px}
+  .study-links{margin-top:6px}
+}
+@media(max-height:650px) and (min-width:1000px){
+  .exhibition-stories{left:31%;width:28%;top:5%}
+  .exhibition-scene{left:61%;top:4%;bottom:3%}
+  .exhibition-story h2{font-size:clamp(27px,2.65vw,38px)}
+  .exhibition-story .study-note{font-size:14px;max-width:28ch}
+  .study-identity{align-items:start;gap:10px}
+  .study-title{font-size:16px}
+}
+@media(max-width:560px){
+  .exhibition-stories{top:20%}
+}

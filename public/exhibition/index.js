@@ -10,7 +10,7 @@
   const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
   const phone = [[.28,.13],[.75,.27],[.25,.34],[.76,.70],[.25,.81],[.72,.92]];
   const fallback = [[.19,.19],[.71,.13],[.88,.50],[.72,.84],[.24,.84],[.10,.53]];
-  let orbit = 0, active = -1, scene = null, stations = [], pointer = null, lastDrag = false;
+  let orbit = 0, active = -1, scene = null, stations = [], pointer = null, lastDrag = false, returningFocus = false;
   function layout(next) {
     if (next) stations = next;
     const narrow = root.clientWidth <= 700;
@@ -48,12 +48,22 @@
     scene?.setView({overview:true,orbit});
     if (scene?.getState) layout(scene.getState().stations);
   }
+  function clearSelection() {
+    const returnTo = labels[active];
+    const focusWillHide = q('[data-research-detail]').contains(document.activeElement);
+    select(-1);
+    if (returnTo && focusWillHide) {
+      returningFocus = true;
+      try { returnTo.focus({preventScroll:true}); }
+      finally { returningFocus = false; }
+    }
+  }
   labels.forEach((label,i) => {
     label.addEventListener('pointerenter',event => { if (event.pointerType !== 'touch') select(i); });
-    label.addEventListener('focus',() => select(i));
+    label.addEventListener('focus',() => { if (!returningFocus) select(i); });
   });
-  q('[data-research-clear]').addEventListener('click',() => select(-1));
-  root.addEventListener('keydown',event => { if (event.key === 'Escape') select(-1); });
+  q('[data-research-clear]').addEventListener('click',clearSelection);
+  root.addEventListener('keydown',event => { if (event.key === 'Escape') clearSelection(); });
   range.addEventListener('keydown',event => {
     if(['ArrowRight','ArrowUp','ArrowLeft','ArrowDown','Home','End'].includes(event.key)){
       event.preventDefault();turn(event.key==='Home'?-35:event.key==='End'?35:orbit+(['ArrowRight','ArrowUp'].includes(event.key)?3:-3));
