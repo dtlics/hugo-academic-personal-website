@@ -94,7 +94,7 @@
       if(index===4)text='Local error checks → decoder → correction';
       if(index===5){
         const angle=Number(state.angle??52),med=Math.abs(Math.sin(angle*Math.PI/180))/Math.SQRT2,coherent=state.order==='coherent',port=coherent?med*med/2:.5;
-        text=`θ ${degrees(angle)} · minus port ${(port*100).toFixed(1)}% · ${coherent?`MED ${med.toFixed(3)}`:'MED needs coherent order'}`;
+        text=`θ ${degrees(angle)} · minus port ${(port*100).toFixed(1)}% · ${coherent?`MED ${med.toFixed(3)}`:'MED not inferred'}`;
       }
       setText(readout,text);
       const choiceLabels=new Set(choices.map(item=>item.button.textContent));
