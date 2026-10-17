@@ -57,7 +57,7 @@
 @media(max-width:360px){.research-index,.paper-page{width:calc(100% - 24px)}.research-opening h1{font-size:16vw}.research-work h2,.research-work--1 h2,.research-work--2 h2{font-size:30px}.research-work--6 h2{font-size:39px}.research-work__arrow{font-size:17px}.paper-opening{grid-template-columns:38px minmax(0,1fr);gap:20px 12px}.paper-number{font-size:49px}.paper-opening h1{font-size:27px}.paper-opening__authors,.paper-page--logical-error-management .paper-opening__authors{padding-left:50px}.paper-opening .paper-punchline{font-size:17px}.paper-instrument{margin-inline:0;padding-inline:0}.paper-next strong{font-size:19px}}
 @media(prefers-reduced-motion:reduce){.research-work__arrow{transition:none}}
 /* One common collection scene, with real DOM links at the projected stations. */
-.research-overview{--paper-mono:RFMono,monospace;position:relative;min-height:760px;height:calc(100svh - 78px);max-height:1100px;isolation:isolate;color:var(--ink,#39313e);overflow:clip}
+.research-overview{--paper-mono:RFMono,monospace;position:relative;min-height:620px;height:calc(100svh - 78px);max-height:1100px;isolation:isolate;color:var(--ink,#39313e);overflow:clip}
 .research-overview__canvas{position:absolute;inset:0;z-index:0;cursor:grab;touch-action:pan-y}.research-overview[data-turning=true] :is(.research-overview__canvas,.research-viewpoint){cursor:grabbing}.research-overview__canvas canvas{display:block;width:100%;height:100%}
 .research-overview__meta{position:absolute;z-index:3;left:40px;right:40px;top:25px;display:flex;justify-content:space-between;gap:25px;font:11px/1.5 var(--paper-mono);pointer-events:none}
 .research-overview__labels{position:absolute;inset:0;z-index:4;pointer-events:none}
@@ -79,3 +79,40 @@
 
 @media(min-width:701px){.research-current{width:290px;max-width:30%}.research-current h1{font-size:clamp(56px,5.7vw,78px);margin:20px 0}.research-current h2{font-size:32px;max-width:290px;margin:12px 0}.research-current__links{margin-top:12px;gap:8px 20px}}
 .research-overview__turn{display:flex;align-items:center;gap:18px;flex:none}.research-viewpoint{display:flex;align-items:center;gap:10px;min-height:44px;font:11px RFMono,monospace;padding:0 8px 0 0;cursor:grab;touch-action:pan-y;user-select:none}.research-viewpoint>span{font:32px/1 RFArchivo,Arial,sans-serif;color:#9c6548;display:inline-block}.research-reset{min-height:44px;padding:0;font:11px RFMono,monospace;cursor:pointer;text-decoration:underline;text-underline-offset:4px}.research-viewpoint:focus-visible,.research-reset:focus-visible{outline:1px solid var(--ink);outline-offset:-2px}@media(max-width:700px){.research-viewpoint,.research-reset{font-size:10px}.research-overview__controls{gap:8px 14px}.research-overview__turn{gap:12px}.research-viewpoint{gap:6px;padding-right:0}.research-viewpoint>span{font-size:27px}.research-overview__controls>a{font-size:10px}}@media(max-width:360px){.research-overview__turn{gap:9px}.research-viewpoint{gap:4px}.research-viewpoint>span{font-size:23px}.research-overview__controls>a{max-width:100px;line-height:1.3}}@media(prefers-reduced-motion:reduce){.research-label__arrow{transition:none}}
+
+/* The paper opens with its own object beside the title: the work met in the
+   home passage, now in focus and directly operable. */
+.paper-opening{grid-template-rows:auto auto 1fr;row-gap:34px}
+.paper-opening__main{grid-column:3/8}
+.paper-opening__authors{grid-column:3/8;grid-template-columns:1fr;gap:8px;max-width:none}
+.paper-opening h1{font-size:clamp(32px,3.15vw,50px);max-width:none}
+.paper-opening .paper-punchline{margin-top:26px}
+.paper-page--logical-error-management .paper-opening__main,.paper-page--logical-error-management .paper-opening__authors{grid-column:3/8}
+.paper-page--quantummeasurementsincompatibility .paper-opening h1,.paper-page--generalized-hadamard .paper-opening h1{max-width:none}
+.paper-object{grid-column:8/13;grid-row:1/span 3;margin:0;display:flex;flex-direction:column;min-width:0;min-height:560px}
+.paper-object .concept-study__scene{position:relative;flex:1;min-height:470px;isolation:isolate;overflow:clip;touch-action:pan-y}
+.paper-object .concept-study__scene canvas{position:absolute;inset:0;width:100%;height:100%}
+.paper-object .concept-study__fallback{position:absolute;top:45%;left:10%;right:10%;font-size:14px;line-height:1.5}
+.paper-object .concept-study__scene[data-scene-ready=true] .concept-study__fallback{display:none}
+.paper-object figcaption{border-top:1px solid var(--paper-rule);padding-top:14px;margin-top:6px}
+.paper-object__lead{font-size:14px;line-height:1.6;max-width:56ch}
+.paper-object__scope{font-size:12px;line-height:1.6;color:#6e626f;max-width:60ch;margin-top:8px!important}
+/* Inline paper links and formulas are visible as such. */
+.paper-content a{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.paper-content code{font:.9em/1 RFMono,monospace;letter-spacing:-.01em;padding:0 .12em;background:color-mix(in srgb,var(--paper-ink) 6%,transparent)}
+@media(max-width:1050px){
+  .paper-opening__main,.paper-opening__authors,.paper-page--logical-error-management .paper-opening__main,.paper-page--logical-error-management .paper-opening__authors{grid-column:3/13}
+  .paper-opening h1{font-size:clamp(32px,4.6vw,50px)}
+  .paper-object{grid-column:1/-1;grid-row:auto;min-height:0}
+  .paper-object .concept-study__scene{flex:none;height:460px;min-height:0}
+}
+@media(max-width:700px){
+  .paper-opening__main,.paper-page--logical-error-management .paper-opening__main{grid-column:2}
+  .paper-opening__authors,.paper-page--logical-error-management .paper-opening__authors{grid-column:1/-1}
+  .paper-opening h1{font-size:clamp(29px,7.4vw,40px)}
+  .paper-object{grid-column:1/-1}
+  .paper-object .concept-study__scene{height:390px;margin-inline:-8px}
+  .paper-object__lead{font-size:13px}
+  .paper-object__scope{font-size:11px}
+}
+.paper-opening__authors .paper-citation{grid-column:auto}

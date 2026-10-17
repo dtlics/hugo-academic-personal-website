@@ -1,31 +1,25 @@
 ---
 import { localPath } from '../lib/paths';
-interface Props { index: number; }
-const { index } = Astro.props;
-const copy: Record<number, { heading: string[]; lead: string; scope: string }> = {
-  1: { heading: ['Sample. Check.', 'Combine.'], lead: 'Error cancellation changes which operations are sampled and how their results are weighted. Error checks reject flagged runs. The final estimate combines the accepted results.', scope: 'A concept view of the workflow. It does not simulate a new noise process. Compare the paper’s reported results below.' },
-  2: { heading: ['Look across', 'the seam.'], lead: 'The sequence X, H | H, X does nothing overall. Each half stays unchanged on its own. At the seam, the two H gates can cancel. The two X gates then meet and cancel too.', scope: 'This small identity circuit explains a local rewrite. It is not a claim that every circuit reaches a global optimum.' },
-  3: { heading: ['One test.', 'More derivatives.'], lead: 'Add one control qubit for each derivative. Each control acts on the same system. Multiply the measured outcomes, then average those products to read the derivative.', scope: 'An exact small circuit with a Y rotation. Angles are in radians. The readout is a mean over repeated runs, not a single-shot derivative.' },
-  4: { heading: ['Read the pattern.', 'Reuse the model.'], lead: 'The transformer reads check results and proposes local corrections. A conventional decoder handles the remaining syndrome. Change the code distance to see how the inputs grow around the shared model.', scope: 'A view of the paper’s architecture. It does not run a trained decoder or show learned attention weights. Transfer to a new code size still needs further training.' },
-  5: { heading: ['Two orders.', 'One quantum control.'], lead: 'A quantum switch can keep A → B and B → A coherent. The two order histories interfere. The control readout can then reveal how incompatible the operations are.', scope: 'For this readout, the target qubit is an equal mixture of states 0 and 1. The two branches are order histories, not independent copies of the operations. The Atlas below calculates MED for noiseless one-qubit measurement bases.' },
+interface Props { id: string; index: number; }
+const { id, index } = Astro.props;
+// The paper opens with its own object: the same work met in the home passage,
+// now in focus. Copy is keyed by paper, not by exhibition position.
+const copy: Record<string, { lead: string; scope: string }> = {
+  'fermionic-permutation': { lead: 'Each moment moves fermionic modes between neighbouring qubits of a 4 × 4 grid. Drag the marked point through the compiled moments. Choose Mode to follow another path; copper marks show the operations of that moment.', scope: 'The exact 4 × 4 transpose from the public compiler. Spacing in depth shows progress through the circuit; it is not a device layout.' },
+  'logical-error-management': { lead: 'Error cancellation changes which operations are sampled and how their results are weighted. Error checks reject flagged runs. The final estimate combines the accepted results.', scope: 'A concept view of the workflow. It does not simulate a new noise process. Compare the paper’s reported results below.' },
+  'local-optimization': { lead: 'The sequence X, H | H, X does nothing overall. Each half stays unchanged on its own. At the seam, the two H gates can cancel. The two X gates then meet and cancel too.', scope: 'This small identity circuit explains a local rewrite. It is not a claim that every circuit reaches a global optimum.' },
+  'generalized-hadamard': { lead: 'Add one control qubit for each derivative. Each control acts on the same system. Multiply the measured outcomes, then average those products to read the derivative.', scope: 'An exact small circuit with a Y rotation. Angles are in radians. The readout is a mean over repeated runs, not a single-shot derivative.' },
+  'transformer-qec': { lead: 'The transformer reads check results and proposes local corrections. A conventional decoder handles the remaining syndrome. Change the code distance to see how the inputs grow around the shared model.', scope: 'A view of the paper’s architecture. It does not run a trained decoder or show learned attention weights. Transfer to a new code size still needs further training.' },
+  'quantummeasurementsincompatibility': { lead: 'A quantum switch can keep A → B and B → A coherent. The two order histories interfere. The control readout can then reveal how incompatible the operations are.', scope: 'For this readout, the target qubit is an equal mixture of states 0 and 1. The two branches are order histories, not independent copies of the operations. The atlas below calculates MED for noiseless one-qubit measurement bases.' },
 };
-const text = copy[index];
+const text = copy[id];
 ---
-<section class="concept-study" data-concept-study data-study={index} aria-labelledby={`concept-${index}-title`}>
-  <header><span class="paper-section-label">Try one small idea</span><h2 id={`concept-${index}-title`}>{text.heading.map(line=><span>{line}</span>)}</h2><p>{text.lead}</p></header>
-  <div class="concept-study__scene" data-concept-scene role="group" aria-label={`Interactive example: ${text.heading.join(' ')}`}><p class="concept-study__fallback">The example is explained in the text beside this space.</p></div>
-  <p class="concept-study__scope">{text.scope}</p>
-</section>
+<figure class="paper-object" data-concept-study data-study={index}>
+  <div class="concept-study__scene" data-concept-scene role="group" aria-label="Interactive example of this paper’s mechanism"><p class="concept-study__fallback">The example is described below.</p></div>
+  <figcaption><p class="paper-object__lead">{text.lead}</p><p class="paper-object__scope">{text.scope}</p></figcaption>
+</figure>
 <script is:inline defer src={localPath('exhibition/compiler.js')} />
 <script is:inline defer src={localPath('exhibition/source-data.js')} />
 <script is:inline defer src={localPath('exhibition/scene.js')} />
 <script is:inline defer src={localPath('exhibition/controls.js')} />
 <script is:inline defer src={localPath('exhibition/concept.js')} />
-<style>
-  .concept-study{padding:68px 0 60px;border-top:1px solid var(--paper-line,#aaa5aa);display:grid;grid-template-columns:minmax(230px,.75fr) minmax(0,1.65fr);column-gap:36px;align-items:start}
-  .concept-study header h2{font-size:clamp(36px,4.6vw,62px);line-height:1.02;letter-spacing:-.055em;margin:20px 0 24px;font-weight:500}.concept-study h2 span{display:block}.concept-study header>p{font-size:16px;line-height:1.65;max-width:35ch}
-  .concept-study__scene{position:relative;min-width:0;height:470px;isolation:isolate;overflow:clip;touch-action:pan-y;margin-top:-30px}.concept-study__scene canvas{position:absolute;inset:0;width:100%;height:100%}.concept-study__fallback{position:absolute;top:45%;left:10%;right:10%;font-size:14px;line-height:1.5}.concept-study__scene[data-scene-ready=true] .concept-study__fallback{display:none}
-  .concept-study__scope{grid-column:2;margin:14px 6% 0;font-size:13px;line-height:1.65;max-width:65ch;color:var(--paper-muted,#746a77)}
-  @media(max-width:850px){.concept-study{grid-template-columns:1fr;gap:22px;padding-block:42px}.concept-study header>p{max-width:60ch}.concept-study__scene{height:420px;margin-top:0}.concept-study__scope{grid-column:auto;margin:0 4%}.concept-study header h2{font-size:42px}}
-  @media(max-width:560px){.concept-study{gap:16px}.concept-study header h2{font-size:36px;margin:14px 0 20px}.concept-study header>p{font-size:15px}.concept-study__scene{height:360px;margin-inline:-10px}.concept-study__scope{font-size:12px;margin-inline:0}}
-</style>

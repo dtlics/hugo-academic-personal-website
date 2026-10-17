@@ -14,20 +14,18 @@ const studies = exhibition.map(study=>({...study,paper:papers.find(p=>p.id===stu
       {studies.map((_,i)=><span id={`work-${i+1}`} class="exhibition-anchor" style={`--anchor:${i}`} aria-hidden="true" />)}
       <div class="exhibition-stage">
         <div class="exhibition-world">
-          <div class="exhibition-scene" data-scene role="group" aria-label="Six research studies share one space. Scroll between them, then use each study’s control." />
           <div class="exhibition-photo-position" data-photo>
             <div class="exhibition-photo">
               <svg viewBox="0 0 1000 1000" role="img" aria-labelledby="portrait-title">
                 <title id="portrait-title">Dantong Li in a racing suit, holding a helmet beside a race car</title>
-                <defs><clipPath id="portrait-cut"><path d="M120 0H1000V1000H0V760H65V140H120Z" /></clipPath></defs>
-                <g clip-path="url(#portrait-cut)"><image href={localPath('images/portrait.jpg')} width="1000" height="1000" /><path fill="#39313e" d="M938 0H1000V1000H938Z M0 760H245V1000H0Z" /></g>
+                <defs><clipPath id="portrait-cut"><path d="M178 0H1000V1000H0V418H178Z" /></clipPath></defs>
+                <image href={localPath('images/portrait.jpg')} width="1000" height="1000" clip-path="url(#portrait-cut)" />
               </svg>
-              <span>Dantong Li / 00</span>
             </div>
           </div>
           <div class="exhibition-name" data-name>
             <span class="mono">Quantum computing</span>
-            <h1 aria-label="Dantong Li">Dantong<br /><span>Li</span></h1>
+            <h1 aria-label="Dantong Li"><span class="name-first">Dantong</span><br /><span class="name-last">Li</span></h1>
           </div>
           <div class="exhibition-profile" id="about">
             <p class="desktop-role">Computer Science<br />Ph.D. Candidate<br />Yale University</p>
@@ -41,10 +39,16 @@ const studies = exhibition.map(study=>({...study,paper:papers.find(p=>p.id===stu
               <p class="study-note">{study.note}</p>
               <div class="study-links"><a href={localPath(`publication/${study.id}/`)}>Explore study ↗</a><a href={study.paper.data.publicationUrl}>{study.paper.data.status==='Preprint'?'Preprint':'Paper'} ↗</a></div>
             </article>)}
+            <article class="exhibition-story exhibition-coda" data-coda aria-hidden="true" inert>
+              <div class="study-identity"><p class="mono">Six works / 2023–2026</p></div>
+              <h2><span>Behind the work.</span></h2>
+              <div class="study-links"><a href={localPath('about/')}>About me ↗</a><a href={localPath('publication/')}>All work ↗</a></div>
+            </article>
           </div>
-          <a class="exhibition-end-link" href={localPath('about/')} data-end-link hidden>Behind the work.<span>About me ↗</span></a>
+          <div class="exhibition-scene" data-scene role="group" aria-label="Six research studies share one space. Scroll between them, then use each study’s control." />
+          <nav class="exhibition-context" aria-label="Neighbouring studies"><a data-context="past" hidden></a><a data-context="next" hidden></a></nav>
         </div>
-        <div class="exhibition-progress"><span data-current-label>00 / Identity and practice</span><span data-scroll-cue>Scroll to begin the research ↓</span><a href={localPath('publication/')}>All work ↗</a></div>
+        <div class="exhibition-progress"><span data-current-label>00 / Identity and practice</span><a data-scroll-cue href="#work-1">Scroll to begin the research ↓</a><a href={localPath('publication/')}>All work ↗</a></div>
       </div>
     </div>
     <div class="exhibition-static" aria-label="Research">

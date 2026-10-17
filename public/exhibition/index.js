@@ -12,20 +12,39 @@
   const fallback = [[.19,.19],[.71,.13],[.88,.50],[.72,.84],[.24,.84],[.10,.53]];
   let orbit = 0, active = -1, scene = null, stations = [], pointer = null, returningFocus = false;
   const suppressedClicks = new WeakSet();
+  // Each label sits beside its own model: above it if there is room, else to a
+  // side or below, never on another model, another label or the centre text.
   function layout(next) {
     if (next) stations = next;
-    const narrow = root.clientWidth <= 700;
+    const W = root.clientWidth, H = root.clientHeight, narrow = W <= 700;
+    if (!W || !H) return;
+    const origin = root.getBoundingClientRect();
+    const rect = node => { const r = node.getBoundingClientRect(); return {left:r.left-origin.left,right:r.right-origin.left,top:r.top-origin.top,bottom:r.bottom-origin.top}; };
+    const overlap = (a,b,pad=0) => Math.max(0,Math.min(a.right+pad,b.right)-Math.max(a.left-pad,b.left))*Math.max(0,Math.min(a.bottom+pad,b.bottom)-Math.max(a.top-pad,b.top));
+    const panel = rect(q('.research-current')), top = rect(q('.research-overview__meta')).bottom+6, bottom = rect(q('.research-overview__controls')).top-6;
+    const boxes = labels.map((_,i) => { const b = stations.find(s => s.index === i)?.bounds; return b ? {left:b.left*W,right:b.right*W,top:b.top*H,bottom:b.bottom*H} : null; });
+    const placed = [];
     labels.forEach((label,i) => {
-      const station = stations.find(s => s.index === i);
-      const projected = station?.labelProjected || station?.projected;
-      let point = projected || (narrow ? {x:phone[i][0],y:phone[i][1]} : {x:fallback[i][0],y:fallback[i][1]});
-      let x = point.x, y = point.y;
-      if (projected) x += (x < .5 ? -.012 : .012);
-      const half = Math.min(105,root.clientWidth*.105) / root.clientWidth;
-      x = clamp(x,narrow?.23:half+.025,narrow?.77:1-half-.025);
-      y = clamp(y,narrow?.30:.12,narrow?.94:.88);
-      label.style.left = (x*100).toFixed(3)+'%';
-      label.style.top = (y*100).toFixed(3)+'%';
+      const w = label.offsetWidth, h = label.offsetHeight, box = boxes[i];
+      if (!box) {
+        const point = narrow ? phone[i] : fallback[i];
+        label.style.left = (point[0]*100).toFixed(3)+'%'; label.style.top = (point[1]*100).toFixed(3)+'%';
+        return;
+      }
+      const cx = (box.left+box.right)/2, cy = (box.top+box.bottom)/2, gap = 8;
+      const candidates = [[cx,box.top-gap-h/2],[box.left+w/2,box.top-gap-h/2],[box.right-w/2,box.top-gap-h/2],[box.left-gap-w/2,cy],[box.right+gap+w/2,cy],[cx,box.bottom+gap+h/2]];
+      let best = null;
+      candidates.forEach(([x0,y0],k) => {
+        const x = clamp(x0,w/2+10,W-w/2-10), y = clamp(y0,top+h/2,Math.max(top+h/2,bottom-h/2));
+        const area = {left:x-w/2,right:x+w/2,top:y-h/2,bottom:y+h/2};
+        let score = k*30+Math.hypot(x-x0,y-y0)*2;
+        boxes.forEach((other,j) => { if (other) score += overlap(area,other,4)*(j===i?2:1.4); });
+        placed.forEach(other => { score += overlap(area,other,10)*8; });
+        score += overlap(area,panel,12)*8;
+        if (!best || score < best.score) best = {x,y,area,score};
+      });
+      placed.push(best.area);
+      label.style.left = best.x.toFixed(1)+'px'; label.style.top = best.y.toFixed(1)+'px';
     });
   }
   function select(index) {

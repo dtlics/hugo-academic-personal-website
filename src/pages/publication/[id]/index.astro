@@ -56,15 +56,15 @@ const article = { '@context': 'https://schema.org', '@type': 'ScholarlyArticle',
 ---
 <Document title={p.title} description={p.summary} article={article} canonicalPath={`publication/${publication.id}/`}>
   <article class={`paper-page ${p.instrument ? 'paper-page--instrument' : 'paper-page--reading'} paper-page--${publication.id}`} style={`--paper-accent:${display.accent}`}>
-    <nav class="paper-wayfinding" aria-label="Research navigation"><a href={localPath(`publication/#${publication.id}`)}>↖ All research</a><span>{display.category}</span><a href={localPath(`publication/${publication.id}/#paper-sources`)}>Sources & citation ↓</a></nav>
+    <nav class="paper-wayfinding" aria-label="Research navigation"><a href={localPath(`publication/#${publication.id}`)}>↖ All work</a><span>{display.category}</span><a href={localPath(`publication/${publication.id}/#paper-sources`)}>Sources & citation ↓</a></nav>
     <header class="paper-opening">
       <div class="paper-opening__side"><span class="paper-number">{display.index}</span><p>{p.year}<br />{p.status}</p></div>
       <div class="paper-opening__main"><p class="paper-kicker">{display.label}</p><h1>{p.title}</h1><p class="paper-punchline">{display.headline[0]}<br />{display.headline[1]}</p></div>
       <div class="paper-opening__authors"><span class="paper-section-label">Authors</span><p class="authors">{p.authors.map((name: string,i: number)=><>{i>0?', ':''}{name==='Dantong Li'?<strong>{name}</strong>:name}</>)}</p><p class="paper-citation"><a href={p.publicationUrl}>{p.citationLabel} ↗</a></p></div>
+      <ConceptStudy id={publication.id} index={position} />
     </header>
     <section class="paper-contribution" aria-labelledby="contribution-heading"><span class="paper-section-label">The contribution</span><div><h2 id="contribution-heading">{reading.heading}</h2><p class="paper-summary">{p.summary.replace('O(sqrt(N))', 'O(√N)')}</p>{p.award && <p class="paper-award"><span>IEEE QCE2025 / QSYS</span>{p.award}</p>}</div></section>
     <section class="paper-reading" aria-labelledby="reading-heading"><div class="paper-reading__main"><span class="paper-section-label">Start with the idea</span><h2 id="reading-heading">{p.instrument ? 'From the task to an example.' : 'How the method works.'}</h2><div class="paper-content"><Content /></div></div><aside class="paper-reading__aside"><h3>Keep in view</h3><p class="paper-scope">{reading.scope}</p></aside></section>
-    {[1,2,3,4,5].includes(position) && <ConceptStudy index={position} />}
     {p.instrument && <PaperInstrument kind={p.instrument} />}
     {publication.id === 'logical-error-management' && <LogicalInstrument />}
     <section class="paper-sources" id="paper-sources" aria-labelledby="sources-heading"><div class="paper-sources__heading"><span class="paper-section-label">Original work</span><h2 id="sources-heading">Sources & <br />citation.</h2><p>{p.venue}<br />{p.year} · {p.status}</p></div><div class="paper-sources__body"><a class="paper-primary-source" href={p.publicationUrl}>{p.status==='Preprint'?'Read the preprint':'Read the paper'} ↗</a><div class="paper-source-links">{moreSources[publication.id].map(source=><a href={source.url}>{source.label} ↗</a>)}{p.codeUrl && <a href={p.codeUrl}>Code ↗</a>}<a href={localPath(`publication/${publication.id}/cite.bib`)} download>BibTeX ↓</a></div><p class="paper-source-citation">{p.citationLabel}</p><details class="paper-bibtex"><summary>View the citation</summary><pre><code>{p.bibtex}</code></pre></details></div></section>

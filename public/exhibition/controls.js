@@ -3,10 +3,10 @@
   'use strict';
   const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
   const definitions=[
-    {key:'layer',min:0,max:27,step:1,label:'Circuit layer',verb:'Trace a layer',hint:'Drag the marked point to trace layers. Click Mode to change paths.'},
+    {key:'layer',min:0,max:27,step:1,label:'Circuit layer',verb:'Drag to trace ↔',hint:'Drag the marked point to trace layers. Click Mode to change paths.'},
     {key:'repair',choices:[['0','Sample'],['1','Check'],['2','Combine']],label:'Detection and cancellation',hint:'Click a stage. Signed weights change the estimate, not the quantum state.'},
-    {key:'window',min:0,max:2,step:1,label:'Peephole step',verb:'Move the window',hint:'Drag the window, or click the gates to step through this identity rewrite.'},
-    {key:'gradient',min:-1,max:1,step:.02,label:'Circuit angle',verb:'Change the angle',hint:'Drag the angle marker. For this Y rotation, mean X/Z products give the derivative.'},
+    {key:'window',min:0,max:2,step:1,label:'Peephole step',verb:'Move the window ↔',hint:'Drag the window, or click the gates to step through this identity rewrite.'},
+    {key:'gradient',min:-1,max:1,step:.02,label:'Circuit angle',verb:'Turn the angle ↻',hint:'Drag the angle marker. For this Y rotation, mean X/Z products give the derivative.'},
     {key:'distance',choices:[['5','d = 5'],['7','d = 7'],['9','d = 9']],label:'Code distance',hint:'Drag the model to turn it. Each new code size still needs training.'},
     {key:'order',choices:[['ab','A → B'],['coherent','Coherent'],['ba','B → A']],label:'Quantum-switch order',hint:'Drag the marked axis to turn the bases. Target: equal mixture of 0 and 1.'},
   ];
@@ -17,10 +17,14 @@
     const guides=document.createElementNS('http://www.w3.org/2000/svg','svg');guides.classList.add('study-guides');guides.setAttribute('aria-hidden','true');
     host.append(root);
     let index=-1,state=null,visible=options.visible!==false,grips=[],choices=[],resourceGroups=[],markers=[],pointer=null,modeButton=null,modePoint=null;
-    let annotationView='',annotationPositions=new Map(),captionReserve=0,captionView='';
+    let annotationView='',annotationPositions=new Map(),captionReserve=0,captionView='',geometryKey='';
+    const used=new Set();
     const readout=document.createElement('p');readout.className='study-actions__readout';readout.setAttribute('aria-live','polite');readout.setAttribute('aria-atomic','true');
     const hint=document.createElement('p');hint.className='study-actions__hint';
-    const caption=document.createElement('div');caption.className='study-caption';caption.append(readout,hint);
+    // The readout line can carry the study's one discrete choice (the route Mode).
+    const readRow=document.createElement('div');readRow.className='study-caption__row';readRow.append(readout);
+    const caption=document.createElement('div');caption.className='study-caption';caption.append(readRow,hint);
+    const coarsePointer=()=>Boolean(globalThis.matchMedia?.('(pointer: coarse)').matches);
     const setText=(node,value)=>{if(node.textContent!==value)node.textContent=value;};
     function annotationText(node,value){let text=node.querySelector('.study-annotation-text');if(!text){text=document.createElement('span');text.className='study-annotation-text';node.replaceChildren(text);}setText(text,value);}
     const compactAnnotations=()=>(host.ownerDocument?.defaultView?.innerWidth??globalThis.innerWidth??host.clientWidth)<=560;
@@ -41,15 +45,19 @@
         else if(event.key==='PageUp')next+=def.step*5;
         else if(event.key==='PageDown')next-=def.step*5;
         else return;
-        event.preventDefault();send(def.key,clamp(Math.round(next/def.step)*def.step,def.min,max));
+        event.preventDefault();used.add(def.key);button.dataset.fresh='false';send(def.key,clamp(Math.round(next/def.step)*def.step,def.min,max));
       });
-      button.addEventListener('pointerdown',event=>{if(event.button!==0)return;pointer={id:event.pointerId,x:event.clientX,y:event.clientY,start:Number(state?.[def.key]??def.min),button,def,engaged:false};});
+      button.dataset.fresh=String(!used.has(def.key));
+      button.addEventListener('pointerdown',event=>{if(event.button!==0)return;used.add(def.key);button.dataset.fresh='false';pointer={id:event.pointerId,x:event.clientX,y:event.clientY,start:Number(state?.[def.key]??def.min),button,def,engaged:false,touch:event.pointerType==='touch'};});
+      // The window has three steps; a click on its handle takes the next one.
+      button.addEventListener('click',()=>{if(def.key==='window'&&button.dataset.dragged!=='true')send('window',((state?.window??0)+1)%3);button.dataset.dragged='false';});
       button.addEventListener('pointermove',event=>{
         if(!pointer||pointer.button!==button||event.pointerId!==pointer.id)return;
         const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;
-        if(!pointer.engaged&&Math.abs(dx)>4&&Math.abs(dx)>Math.abs(dy)*1.15){pointer.engaged=true;button.dataset.dragging='true';button.setPointerCapture(event.pointerId);}
+        if(!pointer.engaged&&(pointer.touch?Math.abs(dx)>4&&Math.abs(dx)>Math.abs(dy)*1.15:Math.hypot(dx,dy)>4)){pointer.engaged=true;button.dataset.dragging='true';button.dataset.dragged='true';button.setPointerCapture(event.pointerId);}
         if(!pointer.engaged)return;
         if(event.cancelable)event.preventDefault();
+        const direct=scene.valueAt?.(def.key,event.clientX,event.clientY,pointer.start,dx);if(direct!==null&&direct!==undefined){send(def.key,direct);return;}
         const max=def.key==='layer'?(state?.routeLayers||27):def.max;
         const next=pointer.start+dx/Math.max(200,host.clientWidth)*(max-def.min)*1.8;
         send(def.key,clamp(Math.round(next/def.step)*def.step,def.min,max));
@@ -76,12 +84,14 @@
           else for(const [value,label]of def.choices)createChoice(def.key,value,label,def.label);
         }else createGrip(def);
         if(index===3)createResourceGroup('derivativeOrder','Order',[['1','1st'],['2','2nd'],['3','3rd']],'Derivative order');
-        if(index===5)createGrip({key:'angle',min:0,max:180,step:1,label:'Measurement basis angle',verb:'Change the bases'});
+        if(index===5)createGrip({key:'angle',min:0,max:180,step:1,label:'Measurement basis angle',verb:'Turn the bases ↻'});
+        if(index===4)createGrip({key:'transformerYaw',min:-.55,max:.55,step:.04,label:'Turn the architecture view',verb:'Drag to turn ↻'});
         hint.textContent=def.hint;
       }else hint.textContent='Relations learned by a decoder. A concept view of transfer across code sizes.';
+      readRow.querySelector('.study-mode')?.remove();
       if(index===0){
-        modeButton=document.createElement('button');modeButton.type='button';modeButton.className='study-choice study-mode';
-        modeButton.addEventListener('click',()=>send('selectedMode',((state?.selectedMode??1)+1)%16));root.append(modeButton);
+        modeButton=document.createElement('button');modeButton.type='button';modeButton.className='study-mode';
+        modeButton.addEventListener('click',()=>send('selectedMode',((state?.selectedMode??1)+1)%16));readRow.append(modeButton);
       }
       root.append(guides,caption);
     }
@@ -97,19 +107,20 @@
       if(tinyHome){const hints={0:'Drag the marker; click Mode to change paths.',2:'Drag the window; keep the operation.',3:'Drag angle; exact Y rotation, X/Z products.',4:'Drag to turn; new sizes need training.',5:'Drag the axis. Target: equal mix of 0 and 1.'};if(hints[index])setText(hint,hints[index]);}
       if(phoneHome&&index===3)setText(hint,'Drag angle; exact Y rotation, joint X/Z products.');
       if(phoneHome&&index===4)setText(hint,'Drag to turn; transfer still needs training.');
+      if(coarsePointer()&&/[Cc]lick/.test(hint.textContent))setText(hint,hint.textContent.replace(/\bClick/g,'Tap').replace(/\bclick/g,'tap'));
       root.hidden=!visible||!state.ready;
       const nextCaptionView=host.clientWidth+'x'+host.clientHeight+':'+shortHome+':'+tinyHome;
       if(nextCaptionView!==captionView){captionView=nextCaptionView;captionReserve=0;caption.style.minHeight='';}
       for(const {button,def}of grips){
         const value=Number(state[def.key]??def.min),max=def.key==='layer'?(state.routeLayers||27):def.max;
         button.setAttribute('aria-valuemin',String(def.min));button.setAttribute('aria-valuemax',String(max));button.setAttribute('aria-valuenow',String(value));
-        button.setAttribute('aria-valuetext',def.key==='angle'?degrees(value):def.key==='gradient'?`θ ${compact(value*Math.PI)} radians`:String(value));
+        button.setAttribute('aria-valuetext',def.key==='angle'?degrees(value):def.key==='gradient'?`θ ${compact(value*Math.PI)} radians`:def.key==='transformerYaw'?`${Math.round(value*180/Math.PI)} degrees`:String(value));
         position(button,anchor(def.key),def.key==='angle'?[.7,.55]:[.69,.5]);
       }
       for(const {button,key,value}of choices)button.setAttribute('aria-pressed',String(String(state[key]??(key==='distance'?5:key==='derivativeOrder'?1:''))===value));
       for(const group of resourceGroups){const points=(state.handles||[]).filter(item=>item.key===group.key);group.point=points.length?{x:points.reduce((sum,item)=>sum+item.x,0)/points.length,y:points.reduce((sum,item)=>sum+item.y,0)/points.length}:{x:.5,y:.35};position(group.node,group.point,[.5,.25]);}
       if(modeButton){
-        const mode=state.selectedMode??1;setText(modeButton,`Mode ${mode} ↻`);modeButton.setAttribute('aria-label',`Select next fermionic mode. Current mode ${mode}. Modes 0 to 15.`);
+        const mode=state.selectedMode??1;setText(modeButton,`Mode ${mode} ↻`);modeButton.title='Follow the next mode';modeButton.setAttribute('aria-label',`Select next fermionic mode. Current mode ${mode}. Modes 0 to 15.`);
         modePoint=anchor('selectedMode')||anchor('layer');
       }
       let text='';
@@ -133,8 +144,8 @@
       setText(readout,text);
       const choiceLabels=new Set(choices.map(item=>item.button.textContent));
       const readoutLabels=new Set(['Keep / discard','Move to the seam','Open the seam','H H → I','X X → I','Coherent order control','Definite order','Random order','Tangent','Input grid']);
-      let data=(state.markers||[]).filter(item=>item.id!=='route-stage'&&!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(modeButton&&item.text.startsWith('Mode '))&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
-      if(phoneHome&&index===3)data=data.filter(item=>['gradient-ancillas','gradient-factors'].includes(item.id)).map(item=>({...item,text:item.id==='gradient-ancillas'?`${state.derivativeOrder||2} control qubits`:item.id==='gradient-factors'?'Joint X…X × Z':item.text}));
+      let data=(state.markers||[]).filter(item=>item.id!=='route-stage'&&!choiceLabels.has(item.text)&&!readoutLabels.has(item.text)&&!(index===2&&state.transition?.active&&/gates$/.test(item.text)));
+      if(phoneHome&&index===3)data=data.filter(item=>['gradient-ancillas','gradient-factors'].includes(item.id)).map(item=>({...item,text:item.id==='gradient-ancillas'?`${state.derivativeOrder||2}\u00a0control qubits`:item.id==='gradient-factors'?'Joint\u00a0X\u2060…\u2060X\u00a0×\u00a0Z':item.text}));
       if(tinyHome&&index===3)data=[];
       if(phoneHome&&index===4)data=data.filter(item=>['transformer-input','transformer-model','transformer-residual'].includes(item.id)).map(item=>({...item,text:item.id==='transformer-model'?'Transformer':item.text}));
       data=data.map(item=>item.id==='transformer-residual'?{...item,text:'Residual decoder'}:item);
@@ -153,14 +164,17 @@
       const compact=compactAnnotations(),origin=root.getBoundingClientRect(),captionBox=caption.getBoundingClientRect();
       const limit=Math.max(45,captionBox.top-origin.top-12);
       // Parameter values and changing mesh bounds are deliberately absent.
-      const view=[index,w,h,Boolean(state.solo!==null&&state.solo!==undefined),Number(state.travel||0).toFixed(3),Number(state.arrival??1).toFixed(3),shortHomeAnnotations()].join(':');
+      if(!state.transition?.active)geometryKey=[state.derivativeOrder,state.distance,state.window,state.order,state.repair,state.selectedMode].join('/');
+      const view=[index,w,h,Boolean(state.solo!==null&&state.solo!==undefined),Number(state.travel||0).toFixed(3),Number(state.arrival??1).toFixed(3),shortHomeAnnotations(),geometryKey].join(':');
       if(view!==annotationView){annotationView=view;annotationPositions.clear();}
       const px=point=>({x:Number(point?.x??.5)*w,y:Number(point?.y??.5)*h,visible:point?.visible!==false});
       const targetOf=item=>px(item?.target||item);
       const preferredOf=item=>px(item?.layoutPoint||item);
       const rect=(x,y,rw,rh)=>({left:x-rw/2,right:x+rw/2,top:y-rh/2,bottom:y+rh/2});
       const areaOverlap=(a,b,pad=0)=>Math.max(0,Math.min(a.right+pad,b.right)-Math.max(a.left-pad,b.left))*Math.max(0,Math.min(a.bottom+pad,b.bottom)-Math.max(a.top-pad,b.top));
-      const occupied=[],background=[],cores=[],lines=[];
+      const occupied=[],background=[],cores=[],lines=[];let drawn=null;
+      const drawnPoints=()=>drawn??=(scene.occupancy?.()||[]).map(p=>({x:p.x*w,y:p.y*h}));
+      const inkCover=area=>{let n=0;for(const p of drawnPoints())if(p.x>area.left-3&&p.x<area.right+3&&p.y>area.top-3&&p.y<area.bottom+3)n++;return n;};
       const box=state.stations?.find(item=>item.index===index)?.bounds;
       root.dataset.activeBounds=JSON.stringify(box||null);
       root.dataset.resourceBounds=JSON.stringify(state.resourceBounds||null);
@@ -198,7 +212,7 @@
         }
         const b=node.getBoundingClientRect(),rw=b.width,rh=b.height;if(!rw||!rh)return;
         const cached=annotationPositions.get(id);
-        const followLayout=(index===4&&kind!=='resource')||id==='selected-mode';
+        const followLayout=(index===4&&kind!=='resource')||id==='selected-mode'||kind==='grip-label'||id==='marker-route-mode';
         let best=cached?{x:cached.x+(followLayout?preferred.x-cached.referenceX:0),y:cached.y+(followLayout?preferred.y-cached.referenceY:0)}:null;
         if(!best){
           const reach=compact?90:138,dx=preferred.x-target.x,dy=preferred.y-target.y,length=Math.hypot(dx,dy);
@@ -206,13 +220,17 @@
           const above=rh/2+18,side=rw/2+18;
           const semanticSides={
             'marker-switch-control':{side:'left',gap:18},
+            'marker-peephole-before':{side:'left',gap:16},
+            'marker-peephole-after':{side:'left',gap:16},
+            'marker-peephole-count':{side:'right',gap:14},
+            'marker-gradient-mean':{side:'right',gap:16},
             'marker-logical-estimate':state.resourcePlacement==='side'?{side:'above',gap:60,dx:-24}:{side:'right',gap:18},
             'marker-gradient-factors':{side:'above',gap:compact?28:32},
             'marker-gradient-control':{side:'below',gap:compact?14:30},
-            'marker-transformer-input':{side:'above',gap:52,dx:compact?-32:-14},
+            'marker-transformer-input':{side:'above',gap:compact?16:52,dx:compact?-32:-14},
             'marker-transformer-model':{side:'above',gap:36,dx:compact?16:0}
           },rule=semanticSides[id];
-          let candidates=[[local.x,local.y],[target.x,target.y-above],[target.x,target.y+above],[target.x-side,target.y],[target.x+side,target.y],[target.x-46,target.y-above],[target.x+46,target.y-above],[target.x-46,target.y+above],[target.x+46,target.y+above]];
+          let candidates=[[local.x,local.y],[target.x,target.y-above],[target.x,target.y+above],[target.x-side,target.y],[target.x+side,target.y],[target.x-46,target.y-above],[target.x+46,target.y-above],[target.x-46,target.y+above],[target.x+46,target.y+above],[target.x,target.y-above-28],[target.x,target.y+above+28],[target.x-side-30,target.y],[target.x+side+30,target.y]];
           if(rule){
             const x=target.x+(rule.dx||0)+(rule.side==='left'?-rw/2-rule.gap:rule.side==='right'?rw/2+rule.gap:0),y=target.y+(rule.side==='above'?-rh/2-rule.gap:rule.side==='below'?rh/2+rule.gap:0);
             candidates=rule.side==='left'||rule.side==='right'?[[x,y],[x,y-16],[x,y+16],[x+(rule.side==='left'?-14:14),y]]:[[x,y],[x-12,y],[x+12,y],[x,y+(rule.side==='above'?-14:12)]];
@@ -225,6 +243,7 @@
             for(const other of occupied)score+=areaOverlap(area,other,4)*240;
             for(const other of background)score+=areaOverlap(area,other,3)*12;
             if(kind!=='resource')for(const other of cores)score+=areaOverlap(area,other,5)*70;
+            if(kind==='marker'||kind==='grip-label')score+=inkCover(area)*34;
             if(!best||score<best.score)best={x,y,score};
           }
           if(best&&fromDraw)annotationPositions.set(id,{x:best.x,y:best.y,referenceX:preferred.x,referenceY:preferred.y});
@@ -267,17 +286,20 @@
         if(button.closest('.study-resource-group'))continue;
         const point=anchor(key,value);if(point)place(button,'choice-'+key+'-'+value,point,'choice');
       }
-      if(modeButton&&modePoint)place(modeButton,'selected-mode',modePoint,'choice');
       data.forEach((item,i)=>{const p=targetOf(item),preferred=item.id==='switch-bases'?{x:p.x-30,y:p.y-56}:item.id==='transformer-residual'?{x:p.x,y:p.y+30}:null;place(markers[i],'marker-'+(item.id||item.text.replace(/\d+/g,'#')),item,'marker',preferred);});
       for(const {button,def}of grips){
         const label=button.querySelector('.study-grip__label'),point=anchor(def.key);
-        if(point&&label&&getComputedStyle(label).display!=='none'&&!button.hidden){const p=targetOf(point),before=data.find(item=>item.id==='peephole-before'),after=data.find(item=>item.id==='peephole-after'),preferred=def.key==='window'?{x:p.x,y:before&&after?(targetOf(before).y+targetOf(after).y)/2:p.y+34}:null;place(label,'grip-label-'+def.key,point,'grip-label',preferred);}
+        if(label)label.hidden=used.has(def.key);button.dataset.fresh=String(!used.has(def.key));
+        if(point&&label&&!label.hidden&&getComputedStyle(label).display!=='none'&&!button.hidden){const p=targetOf(point),before=data.find(item=>item.id==='peephole-before'),after=data.find(item=>item.id==='peephole-after'),preferred=def.key==='window'?{x:p.x,y:before&&after?(targetOf(before).y+targetOf(after).y)/2:p.y+34}:null;place(label,'grip-label-'+def.key,point,'grip-label',preferred);}
       }
       guides.setAttribute('viewBox','0 0 '+w+' '+h);
       const markup=lines.join('');if(guides.innerHTML!==markup)guides.innerHTML=markup;
       root.dataset.annotationLayout='local-stable';
     }
-    const draw=()=>update(undefined,true);host.addEventListener('exhibitionscenedraw',draw);update();
-    return {update,setVisible(value){visible=Boolean(value);update();},destroy(){host.removeEventListener('exhibitionscenedraw',draw);root.remove();}};
+    const draw=()=>update(undefined,true);host.addEventListener('exhibitionscenedraw',draw);
+    // Any direct use of a study's model also counts as using its handles.
+    const interacted=event=>{if(['pointer','keyboard'].includes(event.detail?.reason))for(const g of grips)used.add(g.def.key);};host.addEventListener('exhibitioninteraction',interacted);update();
+    // Presence fades the whole layer with its study; nothing pops in one frame.
+    return {update,setVisible(value,presence=1){visible=Boolean(value);root.style.opacity=presence>=.999?'':presence.toFixed(3);root.dataset.settling=String(presence<.95);update();},destroy(){host.removeEventListener('exhibitionscenedraw',draw);host.removeEventListener('exhibitioninteraction',interacted);root.remove();}};
   };
 })();
