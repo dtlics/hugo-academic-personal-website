@@ -121,6 +121,7 @@
       const box=state.stations?.find(item=>item.index===index)?.bounds;root.dataset.activeBounds=JSON.stringify(box||null);
       const active=box?{left:box.left*w,right:box.right*w,top:box.top*h,bottom:box.bottom*h}:null;
       const occupied=[],background=[],lines=[];
+      const story=host.closest('[data-exhibition]')?.querySelector('[data-story][aria-hidden="false"]');if(story){const r=story.getBoundingClientRect();occupied.push({left:r.left-origin.left-12,right:r.right-origin.left+12,top:r.top-origin.top-12,bottom:r.bottom-origin.top+16});}
       for(const station of state.stations||[]){if(station.index===index||!station.bounds)continue;const b=station.bounds;background.push({left:b.left*w-16,right:b.right*w+16,top:b.top*h-16,bottom:b.bottom*h+16});}
       const rectFor=node=>{const b=node.getBoundingClientRect();return {left:b.left-origin.left,right:b.right-origin.left,top:b.top-origin.top,bottom:b.bottom-origin.top};};
       const overlap=(a,b,pad=9)=>Math.max(0,Math.min(a.right+pad,b.right)-Math.max(a.left-pad,b.left))*Math.max(0,Math.min(a.bottom+pad,b.bottom)-Math.max(a.top-pad,b.top));
