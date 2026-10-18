@@ -19,7 +19,7 @@ flowchart LR
 | About composition | `src/pages/about.astro` |
 | Portrait and other static files | `public/images/` |
 
-The header links directly to Instagram and X. About opens the biography, with the contact and other account links beside its introduction. Instagram uses the stable local path `/instagram/`, which sends visitors to the `instagram` URL in `src/data/profile.json`. After an Instagram username change, update that one value and rebuild. The local path stays the same; it does not detect account renames automatically.
+The slim header links to All work and About. About opens the biography, with email, Instagram, X and the other account links beside its introduction. Instagram uses the stable local path `/instagram/`, which sends visitors to the `instagram` URL in `src/data/profile.json`. After an Instagram username change, update that one value and rebuild. The local path stays the same; it does not detect account renames automatically.
 
 Keep the same paper IDs in the publication files and exhibition data. All six approved works have individual pages and downloadable citations. The excluded fidelity-divergence paper is not included. The old résumé PDF is kept at its former URL for compatibility; the website does not link to it as a current résumé. Replace it only after the separate résumé update is approved.
 
@@ -56,18 +56,17 @@ The validation workflow checks a domain preview, a project-path preview and an i
 
 Paper text, citations, sources and navigation work without JavaScript. The two larger computational tools load when requested, within the paper page. Reduced-motion users receive a static presentation. Keyboard and touch users can use the same page links and controls. Visual inspection at desktop and phone widths is still needed when changing layout or motion.
 
-## Publish after review
+## Publish updates
 
-No hosting or DNS change is performed by a local build. The included deployment workflow runs only when manually started.
+GitHub Pages is configured for `www.dantongli.com`. AWS Route 53 manages the domain records. The first indexable release has been deployed. The migration and rollback records are kept outside this repository in `work/deployment/` in the project workspace.
 
-`netlify.toml` provides temporary Astro settings for the existing Netlify branch and pull request previews: `dist/`, the pinned Node and pnpm versions, and disabled indexing. It requires a working repository connection. The legacy Netlify integration currently fails during GitHub SSH checkout with `Permission denied (publickey)`, before the build runs; this source does not change host credentials. The configuration skips production Git builds, and a second guard stops forced production builds before new files can be published. No new Netlify site is created. Remove this temporary configuration after the GitHub Pages cutover. See [Netlify deploy contexts](https://docs.netlify.com/build/configure-builds/file-based-configuration/) and [ignore-build rules](https://docs.netlify.com/build/configure-builds/ignore-builds/).
+Each push to `main` now runs **Publish website to GitHub Pages**. The workflow checks the source, builds and verifies the site, then publishes it with search indexing enabled. It reads the configured Pages address, so the origin and base path match the Pages settings. Changes on other branches do not trigger this publication workflow.
 
-1. Put this folder at the root of the chosen GitHub repository. Preserve the existing site's repository and Netlify deployment until cutover is complete.
-2. Set the repository's Pages source to **GitHub Actions**. Run **Publish website to GitHub Pages**, with indexing disabled, to check the hosted preview. The workflow reads the configured Pages address and uses its correct origin and project path.
-3. After design approval, verify the custom domain in GitHub, set the Pages custom domain to `www.dantongli.com`, and update only the website records in Route 53 using GitHub's current domain instructions. Preserve email and other DNS records. Check the apex redirect, `www`, HTTPS, old PRL links and citations before removing the old host.
-4. Run the workflow again with indexing enabled. Keep the prior DNS values for rollback. Automatic publishing on each push can be enabled after this first cutover.
+For a manual run, open the same workflow and choose whether to allow indexing. The optional `indexable` input defaults to `false`; leaving it off or selecting `false` creates an unindexed build. A manual run publishes to the same Pages site, so use `true` for a normal public release. Local builds keep their safe preview default and do not change hosting or DNS.
 
-The workflow uses the repository's `GITHUB_TOKEN`; no AWS credentials or personal access token belong in this source. GitHub may require one-time Pages or domain settings in the account. The workflows are prepared for GitHub Pages; a local check does not claim that a hosted workflow or deployment has run.
+Keep the former Netlify deployment and the saved DNS values until the domain, HTTPS, apex redirect, legacy PRL links and citations have passed the live cutover checks. `netlify.toml` only allows the old service's branch and pull request previews; it blocks production Git builds. Retiring the old Netlify site and removing this temporary file are separate cleanup actions after the new host is verified. See [Netlify deploy contexts](https://docs.netlify.com/build/configure-builds/file-based-configuration/) and [ignore-build rules](https://docs.netlify.com/build/configure-builds/ignore-builds/).
+
+The workflow uses the repository's `GITHUB_TOKEN`. AWS credentials and personal access tokens do not belong in this source. DNS changes are separate from routine content updates; preserve email and other unrelated DNS records.
 
 Official setup references: [custom GitHub Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [custom domains](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site), [Pages metadata action](https://github.com/actions/configure-pages), [Node setup action](https://github.com/actions/setup-node).
 
