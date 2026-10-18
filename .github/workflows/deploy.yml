@@ -1,13 +1,15 @@
 name: Publish website to GitHub Pages
 
-# Publication stays manual until the domain cutover has been approved.
+# Publish approved changes to the production site after they reach main.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       indexable:
-        description: Allow search indexing (enable only for the approved public site)
+        description: Allow search indexing for this manual run
         type: boolean
-        required: true
+        required: false
         default: false
 
 permissions:
@@ -25,7 +27,7 @@ jobs:
       pages: read
     env:
       ASTRO_TELEMETRY_DISABLED: '1'
-      WEBSITE_INDEXABLE: ${{ inputs.indexable && 'true' || 'false' }}
+      WEBSITE_INDEXABLE: ${{ (github.event_name == 'push' || inputs.indexable == true) && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
