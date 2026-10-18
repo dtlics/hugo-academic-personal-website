@@ -1,0 +1,12 @@
+* text=auto eol=lf
+*.jpg -text
+*.jpeg -text
+*.png -text
+*.pdf -text
+*.woff -text
+# Preserve the validated model sources and published data exactly.
+public/instruments/* -text
+public/logical-study/results.js -text
+public/exhibition/compiler.js -text
+public/exhibition/source-data.js -text
+public/fonts/*-OFL.txt -text

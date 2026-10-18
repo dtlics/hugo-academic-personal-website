@@ -1,0 +1,25 @@
+---
+import { localPath } from '../lib/paths';
+interface Props { id: string; index: number; }
+const { id, index } = Astro.props;
+// The paper opens with its own object: the same work met in the home passage,
+// now in focus. Copy is keyed by paper, not by exhibition position.
+const copy: Record<string, { lead: string; scope: string }> = {
+  'fermionic-permutation': { lead: 'Each of the sixteen fermionic modes is one strand through the five stages of the compiled circuit on a 4 × 4 grid. Rows and columns exchange places; the two Γ stages correct the relative phase without moving any mode. Copper marks show the operations of the current moment.', scope: 'The exact 4 × 4 transpose from the public compiler, drawn between its stage boundaries. Spacing in depth shows the five stages; it is not a device layout.' },
+  'logical-error-management': { lead: 'Error cancellation changes which operations are sampled and how their results are weighted. Error checks reject flagged runs. The final estimate combines the accepted results.', scope: 'A concept view of the workflow. It does not simulate a new noise process. Compare the paper’s reported results below.' },
+  'local-optimization': { lead: 'The sequence X, H | H, X does nothing overall, yet neither half can be simplified on its own. A window across the seam finds the cancellation: H H first, then X X.', scope: 'This small identity circuit explains a local rewrite. It is not a claim that every circuit reaches a global optimum.' },
+  'generalized-hadamard': { lead: 'Add one control qubit for each derivative. Each control acts on the same system. Multiply the measured outcomes, then average those products to read the derivative.', scope: 'An exact small circuit with a Y rotation. Angles are in radians. The readout is a mean over repeated runs, not a single-shot derivative.' },
+  'transformer-qec': { lead: 'The transformer reads check results and proposes local corrections. A conventional decoder handles the remaining syndrome. Change the code distance to see how the inputs grow around the shared model.', scope: 'A view of the paper’s architecture. It does not run a trained decoder or show learned attention weights. Transfer to a new code size still needs further training.' },
+  'quantummeasurementsincompatibility': { lead: 'A quantum switch can keep A → B and B → A coherent. The two order histories interfere. The control readout can then reveal how incompatible the operations are.', scope: 'For this readout, the target qubit is an equal mixture of states 0 and 1. The two branches are order histories, not independent copies of the operations. The atlas below calculates MED for noiseless one-qubit measurement bases.' },
+};
+const text = copy[id];
+---
+<figure class="paper-object" data-concept-study data-study={index}>
+  <div class="concept-study__scene" data-concept-scene role="group" aria-label="Interactive example of this paper’s mechanism"><p class="concept-study__fallback">The example is described below.</p></div>
+  <figcaption><p class="paper-object__lead">{text.lead}</p><p class="paper-object__scope">{text.scope}</p></figcaption>
+</figure>
+<script is:inline defer src={localPath('exhibition/compiler.js')} />
+<script is:inline defer src={localPath('exhibition/source-data.js')} />
+<script is:inline defer src={localPath('exhibition/scene.js')} />
+<script is:inline defer src={localPath('exhibition/controls.js')} />
+<script is:inline defer src={localPath('exhibition/concept.js')} />

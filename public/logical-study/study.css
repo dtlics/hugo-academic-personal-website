@@ -1,0 +1,74 @@
+/* Inline paper study: the verified endpoint model, with no standalone frame. */
+.logical-study{--ls-ink:var(--ink,#39313e);--ls-ground:var(--ground,#deded7);--ls-rule:var(--rule,#aaa5aa);--ls-clay:#b7795c;--ls-green:#596f60;--ls-rose:#9a6472;--ls-sans:RFArchivo,Arial,sans-serif;--ls-mono:RFMono,monospace;min-width:0;color:var(--ls-ink);font:16px/1.5 var(--ls-sans);padding-block:clamp(40px,6vw,88px);border-top:1px solid var(--ls-rule);container-type:inline-size;container-name:logical}
+.logical-study *,.logical-study *:before,.logical-study *:after{box-sizing:border-box}
+.logical-study [hidden]{display:none!important}
+.logical-study :is(h2,h3,p){margin:0}
+.logical-study a{color:inherit;text-decoration:underline;text-underline-offset:5px}
+.logical-study button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation}
+.logical-study :is(a,button,summary):focus-visible{outline:2px solid var(--ls-ink);outline-offset:4px}
+.logical-study .ls-heading{display:flex;justify-content:space-between;align-items:end;gap:32px;padding-bottom:30px}
+.logical-study .ls-eyebrow{font:12px/1.5 var(--ls-mono)}
+.logical-study .ls-heading h2{font-size:clamp(40px,5.2vw,72px);font-weight:500;line-height:.95;letter-spacing:-.055em;margin-top:17px}
+.logical-study .ls-heading>p{font-size:17px;max-width:28ch;line-height:1.5}
+.logical-study .ls-heading strong{font-weight:550}
+.logical-study .ls-depth-control{display:flex;align-items:center;gap:27px;min-height:88px;border-top:1px solid var(--ls-rule);font:12px/1.4 var(--ls-mono)}
+.logical-study .ls-depth-options{display:flex;gap:5px}
+.logical-study .ls-depth-options button{font:500 28px/1 var(--ls-sans);letter-spacing:-.05em;min-width:51px;min-height:52px;text-align:center}
+.logical-study .ls-depth-options button[aria-pressed=true]{background:var(--ls-clay)}
+.logical-study .ls-depth-control>span:last-child{margin-left:auto}
+.logical-study .ls-explore{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:32px;align-items:start}
+.logical-study .ls-field{min-width:0;position:relative}
+.logical-study .ls-field-heading{display:flex;justify-content:space-between;gap:15px;font:12px/1.4 var(--ls-mono);padding-bottom:12px}
+.logical-study .ls-chart{width:100%;height:440px;position:relative}
+.logical-study .ls-chart>svg{display:block;width:100%;height:100%;max-width:none;overflow:visible}
+.logical-study .ls-point{transition:transform 320ms cubic-bezier(.2,.65,.2,1)}
+.logical-study .ls-point-hit{position:absolute;width:44px;height:44px;transform:translate(-50%,-50%);transition:left 320ms cubic-bezier(.2,.65,.2,1),top 320ms cubic-bezier(.2,.65,.2,1);z-index:2}
+.logical-study .ls-point-hit:focus-visible{outline:2px solid var(--ls-ink);outline-offset:0;border-radius:50%}
+.logical-study .ls-scale-note{font-size:12px;line-height:1.5;max-width:70ch;padding-top:10px}
+.logical-study .ls-protocols{display:flex;flex-direction:column;border-top:1px solid var(--ls-rule)}
+.logical-study .ls-protocols button{display:flex;gap:13px;align-items:center;min-height:44px;font-size:15px;text-align:left;border-bottom:1px solid var(--ls-rule);padding:9px 0}
+.logical-study .ls-protocols button[aria-pressed=true]{text-decoration:underline;text-underline-offset:5px}
+.logical-study .ls-symbol{display:inline-block;width:13px;height:13px;position:relative;flex:none;margin-inline:3px}
+.logical-study .ls-cross:before,.logical-study .ls-cross:after{content:'';width:14px;height:2px;position:absolute;top:6px;left:0;background:var(--ls-ink);transform:rotate(45deg)}
+.logical-study .ls-cross:after{transform:rotate(-45deg)}
+.logical-study .ls-circle{border:2px solid var(--ls-ink);border-radius:50%}
+.logical-study .ls-diamond{background:var(--ls-rose);transform:rotate(45deg)}
+.logical-study .ls-square{background:var(--ls-green)}
+.logical-study .ls-result{padding-top:25px}
+.logical-study .ls-result-caption{font-size:14px;margin-top:15px}
+.logical-study .ls-result-value{display:block;font:500 35px/1.1 var(--ls-sans);letter-spacing:-.04em;margin:5px 0 18px;font-variant-numeric:tabular-nums}
+.logical-study .ls-result-value sup{font-size:.55em;margin-left:2px}
+.logical-study .ls-result dl{margin:0;border-top:1px solid var(--ls-rule);font-size:14px}
+.logical-study .ls-result dl>div{display:flex;justify-content:space-between;gap:15px;padding:9px 0;border-bottom:1px solid var(--ls-rule)}
+.logical-study .ls-result dt{max-width:145px}
+.logical-study .ls-result dd{margin:0;font:12px/1.7 var(--ls-mono);white-space:nowrap}
+.logical-study .ls-method-note{font-size:14px;line-height:1.5;margin-top:15px}
+.logical-study .ls-exact-action{font-size:14px;min-height:44px;margin-top:12px;text-decoration:underline;text-underline-offset:5px;text-align:left}
+.logical-study .ls-schedule{border-top:1px solid var(--ls-rule);margin-top:32px;padding:20px 0}
+.logical-study .ls-schedule-title{display:flex;justify-content:space-between;gap:20px;font:12px/1.5 var(--ls-mono)}
+.logical-study .ls-schedule-plot{width:100%;height:82px}
+.logical-study .ls-schedule-plot>svg{display:block;width:100%;height:100%;max-width:none}
+.logical-study .ls-schedule>p{font-size:14px;line-height:1.5;max-width:80ch}
+.logical-study .ls-exact{border-top:1px solid var(--ls-rule);padding-block:28px;margin-top:15px;scroll-margin-top:100px;min-width:0}
+.logical-study .ls-exact-heading{display:flex;justify-content:space-between;gap:20px;align-items:start}
+.logical-study .ls-exact-heading h3{font-size:28px;font-weight:500;letter-spacing:-.04em;line-height:1.1}
+.logical-study .ls-exact-heading button{min-height:44px;white-space:nowrap;font-size:14px}
+.logical-study .ls-exact>p{font-size:14px;line-height:1.6;max-width:85ch;margin-top:17px}
+.logical-study .ls-exact>a{display:inline-flex;min-height:44px;align-items:center;font-size:14px;margin-top:9px}
+.logical-study .ls-table-scroll{overflow-x:auto;max-width:100%;margin-top:20px}
+.logical-study table{width:100%;border-collapse:collapse;min-width:640px;font-size:14px;text-align:left}
+.logical-study table caption{text-align:left;font:12px/1.5 var(--ls-mono);padding-bottom:17px}
+.logical-study th{font-weight:500;padding:10px 12px 10px 0;border-bottom:1px solid var(--ls-ink);white-space:nowrap}
+.logical-study td{padding:13px 12px 13px 0;border-bottom:1px solid var(--ls-rule);white-space:nowrap;font:12px/1.5 var(--ls-mono)}
+.logical-study tr[aria-selected=true] :is(th,td){background:#b7795c20}
+.logical-study .ls-scope{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding-top:30px}
+.logical-study .ls-scope>p{font-size:17px;line-height:1.6;max-width:55ch}
+.logical-study details{border-top:1px solid var(--ls-rule);font-size:14px;line-height:1.6;min-width:0}
+.logical-study summary{min-height:44px;align-content:center;cursor:pointer}
+.logical-study details p{margin:16px 0;overflow-wrap:anywhere}
+.logical-study noscript p{margin-top:20px;font-size:14px}
+@container logical (max-width:1000px){.logical-study .ls-explore{grid-template-columns:minmax(0,1fr) 215px;gap:24px}.logical-study .ls-chart{height:420px}.logical-study .ls-result-value{font-size:31px}}
+@container logical (max-width:760px){.logical-study .ls-heading{align-items:start}.logical-study .ls-heading h2{font-size:48px}.logical-study .ls-heading>p{font-size:15px;max-width:24ch}.logical-study .ls-explore{grid-template-columns:1fr;gap:28px}.logical-study .ls-chart{height:420px}.logical-study .ls-inspection{display:grid;grid-template-columns:1fr 1.2fr;gap:20px 30px;align-items:start}.logical-study .ls-result{padding-top:0}.logical-study .ls-exact-action{grid-column:2;margin:0}.logical-study .ls-scope{gap:28px}}
+@container logical (max-width:500px){.logical-study .ls-heading{display:block}.logical-study .ls-heading h2{font-size:48px}.logical-study .ls-heading>p{max-width:32ch;margin-top:22px;font-size:16px}.logical-study .ls-depth-control{flex-wrap:wrap;gap:10px 18px;padding-block:15px}.logical-study .ls-depth-control>span:last-child{margin-left:0;flex-basis:100%}.logical-study .ls-depth-options{margin-left:auto}.logical-study .ls-depth-options button{min-width:44px;min-height:47px}.logical-study .ls-field-heading{display:block}.logical-study .ls-field-heading>span{display:block}.logical-study .ls-field-heading>span+span{margin-top:6px}.logical-study .ls-chart{height:370px}.logical-study .ls-inspection{grid-template-columns:1fr;gap:24px}.logical-study .ls-protocols{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;border-top:0}.logical-study .ls-protocols button{font-size:14px;min-height:48px;border-top:1px solid var(--ls-rule);border-bottom:0}.logical-study .ls-result-value{font-size:44px}.logical-study .ls-result dt{max-width:none}.logical-study .ls-exact-action{grid-column:1}.logical-study .ls-schedule-title{display:block}.logical-study .ls-schedule-title>span{display:block}.logical-study .ls-schedule-title>span+span{margin-top:6px}.logical-study .ls-schedule-plot{height:100px}.logical-study .ls-exact-heading{gap:10px}.logical-study .ls-exact-heading h3{font-size:25px}.logical-study .ls-scope{grid-template-columns:1fr;gap:24px}}
+@container logical (max-width:300px){.logical-study .ls-chart{height:350px}.logical-study .ls-heading h2{font-size:42px}.logical-study .ls-depth-control{gap:10px}.logical-study .ls-exact-heading h3{font-size:23px}}
+@media(prefers-reduced-motion:reduce){.logical-study *,.logical-study *:before,.logical-study *:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}

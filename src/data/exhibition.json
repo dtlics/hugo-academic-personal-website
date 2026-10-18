@@ -1,0 +1,68 @@
+[
+  {
+    "id": "fermionic-permutation",
+    "station": "fermionic",
+    "index": "01",
+    "category": "Quantum compilation",
+    "label": "Fermionic routing",
+    "headline": ["Optimal depth scaling.", "No extra qubits."],
+    "note": "A two-dimensional grid. Correct positions and phase.",
+    "year": 2026,
+    "accent": "#ce8758"
+  },
+  {
+    "id": "transformer-qec",
+    "station": "transformer",
+    "index": "02",
+    "category": "Machine learning",
+    "label": "Transformer-QEC",
+    "headline": ["Quantum decoding.", "Built to transfer."],
+    "note": "Transformer decoders transfer across code distances.",
+    "year": 2023,
+    "accent": "#887989"
+  },
+  {
+    "id": "quantummeasurementsincompatibility",
+    "station": "measurement",
+    "index": "03",
+    "category": "Quantum measurement",
+    "label": "Quantum switch",
+    "headline": ["Incompatibility,", "measured."],
+    "note": "Use coherent order to read measurement incompatibility.",
+    "year": 2023,
+    "accent": "#76977e"
+  },
+  {
+    "id": "generalized-hadamard",
+    "station": "gradient",
+    "index": "04",
+    "category": "Quantum algorithms",
+    "label": "Generalized Hadamard",
+    "headline": ["Quantum gradients.", "Higher derivatives."],
+    "note": "Read slopes and higher derivatives from quantum circuits.",
+    "year": 2025,
+    "accent": "#76977e"
+  },
+  {
+    "id": "local-optimization",
+    "station": "optimization",
+    "index": "05",
+    "category": "Quantum compilation",
+    "label": "Local optimization",
+    "headline": ["Optimize circuits.", "One part at a time."],
+    "note": "Inspect a small circuit window. Keep the same operation.",
+    "year": 2025,
+    "accent": "#d3aab3"
+  },
+  {
+    "id": "logical-error-management",
+    "station": "logical",
+    "index": "06",
+    "category": "Error detection & mitigation",
+    "label": "Logical qubits",
+    "headline": ["Detection and mitigation.", "Designed together."],
+    "note": "Sample operations. Check runs. Combine signed results.",
+    "year": 2026,
+    "accent": "#887989"
+  }
+]

@@ -1,0 +1,18 @@
+---
+import { localPath } from '../lib/paths';
+import StaticModel from './StaticModel.astro';
+import '../styles/instrument-forms.css';
+interface Props { kind: 'route' | 'measurement'; }
+const { kind } = Astro.props;
+const isRoute = kind === 'route';
+---
+<section class="instrument paper-instrument" data-paper-instrument={kind} data-asset-base={localPath('instruments/')} data-exhibition-base={localPath('exhibition/')} aria-labelledby={`instrument-${kind}-heading`}>
+  <div class="paper-instrument__heading"><span class="paper-section-label">Try a small example</span><h2 id={`instrument-${kind}-heading`}>{isRoute ? <>Follow the modes. <br />Check the phase.</> : <>Compare measurements. <br />See the difference.</>}</h2><p>{isRoute ? 'Choose the destination of each mode. Occupation says which modes hold a particle. A moment is one parallel circuit step.' : 'Select two measurements below. Change an axis and compare their incompatibility.'}</p></div>
+  <div class="paper-instrument__preview"><StaticModel kind={kind} /></div>
+  <div class="paper-instrument__launch"><button type="button" hidden data-load-instrument aria-expanded="false" aria-controls={`instrument-${kind}-mount`}>{isRoute ? 'Explore the exact circuit' : 'Explore the measurement atlas'} <span aria-hidden="true">↓</span></button><p role="status" data-instrument-status></p><noscript><p>The interactive example needs JavaScript. The diagram, paper, code and citation remain available.</p></noscript></div>
+  <div class="instrument__mount" id={`instrument-${kind}-mount`} data-instrument-mount hidden></div>
+  <div class="paper-instrument__scope"><span class="paper-section-label">About this example</span><p>{isRoute ? 'Ancillary qubits are extra helper qubits; this 4 × 4 example uses none. It shows gates, stored bits, mode positions and relative phase. Circuit steps and CNOT-equivalent depth are different counts. The view is a diagram, not a device layout.' : 'A basis is a set of states that a measurement can distinguish. MED measures incompatibility; it is not a probability. Opposite axes describe the same unordered basis. Groups shown here use complete-link. The paper used k-medoids. This Atlas does not simulate the quantum switch.'}</p></div>
+</section>
+<script>
+  import '../scripts/instruments';
+</script>

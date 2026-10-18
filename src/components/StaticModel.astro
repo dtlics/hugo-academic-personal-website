@@ -1,0 +1,37 @@
+---
+interface Props { kind: 'route' | 'measurement'; }
+const { kind } = Astro.props;
+const stages = [
+  ['Row A', '4 layers'],
+  ['Γ · first', '8 layers'],
+  ['Column', '4 layers'],
+  ['Γ · second', '8 layers'],
+  ['Row B', '3 layers'],
+];
+---
+{kind === 'route' ?
+  <figure class="static-model static-route">
+    <div class="static-route__intro"><span>4 × 4 / Transpose</span><span>Five stages / 27 compiled moments</span></div>
+    <ol aria-label="Five circuit stages for the 4 by 4 transpose example">
+      {stages.map(([name,count],i)=><li class={i===1||i===3?'static-route__gamma':''}><span class="static-route__ordinal">0{i+1}</span><strong>{name}</strong><span class="static-route__count">{count.replace(' layers','')}<small>moments</small></span></li>)}
+    </ol>
+    <figcaption>Transpose example: 27 compiled moments, 25 two-qubit moments and CNOT-equivalent depth 36. Both Γ blocks are retained. Their parity operations supply the fermionic phase correction. This is a fixed 4 × 4 example from the pinned compiler.</figcaption>
+  </figure>
+:
+  <figure class="static-model static-measurement">
+    <svg viewBox="0 0 600 330" role="img" aria-labelledby="static-measurement-title static-measurement-desc">
+      <title id="static-measurement-title">Two projective measurement bases at 45 degrees</title>
+      <desc id="static-measurement-desc">Two undirected axes define unordered bases. Their angle is 45 degrees and their exact mutual eigenspace disturbance is 0.5.</desc>
+      <circle cx="220" cy="154" r="111" class="static-measurement__circle" />
+      <path d="M220 30V278" class="static-measurement__axis-a" />
+      <path d="M132 242L308 66" class="static-measurement__axis-b" />
+      <path d="M220 103A51 51 0 0 1 256 118" class="static-measurement__arc" />
+      <circle cx="220" cy="154" r="4" fill="currentColor" />
+      <text x="230" y="37">A</text><text x="316" y="68">B</text><text x="236" y="99">45°</text>
+      <text x="375" y="125" class="static-measurement__micro">Exact value</text><text x="370" y="180" class="static-measurement__value">0.5</text>
+      <text x="375" y="215" class="static-measurement__micro">Mutual eigenspace</text><text x="375" y="237" class="static-measurement__micro">disturbance</text>
+      <text x="220" y="318" text-anchor="middle" class="static-measurement__formula">MED = sin(45°) / √2 = 0.5</text>
+    </svg>
+    <figcaption>One qubit, two noiseless projective measurements. The solid and dashed lines are axes, with no preferred direction. MED² is the average eigenstate-disturbance probability in this example.</figcaption>
+  </figure>
+}

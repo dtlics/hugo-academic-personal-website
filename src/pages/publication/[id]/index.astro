@@ -1,0 +1,74 @@
+---
+import { getCollection, render } from 'astro:content';
+import Document from '../../../layouts/Document.astro';
+import PaperInstrument from '../../../components/PaperInstrument.astro';
+import LogicalInstrument from '../../../components/LogicalInstrument.astro';
+import ConceptStudy from '../../../components/ConceptStudy.astro';
+import exhibition from '../../../data/exhibition.json';
+import { localPath } from '../../../lib/paths';
+import { stationIndex } from '../../../lib/stations';
+import '../../../styles/paper.css';
+export async function getStaticPaths() {
+  return (await getCollection('publications')).map(publication => ({ params: { id: publication.id }, props: { publication } }));
+}
+const { publication } = Astro.props;
+const { Content } = await render(publication);
+const p = publication.data;
+const position = exhibition.findIndex(item => item.id === publication.id);
+const display = exhibition[position];
+const next = exhibition[(position + 1) % exhibition.length];
+const previous = exhibition[(position + exhibition.length - 1) % exhibition.length];
+const notes: Record<string, { heading: string; scope: string }> = {
+  'fermionic-permutation': {
+    heading: 'A permutation is also a phase problem.',
+    scope: 'Correct destinations are not enough. A fermionic permutation must also have the correct relative phase.'
+  },
+  'logical-error-management': {
+    heading: 'Design the two methods together.',
+    scope: 'Compare the methods at the same number of attempted runs. Some runs are rejected. Check both error and sampling uncertainty.'
+  },
+  'local-optimization': {
+    heading: 'Work locally. Keep a guarantee.',
+    scope: 'A local optimum depends on the window, rewrite rules and cost. It does not mean that no better circuit exists.'
+  },
+  'generalized-hadamard': {
+    heading: 'One test, a wider set of derivatives.',
+    scope: 'Angles use radians. Repeated circuit measurements estimate a derivative. The teaching example above can be calculated exactly.'
+  },
+  'transformer-qec': {
+    heading: 'Decode, then transfer.',
+    scope: 'A new code size still needs fine-tuning on data from that size. Transfer reduces training work; it is not a claim of perfect decoding.'
+  },
+  'quantummeasurementsincompatibility': {
+    heading: 'From incompatibility to groups.',
+    scope: 'MED measures incompatibility. It is not an event probability. Reading MED from the switch assumes the stated coherent preparation.'
+  }
+};
+const reading = notes[publication.id];
+const moreSources: Record<string, { label: string; url: string }[]> = {
+  'fermionic-permutation': [{ label: 'PDF', url: 'https://arxiv.org/pdf/2605.26041' }],
+  'logical-error-management': [{ label: 'PDF', url: 'https://arxiv.org/pdf/2604.19871' }],
+  'local-optimization': [{ label: 'Extended preprint', url: 'https://arxiv.org/abs/2502.19526' }, { label: 'PDF', url: 'https://mingkuan.taichi.graphics/publication/2025-oac/oac.pdf' }],
+  'generalized-hadamard': [{ label: 'Publisher', url: 'https://doi.org/10.1109/QCE65121.2025.00024' }, { label: 'PDF', url: 'https://arxiv.org/pdf/2408.05406' }, { label: 'PennyLane collaboration', url: 'https://pennylane.ai/blog/2025/06/yale-collab-hadamard-gradient-variants/' }],
+  'transformer-qec': [{ label: 'PDF', url: 'https://arxiv.org/pdf/2311.16082' }, { label: 'Workshop', url: 'https://fastmachinelearning.org/iccad2023/program.html' }],
+  'quantummeasurementsincompatibility': [{ label: 'arXiv', url: 'https://arxiv.org/abs/2208.06210' }, { label: 'PDF', url: 'https://arxiv.org/pdf/2208.06210' }, { label: 'Supplement', url: 'https://link.aps.org/supplemental/10.1103/PhysRevLett.130.170201' }]
+};
+const article = { '@context': 'https://schema.org', '@type': 'ScholarlyArticle', headline: p.title, author: p.authors.map(name=>({'@type':'Person',name})), datePublished: String(p.year), url: p.publicationUrl };
+---
+<Document title={p.title} description={p.summary} article={article} canonicalPath={`publication/${publication.id}/`}>
+  <article class={`paper-page ${p.instrument ? 'paper-page--instrument' : 'paper-page--reading'} paper-page--${publication.id}`} style={`--paper-accent:${display.accent}`}>
+    <nav class="paper-wayfinding" aria-label="Research navigation"><a href={localPath(`publication/#${publication.id}`)}>↖ All work</a><span>{display.category}</span><a href={localPath(`publication/${publication.id}/#paper-sources`)}>Sources & citation ↓</a></nav>
+    <header class="paper-opening">
+      <div class="paper-opening__side"><span class="paper-number">{display.index}</span><p>{p.year}<br />{p.status}</p></div>
+      <div class="paper-opening__main"><p class="paper-kicker">{display.label}</p><h1>{p.title}</h1><p class="paper-punchline">{display.headline[0]}<br />{display.headline[1]}</p></div>
+      <div class="paper-opening__authors"><span class="paper-section-label">Authors</span><p class="authors">{p.authors.map((name: string,i: number)=><>{i>0?', ':''}{name==='Dantong Li'?<strong>{name}</strong>:name}</>)}</p><p class="paper-citation"><a href={p.publicationUrl}>{p.citationLabel} ↗</a></p></div>
+      <ConceptStudy id={publication.id} index={stationIndex(display.station)} />
+    </header>
+    <section class="paper-contribution" aria-labelledby="contribution-heading"><span class="paper-section-label">The contribution</span><div><h2 id="contribution-heading">{reading.heading}</h2><p class="paper-summary">{p.summary.replace('O(sqrt(N))', 'O(√N)')}</p>{p.award && <p class="paper-award"><span>IEEE QCE2025 / QSYS</span>{p.award}</p>}</div></section>
+    <section class="paper-reading" aria-labelledby="reading-heading"><div class="paper-reading__main"><span class="paper-section-label">Start with the idea</span><h2 id="reading-heading">{p.instrument ? 'From the task to an example.' : 'How the method works.'}</h2><div class="paper-content"><Content /></div></div><aside class="paper-reading__aside"><h3>Keep in view</h3><p class="paper-scope">{reading.scope}</p></aside></section>
+    {p.instrument && <PaperInstrument kind={p.instrument} />}
+    {publication.id === 'logical-error-management' && <LogicalInstrument />}
+    <section class="paper-sources" id="paper-sources" aria-labelledby="sources-heading"><div class="paper-sources__heading"><span class="paper-section-label">Original work</span><h2 id="sources-heading">Sources & <br />citation.</h2><p>{p.venue}<br />{p.year} · {p.status}</p></div><div class="paper-sources__body"><a class="paper-primary-source" href={p.publicationUrl}>{p.status==='Preprint'?'Read the preprint':'Read the paper'} ↗</a><div class="paper-source-links">{moreSources[publication.id].map(source=><a href={source.url}>{source.label} ↗</a>)}{p.codeUrl && <a href={p.codeUrl}>Code ↗</a>}<a href={localPath(`publication/${publication.id}/cite.bib`)} download>BibTeX ↓</a></div><p class="paper-source-citation">{p.citationLabel}</p><details class="paper-bibtex"><summary>View the citation</summary><pre><code>{p.bibtex}</code></pre></details></div></section>
+    <nav class="paper-next" aria-label="More research"><a href={localPath(`publication/${previous.id}/`)}><span>↖ Previous study / {previous.index}</span><strong>{previous.label}</strong></a><a href={localPath(`publication/${next.id}/`)}><span>Next study / {next.index} ↗</span><strong>{next.label}</strong></a></nav>
+  </article>
+</Document>

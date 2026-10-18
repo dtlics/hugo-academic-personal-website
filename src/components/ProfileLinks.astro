@@ -1,0 +1,17 @@
+---
+import profile from '../data/profile.json';
+import { localPath } from '../lib/paths';
+interface Props { includeEmail?: boolean; class?: string; }
+const { includeEmail = false, class: className } = Astro.props;
+const links = [
+  { label: 'Email', url: includeEmail ? `mailto:${profile.email}` : null },
+  { label: 'Scholar', url: profile.scholar },
+  { label: 'GitHub', url: profile.github },
+  { label: 'LinkedIn', url: profile.linkedin },
+  { label: 'Instagram', url: profile.instagram ? localPath('instagram/') : null },
+  { label: 'X / Twitter', url: profile.twitter },
+].filter((link): link is { label: string; url: string } => Boolean(link.url));
+---
+<nav class:list={['profile-links', className]} aria-label={includeEmail ? 'Profiles and contact' : 'Online profiles'}>
+  {links.map(link => <a href={link.url}>{link.label}<span aria-hidden="true"> ↗</span></a>)}
+</nav>
