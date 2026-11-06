@@ -3,123 +3,120 @@ import Document from '../layouts/Document.astro';
 import profile from '../data/profile.json';
 import ProfileLinks from '../components/ProfileLinks.astro';
 import { localPath } from '../lib/paths';
-const programming = profile.skills['Programming and quantum software'];
-const machineLearning = profile.skills['Machine learning'];
-const statistics = profile.skills.Statistics;
+const motto = ['忘', '剑', '得', '神', '兵'];
 ---
 <Document title="About" description="Dantong Li is a Computer Science Ph.D. Candidate at Yale University, working on quantum computing and machine learning." canonicalPath="about/">
-  <div class="about-page">
+  <Fragment slot="head">
+    <link rel="preload" href={localPath('fonts/ZhiMangXing-Motto.woff2')} as="font" type="font/woff2" crossorigin />
+  </Fragment>
+  <div class="about-page" data-variant="cut">
     <section class="about-opening" aria-labelledby="about-title">
-      <p class="about-label">About / {profile.name}</p>
-      <h1 id="about-title"><span>I work on</span><span>quantum</span><span>computing.</span></h1>
-      <figure class="about-portrait">
+      <p class="about-kicker">About / {profile.name}</p>
+      <h1 id="about-title">I work on<br />quantum<br />computing.</h1>
+      <div class="about-portrait">
         <img src={localPath('images/portrait.jpg')} width="800" height="800" alt="Dantong Li in a racing suit, holding a helmet beside a race car" decoding="async" />
-      </figure>
+        <figure class="motto" tabindex="0">
+          <p class="motto__text" lang="zh-Hans">{motto.map((character, i) => <span style={`--i:${i}`}>{character}</span>)}</p>
+          <figcaption class="motto__translation">Forget the sword, gain the divine weapon.<span class="motto__seal" aria-hidden="true"></span></figcaption>
+        </figure>
+      </div>
       <div class="about-introduction" id="profiles">
         <p class="about-role">{profile.role}<br />{profile.institution}</p>
+        <p>My advisor is <a href={profile.advisorUrl}>{profile.advisor}<span aria-hidden="true"> ↗</span></a>. My research includes quantum algorithms and compilation, quantum error correction and mitigation, and machine learning.</p>
         <ProfileLinks includeEmail />
-        <p>My advisor is <a href={profile.advisorUrl}>{profile.advisor}<span aria-hidden="true"> ↗</span></a>. I expect to graduate in {profile.expectedGraduation}.</p>
-        <p>My research includes quantum algorithms and compilation, quantum error correction and mitigation, and machine learning.</p>
-        <a class="about-research-link" href={localPath('publication/')}>Explore my research <span aria-hidden="true">↗</span></a>
+        <a class="about-research-link" href={localPath('publication/')}>Explore my research<span aria-hidden="true"> ↗</span></a>
       </div>
     </section>
-    <section class="about-outside" id="outside-research" aria-labelledby="outside-title">
-      <h2 id="outside-title">Outside research</h2>
-      <p>I like my music experimental and my cars on a racetrack. Away from research, I also play League of Legends and turn engineering ideas into working projects with AI, including tools for quant trading.</p>
-    </section>
-    <section class="about-education" aria-labelledby="education-title">
+    <section class="about-section" aria-labelledby="education-title">
       <h2 id="education-title">Education</h2>
-      <div class="education-yale">
-        <p class="education-statement">I joined {profile.institution} in 2022. I expect to complete my Ph.D. in Computer Science in {profile.expectedGraduation}.</p>
-        <p class="education-masters">{profile.masters}</p>
-      </div>
-      <div class="education-hku">
-        <p class="education-statement">Before Yale, I studied Computer Science at The University of Hong Kong from 2018 to 2022. I graduated with a B.Eng. and first-class honours.</p>
-      </div>
+      <ol class="about-ledger">
+        <li>
+          <span class="about-ledger__years">2022–{profile.expectedGraduation}</span>
+          <div><p class="about-ledger__place">{profile.institution}</p><p>Ph.D. in Computer Science, expected {profile.expectedGraduation}<br />{profile.masters}</p></div>
+        </li>
+        <li>
+          <span class="about-ledger__years">2018–2022</span>
+          <div><p class="about-ledger__place">The University of Hong Kong</p><p>B.Eng. in Computer Science, first-class honours</p></div>
+        </li>
+      </ol>
     </section>
-    <section class="about-skills" aria-labelledby="skills-title">
-      <h2 id="skills-title">Skills</h2>
-      <div class="skill-programming"><h3>Programming and quantum software</h3><p>{programming.join(', ')}</p></div>
-      <div class="skill-learning"><h3>Machine learning</h3><p>{machineLearning.join(', ')}</p></div>
-      <div class="skill-statistics"><h3>Statistics</h3><p>{statistics[0]}<br />{statistics[1]}</p></div>
+    <section class="about-section" id="outside-research" aria-labelledby="outside-title">
+      <h2 id="outside-title">Outside research</h2>
+      <p class="about-lead">I like my music experimental and my cars on a racetrack. Away from research, I also play League of Legends and turn engineering ideas into working projects with AI, including tools for quant trading.</p>
     </section>
   </div>
 </Document>
 <style>
-  .about-page{max-width:1440px;margin-inline:auto;padding:clamp(24px,4vw,72px);color:var(--ink,#39313e)}
-  .about-page :where(h1,h2,h3,p,figure){margin:0}
-  .about-page a{color:inherit;text-decoration-thickness:1px;text-underline-offset:5px}
-  .about-label{font:12px/1.5 RFMono,monospace;letter-spacing:.015em}
-  .about-opening{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:start;padding-block:24px 96px}
-  .about-opening>.about-label{grid-column:1/7;grid-row:1;margin-bottom:29px}
-  .about-opening h1{grid-column:1/8;grid-row:2;font-size:clamp(54px,7.4vw,106px);font-weight:480;line-height:.94;letter-spacing:-.065em;text-wrap:initial}
-  .about-opening h1 span{display:block}
-  /* The same photograph and the same single cut as on the home page: no frame or shadow block. */
-  .about-opening .about-portrait{grid-column:8/-1;grid-row:2/4;align-self:start;margin-top:80px}
-  .about-opening .about-portrait{position:relative;isolation:isolate}
-  .about-portrait img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;filter:saturate(.84);clip-path:polygon(17.8% 0,100% 0,100% 100%,0 100%,0 23%,17.8% 23%)}
-  .about-portrait:after{content:'';position:absolute;inset:0;background:var(--ink,#39313e);mix-blend-mode:lighten;clip-path:polygon(17.8% 0,100% 0,100% 100%,0 100%,0 23%,17.8% 23%);pointer-events:none}
-  .about-introduction{grid-column:2/7;grid-row:3;max-width:42ch;margin-top:45px;font-size:17px;line-height:1.65;scroll-margin-top:30px}
-  .about-introduction :global(.profile-links){margin-bottom:20px;max-width:350px}
-  .about-introduction .about-role{font-size:clamp(19px,1.7vw,24px);line-height:1.3;letter-spacing:-.025em;margin-bottom:26px}
-  .about-introduction p+p{margin-top:20px}
-  .about-research-link{display:inline-flex;align-items:center;gap:12px;min-height:44px;margin-top:18px;font-size:15px}
-  .about-page h2{font-size:clamp(24px,2.5vw,36px);font-weight:480;line-height:1.1;letter-spacing:-.04em}
-  .about-outside{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;padding-block:24px 78px;scroll-margin-top:30px}
-  .about-outside h2{grid-column:1/5}
-  .about-outside>p{grid-column:6/-1;max-width:42ch;font-size:clamp(23px,2.35vw,32px);line-height:1.4;letter-spacing:-.025em;text-wrap:pretty}
-  .about-education,.about-skills{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px;align-items:start;padding-block:72px}
-  .about-education h2{grid-column:1/5}
-  .education-yale{grid-column:6/-1}
-  .education-hku{grid-column:2/9;margin-top:92px}
-  .education-statement{font-size:clamp(27px,3.2vw,44px);font-weight:440;line-height:1.18;letter-spacing:-.04em;text-wrap:pretty}
-  .education-masters{max-width:34ch;margin-top:16px!important;font-size:16px;line-height:1.6}
-  .about-skills{padding-block:72px 112px}
-  .about-skills h2{grid-column:1/5}
-  .skill-programming{grid-column:6/-1}
-  .skill-learning{grid-column:2/7;margin-top:88px}
-  .skill-statistics{grid-column:8/-1;margin-top:130px}
-  .about-skills h3{font-size:15px;line-height:1.4;font-weight:500;margin-bottom:19px}
-  .about-skills p{font-size:clamp(25px,2.55vw,36px);line-height:1.25;font-weight:440;letter-spacing:-.035em;text-wrap:pretty}
-  .skill-statistics p{font-weight:500}
-  @media(max-width:950px){
-    .about-opening{column-gap:18px}
-    .about-opening h1{font-size:clamp(54px,7.8vw,76px)}
-    .about-opening .about-portrait{grid-column:8/-1;margin-top:48px}
-    .about-introduction{grid-column:1/7;font-size:16px}
-    .skill-learning{grid-column:1/7}
-    .skill-statistics{grid-column:8/-1}
+  /* Zhi Mang Xing (SIL OFL 1.1), reduced to the five characters of the motto. */
+  @font-face{font-family:'Motto Brush';src:url('/fonts/ZhiMangXing-Motto.woff2') format('woff2');font-display:block;unicode-range:U+5175,U+5251,U+5F97,U+5FD8,U+795E}
+  /* One type scale, ratio 3 : 2 from the 16px body: 16 · 24 · 36 · 54 · 81.
+     Labels use the site's 11px mono. The display line moves between 54 and 81
+     with the viewport; nothing else changes size. */
+  .about-page{--s-label:11px;--s-body:16px;--s-lead:24px;--s-display:clamp(54px,5.625vw,81px);--ink-deep:#2b2430;padding:0 var(--gutter);color:var(--ink)}
+  :where(.about-page) :where(h1,h2,p,figure,ol){margin:0}
+  .about-page a{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px}
+  .about-page p a span,.about-research-link span{display:inline-block;text-decoration:none;margin-left:.25em}
+  .about-kicker,.about-section>h2,.about-ledger__years,.motto__translation{font:var(--s-label)/1.5 RFMono,monospace;letter-spacing:.02em;font-weight:400}
+
+  /* Opening: words on the left half, the portrait on the right half. */
+  .about-opening{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:start;padding-block:40px 112px}
+  .about-kicker{grid-column:1/7;grid-row:1;margin-bottom:32px}
+  .about-opening h1{grid-column:1/7;grid-row:2;font-size:var(--s-display);font-weight:480;line-height:.94;letter-spacing:-.06em}
+  .about-introduction{grid-column:1/7;grid-row:3;align-self:end;margin-top:48px;font-size:var(--s-body);line-height:1.6}
+  .about-introduction>p{max-width:31em}
+  .about-introduction>*+*{margin-top:16px}
+  .about-role{font-size:var(--s-lead);line-height:1.3;letter-spacing:-.025em;margin-bottom:24px;text-wrap:balance}
+  .about-introduction :global(.profile-links){column-gap:20px;font-size:var(--s-body);margin-top:20px}
+  .about-research-link{display:inline-block;padding-block:10px}
+
+  /* The portrait keeps the home page's single cut. Here the cut runs deeper,
+     to hold the motto, as the cut on the home page holds the name. */
+  .about-portrait{grid-column:7/-1;grid-row:2/4;position:relative;container-type:inline-size;--cut-w:21%;--cut-h:84%}
+  .about-portrait>img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;filter:saturate(.84);clip-path:polygon(var(--cut-w) 0,100% 0,100% 100%,0 100%,0 var(--cut-h),var(--cut-w) var(--cut-h))}
+  .about-portrait:after{content:'';position:absolute;inset:0;background:var(--ink);mix-blend-mode:lighten;clip-path:polygon(var(--cut-w) 0,100% 0,100% 100%,0 100%,0 var(--cut-h),var(--cut-w) var(--cut-h));pointer-events:none}
+
+  .motto{position:absolute;left:0;top:0;width:var(--cut-w);height:var(--cut-h);display:flex;justify-content:center;outline:none;cursor:default}
+  .motto__text{writing-mode:vertical-rl;font-family:'Motto Brush',serif;font-size:16.2cqw;line-height:1;letter-spacing:-.03em;color:var(--ink-deep);white-space:nowrap}
+  .motto__text span{display:inline-block}
+  /* The translation sits where a calligrapher signs: a small column to the
+     left of the text, closed by a seal. It appears on hover or focus. */
+  .motto__translation{position:absolute;right:calc(100% + 10px);top:22%;writing-mode:vertical-rl;white-space:nowrap;opacity:0;transform:translateY(-6px);transition:opacity .4s ease,transform .4s ease;pointer-events:none}
+  .motto:hover .motto__translation,.motto:focus-visible .motto__translation{opacity:1;transform:none}
+  .motto:focus-visible{outline:2px solid var(--ink);outline-offset:6px}
+  .motto__seal{display:inline-block;inline-size:13px;block-size:13px;margin-inline-start:12px;vertical-align:middle;background:var(--clay);box-shadow:inset 0 0 0 2px var(--clay),inset 0 0 0 3px var(--ground)}
+
+  /* Below the opening every section has the same form: a rule, a label on the
+     left half, the text on the right half, aligned with the portrait. */
+  .about-section{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;border-top:1px solid var(--rule);padding-block:24px 96px}
+  .about-section>h2{grid-column:1/7}
+  .about-section>:not(h2){grid-column:7/-1}
+  .about-lead{font-size:var(--s-lead);line-height:1.4;letter-spacing:-.025em;max-width:30em;text-wrap:pretty}
+  .about-ledger{list-style:none;padding:0;display:grid;gap:40px}
+  .about-ledger li{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,5fr);column-gap:24px;align-items:baseline}
+  .about-ledger__place{font-size:var(--s-lead);line-height:1.3;letter-spacing:-.025em;margin-bottom:8px}
+  .about-ledger li p:not(.about-ledger__place){font-size:var(--s-body);line-height:1.6}
+
+  @media(prefers-reduced-motion:no-preference){
+    .motto__text span{animation:motto-write .62s cubic-bezier(.45,.05,.3,1) both;animation-delay:calc(.25s + var(--i) * .24s)}
+  }
+  @property --write{syntax:'<percentage>';inherits:false;initial-value:115%}
+  @keyframes motto-write{from{--write:-15%}to{--write:115%}}
+  .motto__text span{-webkit-mask-image:linear-gradient(to bottom,#000 var(--write),transparent calc(var(--write) + 15%));mask-image:linear-gradient(to bottom,#000 var(--write),transparent calc(var(--write) + 15%))}
+
+  @media(hover:none){.motto__translation{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.motto__translation{transition:opacity .2s linear;transform:none}}
+  /* Narrower screens set the translation as one line under the photo. */
+  @media(max-width:1099px){.motto__translation{right:auto;left:0;top:calc(100cqw + 14px);writing-mode:horizontal-tb}.about-portrait{margin-bottom:36px}}
+  @media(max-width:900px){
+    .about-section{grid-template-columns:minmax(0,1fr);row-gap:24px}
+    .about-section>h2,.about-section>:not(h2){grid-column:1}
   }
   @media(max-width:700px){
-    .about-page{padding-inline:24px}
-    .about-opening{grid-template-columns:repeat(6,minmax(0,1fr));gap:0 16px;padding-block:13px 54px}
-    .about-opening>.about-label{grid-column:1/-1;margin-bottom:24px}
-    .about-opening h1{grid-column:1/-1;grid-row:2;font-size:clamp(49px,12vw,76px)}
-    .about-opening .about-portrait{grid-column:2/-1;grid-row:3;margin-top:35px;max-width:420px;justify-self:end}
-    .about-introduction{grid-column:1/-1;grid-row:4;margin-top:35px;font-size:17px;max-width:44ch}
-    .about-introduction .about-role{font-size:23px;margin-bottom:23px}
-    .about-outside{grid-template-columns:repeat(6,minmax(0,1fr));gap:24px 16px;padding-block:16px 38px}
-    .about-outside h2,.about-outside>p{grid-column:1/-1}
-    .about-outside>p{font-size:24px;line-height:1.45}
-    .about-education,.about-skills{grid-template-columns:repeat(6,minmax(0,1fr));gap:0 16px;padding-block:38px}
-    .about-education h2,.about-skills h2{grid-column:1/-1;margin-bottom:39px}
-    .education-yale{grid-column:2/-1}
-    .education-hku{grid-column:1/-1;margin-top:65px}
-    .education-statement{font-size:clamp(26px,5.8vw,35px)}
-    .education-masters{font-size:15px}
-    .skill-programming{grid-column:1/-1}
-    .skill-learning{grid-column:2/-1;margin-top:43px}
-    .skill-statistics{grid-column:1/-1;margin-top:43px}
-    .about-skills p{font-size:clamp(25px,5.7vw,32px)}
-    .about-skills{padding-bottom:66px}
-  }
-  @media(max-width:360px){
-    .about-page{padding-inline:18px}
-    .about-opening h1{font-size:44px}
-    .about-opening{column-gap:10px}
-    .about-opening .about-portrait{grid-column:1/-1;width:94%}
-    .about-introduction .about-role{font-size:21px}
-    .education-yale{grid-column:1/-1}
-    .about-skills p{font-size:25px}
+    .about-opening{grid-template-columns:minmax(0,1fr);padding-block:24px 72px}
+    .about-kicker,.about-opening h1,.about-introduction,.about-portrait{grid-column:1;grid-row:auto}
+    .about-opening h1{margin-bottom:32px}
+    .about-introduction{margin-top:24px;align-self:start}
+    .about-section{padding-block:20px 64px}
+    .about-ledger li{grid-template-columns:minmax(0,1fr);row-gap:4px}
   }
 </style>

@@ -109,8 +109,11 @@ assert(fileSet.has('uploads/resume-dantong-li.pdf'), 'Retain canonical legacy CV
 for (const path of ['tag/quantum_measurements/index.html','publication-type/2/index.html','publication_types/index.html','tags/index.html']) assert(fileSet.has(path), `Legacy route remains reachable: ${path}`);
 const about=htmlByFile.get('about/index.html');
 assert(about.includes('2028')&&about.includes('en route, 2024'), 'Approved education wording.');
-assert(about.includes('Graph neural networks')&&about.includes('Computational statistics'), 'Approved combined Skills.');
-assert(about.includes('Ph.D. Candidate')&&!/fairseq/i.test(about), 'Approved candidate status and current skills.');
+assert(!/Graph neural networks|Computational statistics|PennyLane|Qiskit|>Skills</.test(about), 'Skills are not listed on the site.');
+const motto=about.match(/<p\b[^>]*class="motto__text"[^>]*>([\s\S]*?)<\/p>/);
+assert(motto&&/\blang="zh-Hans"/.test(motto[0])&&motto[1].replace(/<[^>]+>/g,'')==='忘剑得神兵', 'Motto in Chinese, marked as Chinese.');
+assert(about.includes('Forget the sword, gain the divine weapon.'), 'Motto translation.');
+assert(about.includes('Ph.D. Candidate')&&!/fairseq/i.test(about), 'Approved candidate status.');
 assert(!about.includes('resume-dantong-li.pdf'), 'Do not present the retained old CV as the approved résumé.');
 const robots=await readFile(resolve(output,'robots.txt'),'utf8');
 assert.equal(robots,indexable?'User-agent: *\nAllow: /\n':'User-agent: *\nDisallow: /\n','Matching robots policy.');

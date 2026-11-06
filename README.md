@@ -13,13 +13,13 @@ flowchart LR
 
 | Change | File |
 | --- | --- |
-| Name, degree, contact links and skills | `src/data/profile.json` |
+| Name, degree and contact links | `src/data/profile.json` |
 | Paper title, ordered authors, venue, links and BibTeX | `src/content/publications/*.md` |
 | Exhibition order, short headlines and colours | `src/data/exhibition.json` |
 | About composition | `src/pages/about.astro` |
 | Portrait and other static files | `public/images/` |
 
-The slim header links to All work and About. About opens the biography, with email, Instagram, X and the other account links beside its introduction. Instagram uses the stable local path `/instagram/`, which sends visitors to the `instagram` URL in `src/data/profile.json`. After an Instagram username change, update that one value and rebuild. The local path stays the same; it does not detect account renames automatically.
+The slim header links to All work and About. About opens the biography, with email, Instagram, X and the other account links beside its introduction. The portrait's cut runs deeper on About and holds the motto 忘剑得神兵 in Zhi Mang Xing, a running-script brush font; hover or focus shows the English line "Forget the sword, gain the divine weapon." The font file `public/fonts/ZhiMangXing-Motto.woff2` contains only those five characters (SIL OFL 1.1, see `public/fonts/zhimangxing-OFL.txt`); a change to the motto needs a new subset of the font. About uses one type scale with a 3 : 2 ratio from the 16px body (16, 24, 54–81px) and the site's 11px mono labels. Skills are not listed on the site. Instagram uses the stable local path `/instagram/`, which sends visitors to the `instagram` URL in `src/data/profile.json`. After an Instagram username change, update that one value and rebuild. The local path stays the same; it does not detect account renames automatically.
 
 Keep the same paper IDs in the publication files and exhibition data. All six approved works have individual pages and downloadable citations. The excluded fidelity-divergence paper is not included. The old résumé PDF is kept at its former URL for compatibility; the website does not link to it as a current résumé. Replace it only after the separate résumé update is approved.
 

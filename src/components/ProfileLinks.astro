@@ -13,5 +13,5 @@ const links = [
 ].filter((link): link is { label: string; url: string } => Boolean(link.url));
 ---
 <nav class:list={['profile-links', className]} aria-label={includeEmail ? 'Profiles and contact' : 'Online profiles'}>
-  {links.map(link => <a href={link.url}>{link.label}<span aria-hidden="true"> ↗</span></a>)}
+  {links.map(link => <a href={link.url}><span>{link.label}</span><span aria-hidden="true">↗</span></a>)}
 </nav>
