@@ -54,8 +54,6 @@ jobs:
           with tarfile.open(os.environ['WEBSITE_ARCHIVE']) as archive:
               names = {entry.name.removeprefix('./') for entry in archive.getmembers() if entry.isfile()}
               for path in [
-                  'uploads/resume-dantong-li.pdf',
-                  'uploads/Resume-Dantong-Li.pdf',
                   'publication/quantummeasurementsincompatibility/index.html',
                   'publication/QuantumMeasurementsIncompatibility/index.html',
                   'publication/quantummeasurementsincompatibility/cite.bib',

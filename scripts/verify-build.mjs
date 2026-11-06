@@ -37,7 +37,8 @@ function pageFile(path) {
 for (const [file,html] of htmlByFile) {
   assert.equal((html.match(/<h1(?:\s|>)/g)||[]).length, 1, `${file}: one page heading`);
   assert(!html.includes('Quantum-Inspired Fidelity-based Divergence'), `${file}: excluded paper`);
-  assert(!/AgentSkills|Ph\.D\. Student|2027/.test(html), `${file}: stale profile claim`);
+  // The old graduation year, not any 2027: the footer prints the build year.
+  assert(!/AgentSkills|Ph\.D\. Student|expected 2027|–2027\b/.test(html), `${file}: stale profile claim`);
   const blocked = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="[^"]*noindex)[^>]*>/i.test(html);
   assert.equal(blocked, !indexable || ['404.html','instagram/index.html'].includes(file), `${file}: expected ${indexable ? 'release' : 'preview'} indexing policy`);
   assert(!/<dialog(?:\s|>)/.test(html) && !/role="(?:alertdialog|dialog)"/.test(html), `${file}: content must remain in the page, without modal windows`);
@@ -105,21 +106,21 @@ assert(prl.includes('MED = sin(45°) / √2 = 0.5'), 'Static, useful initial MED
 assert(prl.includes('complete-link'), 'Grouping scope must remain explicit.');
 const prlBib=await readFile(resolve(output,'publication/quantummeasurementsincompatibility/cite.bib'),'utf8');
 assert(prlBib.includes('10.1103/PhysRevLett.130.170201') && /year\s*=\s*\{2023\}/.test(prlBib), 'Corrected PRL BibTeX.');
-assert(fileSet.has('uploads/resume-dantong-li.pdf'), 'Retain canonical legacy CV URL.');
+assert(![...fileSet].some(file=>/^uploads\/resume-dantong-li\.pdf$/i.test(file)), 'The old CV is no longer published.');
 for (const path of ['tag/quantum_measurements/index.html','publication-type/2/index.html','publication_types/index.html','tags/index.html']) assert(fileSet.has(path), `Legacy route remains reachable: ${path}`);
 const about=htmlByFile.get('about/index.html');
 assert(about.includes('2028')&&about.includes('en route, 2024'), 'Approved education wording.');
 assert(!/Graph neural networks|Computational statistics|PennyLane|Qiskit|>Skills</.test(about), 'Skills are not listed on the site.');
 const motto=about.match(/<p\b[^>]*class="motto__text"[^>]*>([\s\S]*?)<\/p>/);
 assert(motto&&/\blang="zh-Hans"/.test(motto[0])&&motto[1].replace(/<[^>]+>/g,'')==='忘剑得神兵', 'Motto in Chinese, marked as Chinese.');
-assert(about.includes('Forget the sword, gain the divine weapon.'), 'Motto translation.');
+const translation=about.match(/<figcaption\b[^>]*class="motto__translation"[^>]*>([\s\S]*?)<\/figcaption>/);
+assert(translation&&translation[1].replace(/<[^>]+>/g,'').trim()==='Forget the sword; let true steel speak.', 'Motto translation.');
 assert(about.includes('Ph.D. Candidate')&&!/fairseq/i.test(about), 'Approved candidate status.');
-assert(!about.includes('resume-dantong-li.pdf'), 'Do not present the retained old CV as the approved résumé.');
+assert(!about.includes('resume-dantong-li.pdf'), 'About does not link to the removed old CV.');
 const robots=await readFile(resolve(output,'robots.txt'),'utf8');
 assert.equal(robots,indexable?'User-agent: *\nAllow: /\n':'User-agent: *\nDisallow: /\n','Matching robots policy.');
 if (process.platform!=='win32') {
   for (const [canonical,alias] of [
-    ['uploads/resume-dantong-li.pdf','uploads/Resume-Dantong-Li.pdf'],
     ['publication/quantummeasurementsincompatibility/index.html','publication/QuantumMeasurementsIncompatibility/index.html'],
     ['publication/quantummeasurementsincompatibility/cite.bib','publication/QuantumMeasurementsIncompatibility/cite.bib'],
     ['publication/quantummeasurementsincompatibility/featured.png','publication/QuantumMeasurementsIncompatibility/featured.png'],

@@ -4,21 +4,31 @@ import profile from '../data/profile.json';
 import ProfileLinks from '../components/ProfileLinks.astro';
 import { localPath } from '../lib/paths';
 const motto = ['忘', '剑', '得', '神', '兵'];
+// Both schools use the same four parts: years, school, degree, one note.
+const education = [
+  { years: `2022–${profile.expectedGraduation}`, school: profile.institution, degree: `Ph.D. in Computer Science, expected ${profile.expectedGraduation}`, note: profile.masters },
+  { years: '2018–2022', school: 'The University of Hong Kong', degree: 'B.Eng. in Computer Science', note: 'First-class honours' },
+];
+// A detail line may break only after its first comma, so narrow screens
+// never leave one word ("2028", "Kong") alone on a line.
+const halves = (line: string) => { const [head, ...rest] = line.split(', '); return rest.length ? [head, rest.join(', ')] : [head]; };
 ---
 <Document title="About" description="Dantong Li is a Computer Science Ph.D. Candidate at Yale University, working on quantum computing and machine learning." canonicalPath="about/">
   <Fragment slot="head">
     <link rel="preload" href={localPath('fonts/ZhiMangXing-Motto.woff2')} as="font" type="font/woff2" crossorigin />
+    <script is:inline>if(matchMedia('(prefers-reduced-motion: no-preference)').matches)document.documentElement.classList.add('motto-motion')</script>
   </Fragment>
-  <div class="about-page" data-variant="cut">
+  <div class="about-page">
     <section class="about-opening" aria-labelledby="about-title">
       <p class="about-kicker">About / {profile.name}</p>
       <h1 id="about-title">I work on<br />quantum<br />computing.</h1>
+      <figure class="motto" data-motto tabindex="0" aria-labelledby="motto-translation">
+        <p class="motto__text" lang="zh-Hans">{motto.map(character => <span>{character}</span>)}</p>
+        <span class="motto__blade" aria-hidden="true"><span></span></span>
+        <figcaption class="motto__translation" id="motto-translation"><span>Forget the sword; </span><span>let true steel speak.</span></figcaption>
+      </figure>
       <div class="about-portrait">
         <img src={localPath('images/portrait.jpg')} width="800" height="800" alt="Dantong Li in a racing suit, holding a helmet beside a race car" decoding="async" />
-        <figure class="motto" tabindex="0">
-          <p class="motto__text" lang="zh-Hans">{motto.map((character, i) => <span style={`--i:${i}`}>{character}</span>)}</p>
-          <figcaption class="motto__translation">Forget the sword, gain the divine weapon.<span class="motto__seal" aria-hidden="true"></span></figcaption>
-        </figure>
       </div>
       <div class="about-introduction" id="profiles">
         <p class="about-role">{profile.role}<br />{profile.institution}</p>
@@ -30,14 +40,10 @@ const motto = ['忘', '剑', '得', '神', '兵'];
     <section class="about-section" aria-labelledby="education-title">
       <h2 id="education-title">Education</h2>
       <ol class="about-ledger">
-        <li>
-          <span class="about-ledger__years">2022–{profile.expectedGraduation}</span>
-          <div><p class="about-ledger__place">{profile.institution}</p><p>Ph.D. in Computer Science, expected {profile.expectedGraduation}<br />{profile.masters}</p></div>
-        </li>
-        <li>
-          <span class="about-ledger__years">2018–2022</span>
-          <div><p class="about-ledger__place">The University of Hong Kong</p><p>B.Eng. in Computer Science, first-class honours</p></div>
-        </li>
+        {education.map(entry => <li>
+          <span class="about-ledger__years">{entry.years}</span>
+          <div><p class="about-ledger__place">{entry.school}</p><p>{[entry.degree, entry.note].map(line => <span class="about-ledger__line">{halves(line).map((half, i) => <>{i > 0 && ', '}<span class="about-ledger__half">{half}</span></>)}</span>)}</p></div>
+        </li>)}
       </ol>
     </section>
     <section class="about-section" id="outside-research" aria-labelledby="outside-title">
@@ -45,78 +51,246 @@ const motto = ['忘', '剑', '得', '神', '兵'];
       <p class="about-lead">I like my music experimental and my cars on a racetrack. Away from research, I also play League of Legends and turn engineering ideas into working projects with AI, including tools for quant trading.</p>
     </section>
   </div>
+  <script is:inline>
+    // One cut: a blade comes down the column, stops for a breath after 剑,
+    // goes on through 得神兵 and leaves the page. The point draws a slit down
+    // through each character, and the character opens from it.
+    (() => {
+      const root = document.documentElement, motto = document.querySelector('[data-motto]');
+      if (!motto || !root.classList.contains('motto-motion')) return;
+      const text = motto.querySelector('.motto__text'), cells = [...text.children];
+      const blade = motto.querySelector('.motto__blade > span'), caption = motto.querySelector('.motto__translation');
+      const still = () => { motto.classList.remove('is-armed'); root.classList.remove('motto-motion'); };
+      // A CSS cubic-bezier, and the part of its time that has gone when it reaches progress p.
+      const bez = (a, b, s) => 3 * a * s * (1 - s) ** 2 + 3 * b * s * s * (1 - s) + s ** 3;
+      const when = ([x1, y1, x2, y2], p) => {
+        let lo = 0, hi = 1;
+        for (let k = 0; k < 30; k++) { const mid = (lo + hi) / 2; if (bez(y1, y2, mid) < p) lo = mid; else hi = mid; }
+        return bez(x1, x2, lo);
+      };
+      const play = () => {
+        try {
+          const em = parseFloat(getComputedStyle(text).fontSize), top = text.getBoundingClientRect().top;
+          const tops = cells.map(cell => cell.getBoundingClientRect().top - top);
+          // The brush ink starts .054 em into its cell and ends .829 em into it (measured).
+          const inkTop = tops.map(y => y + .054 * em), inkFoot = tops.map(y => y + .829 * em);
+          const rest = (inkFoot[1] + inkTop[2]) / 2, end = text.offsetHeight + blade.offsetHeight;
+          const CUT = 240, BREATH = 140, FOLLOW = 300, ALL = CUT + BREATH + FOLLOW, OPEN = 280;
+          const IN = [.6, 0, .4, 1], ON = [.5, 0, .2, 1];
+          // When the point of the blade reaches depth y in the column.
+          const reach = y => y <= rest ? CUT * when(IN, y / rest) : CUT + BREATH + FOLLOW * when(ON, (y - rest) / (end - rest));
+          motto.classList.add('is-drawn');
+          blade.animate([
+            { transform: 'translateY(0)', easing: `cubic-bezier(${IN})` },
+            { transform: `translateY(${rest}px)`, offset: CUT / ALL },
+            { transform: `translateY(${rest}px)`, offset: (CUT + BREATH) / ALL, easing: `cubic-bezier(${ON})` },
+            { transform: `translateY(${end}px)` },
+          ], { duration: ALL });
+          // The slit's foot follows the point down the cell, sampled along the
+          // blade's own eased path, so no ink shows below the steel; then the
+          // character opens from the slit.
+          let last = 0;
+          cells.forEach((cell, i) => {
+            const start = reach(tops[i]), through = Math.max(reach(inkFoot[i]) - start, 1), span = through + OPEN, frames = [];
+            for (let k = 0; k <= 12; k++) {
+              const y = tops[i] + (inkFoot[i] - tops[i]) * k / 12;
+              frames.push({ clipPath: `inset(0 48% ${100 - (y - tops[i]) / em * 100}% 48%)`, offset: (reach(y) - start) / span });
+            }
+            frames[12].easing = 'cubic-bezier(.1,.7,.2,1)';
+            frames.push({ clipPath: 'inset(-25%)' });
+            last = Math.max(last, start + span);
+            cell.animate(frames, { duration: span, delay: start, fill: 'backwards' });
+          });
+          // Where the translation is always shown, it comes in after the cut.
+          if (matchMedia('(hover: none), (max-width: 700px)').matches) caption.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: last, easing: 'ease', fill: 'backwards' });
+        } catch (error) { still(); }
+      };
+      const watch = () => {
+        if (!('IntersectionObserver' in window)) return play();
+        // Cut when a third of the column is on screen, or at once when its
+        // head is already above the screen (the reader is below it). Watch the
+        // column, not the closed characters: their clip makes them count as unseen.
+        const seen = new IntersectionObserver(entries => {
+          if (entries.some(entry => entry.intersectionRatio >= .35 || (entry.isIntersecting && entry.boundingClientRect.top < 0))) { seen.disconnect(); play(); }
+        }, { threshold: [0, .35] });
+        seen.observe(text);
+      };
+      // Never cut an empty column: wait for the brush face (its block period is
+      // about 3 s); if it does not come, show the motto without motion. Once
+      // the face is here the script owns the motto: the CSS failsafe stands
+      // down, and the characters stay closed until the blade reaches them.
+      const font = document.fonts && document.fonts.load ? document.fonts.load('1em "Motto Brush"', '忘剑得神兵') : Promise.resolve([true]);
+      Promise.race([font, new Promise(done => setTimeout(done, 2800, null))]).then(faces => {
+        if (!faces || !faces.length) return still();
+        motto.classList.add('is-armed');
+        requestAnimationFrame(() => requestAnimationFrame(() => { try { watch(); } catch (error) { still(); } }));
+      }, still);
+    })();
+  </script>
 </Document>
 <style>
   /* Zhi Mang Xing (SIL OFL 1.1), reduced to the five characters of the motto. */
   @font-face{font-family:'Motto Brush';src:url('/fonts/ZhiMangXing-Motto.woff2') format('woff2');font-display:block;unicode-range:U+5175,U+5251,U+5F97,U+5FD8,U+795E}
-  /* One type scale, ratio 3 : 2 from the 16px body: 16 · 24 · 36 · 54 · 81.
-     Labels use the site's 11px mono. The display line moves between 54 and 81
-     with the viewport; nothing else changes size. */
-  .about-page{--s-label:11px;--s-body:16px;--s-lead:24px;--s-display:clamp(54px,5.625vw,81px);--ink-deep:#2b2430;padding:0 var(--gutter);color:var(--ink)}
+  /* One type scale, ratio 3 : 2 from the 16px body: 16 · 24 · 36 · 54 · 81 · 122.
+     Labels use the site's 11px mono. The display line moves between 54 and
+     81 with the viewport width, like the footer's 'Let's talk.'. The motto
+     is one step above it (× 3/2), except on the narrowest phones (see
+     below). --cap and --foot are measured from the two faces: the heading's
+     cap line sits .116 display-em under the top of its box, and the brush
+     ink ends .171 motto-em above the foot of its cell. */
+  .about-page{--s-label:11px;--s-body:16px;--s-lead:24px;--s-display:clamp(54px,5.625vw,81px);--s-motto:calc(var(--s-display) * 1.5);--cap:calc(var(--s-display) * .116);--foot:calc(var(--s-motto) * .171);--ink-deep:#2b2430;padding:0 var(--gutter);color:var(--ink)}
   :where(.about-page) :where(h1,h2,p,figure,ol){margin:0}
   .about-page a{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px}
   .about-page p a span,.about-research-link span{display:inline-block;text-decoration:none;margin-left:.25em}
   .about-kicker,.about-section>h2,.about-ledger__years,.motto__translation{font:var(--s-label)/1.5 RFMono,monospace;letter-spacing:.02em;font-weight:400}
 
-  /* Opening: words on the left half, the portrait on the right half. */
-  .about-opening{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:start;padding-block:40px 112px}
+  /* Opening. Two lines hold it: the rail (the cap line of the heading) and
+     the ground (the foot of the motto's ink). The words stand in columns 1–6,
+     the heading on the rail and the introduction on the ground. The motto
+     hangs on the right margin from rail to ground, like a hanging scroll, and
+     the portrait stands beside it as the painting beside its inscription:
+     from the text line of column 7 to half a cell before the motto. */
+  .about-opening{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;padding-block:40px 96px}
   .about-kicker{grid-column:1/7;grid-row:1;margin-bottom:32px}
-  .about-opening h1{grid-column:1/7;grid-row:2;font-size:var(--s-display);font-weight:480;line-height:.94;letter-spacing:-.06em}
-  .about-introduction{grid-column:1/7;grid-row:3;align-self:end;margin-top:48px;font-size:var(--s-body);line-height:1.6}
+  /* The negative indent puts the ink of "I" on the column line. */
+  .about-opening h1{grid-column:1/7;grid-row:2;align-self:start;margin-left:-.025em;text-indent:-.05em;font-size:var(--s-display);font-weight:480;line-height:.94;letter-spacing:-.06em}
+  /* The last line of the introduction sits on the ground: its baseline is
+     17.5px above the box (10px link padding and the line's descent). */
+  .about-introduction{grid-column:1/7;grid-row:3;align-self:end;margin:48px 0 calc(var(--foot) - 17.5px);font-size:var(--s-body);line-height:1.6}
   .about-introduction>p{max-width:31em}
-  .about-introduction>*+*{margin-top:16px}
+  .about-introduction>p:not(.about-role){text-wrap:pretty}
+  .about-introduction>:global(*+*){margin-top:16px}
   .about-role{font-size:var(--s-lead);line-height:1.3;letter-spacing:-.025em;margin-bottom:24px;text-wrap:balance}
-  .about-introduction :global(.profile-links){column-gap:20px;font-size:var(--s-body);margin-top:20px}
+  /* The six links break into even rows (3 + 3, or 2 + 2 + 2), never 5 + 1. */
+  .about-introduction :global(.profile-links){display:block;text-wrap:balance;font-size:var(--s-body);margin-top:20px}
+  .about-introduction :global(.profile-links a:not(:last-child)){margin-right:20px}
+  /* Without text-wrap: balance, a grid of three gives the same even rows. */
+  @supports not (text-wrap:balance){
+    .about-introduction :global(.profile-links){display:grid;grid-template-columns:repeat(3,max-content);column-gap:20px}
+    .about-introduction :global(.profile-links a:not(:last-child)){margin-right:0}
+  }
+  @supports not (text-wrap:balance){@media(max-width:355px){.about-introduction :global(.profile-links){grid-template-columns:repeat(2,max-content)}}}
   .about-research-link{display:inline-block;padding-block:10px}
 
-  /* The portrait keeps the home page's single cut. Here the cut runs deeper,
-     to hold the motto, as the cut on the home page holds the name. */
-  .about-portrait{grid-column:7/-1;grid-row:2/4;position:relative;container-type:inline-size;--cut-w:21%;--cut-h:84%}
-  .about-portrait>img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;filter:saturate(.84);clip-path:polygon(var(--cut-w) 0,100% 0,100% 100%,0 100%,0 var(--cut-h),var(--cut-w) var(--cut-h))}
-  .about-portrait:after{content:'';position:absolute;inset:0;background:var(--ink);mix-blend-mode:lighten;clip-path:polygon(var(--cut-w) 0,100% 0,100% 100%,0 100%,0 var(--cut-h),var(--cut-w) var(--cut-h));pointer-events:none}
+  /* The portrait fills its place from rail to ground. It is never wider than
+     tall: when its place is wider than the opening is high (wide screens),
+     it stays square and the opening grows with it. Above six cells it stops
+     growing and keeps to the motto. */
+  .about-portrait{grid-column:7/-1;grid-row:2/4;justify-self:end;width:calc(100% - var(--s-motto) * 1.5);max-width:calc(var(--s-motto) * 6);margin:var(--cap) calc(var(--s-motto) * 1.5) var(--foot) 0;position:relative}
+  .about-portrait:before{content:'';display:block;padding-top:100%}
+  .about-portrait>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:62% 50%;filter:saturate(.84)}
+  .about-portrait:after{content:'';position:absolute;inset:0;background:var(--ink);mix-blend-mode:lighten;pointer-events:none}
+  @media(forced-colors:active){.about-portrait:after{display:none}}
 
-  .motto{position:absolute;left:0;top:0;width:var(--cut-w);height:var(--cut-h);display:flex;justify-content:center;outline:none;cursor:default}
-  .motto__text{writing-mode:vertical-rl;font-family:'Motto Brush',serif;font-size:16.2cqw;line-height:1;letter-spacing:-.03em;color:var(--ink-deep);white-space:nowrap}
-  .motto__text span{display:inline-block}
-  /* The translation sits where a calligrapher signs: a small column to the
-     left of the text, closed by a seal. It appears on hover or focus. */
-  .motto__translation{position:absolute;right:calc(100% + 10px);top:22%;writing-mode:vertical-rl;white-space:nowrap;opacity:0;transform:translateY(-6px);transition:opacity .4s ease,transform .4s ease;pointer-events:none}
+  /* The motto: five 1 em cells in one column, as on squared calligraphy
+     paper. When the opening is taller than five cells, the cells spread
+     evenly, so the column still runs from rail to ground. The brush face
+     covers only the five characters, so each line's strut comes from the
+     next family; naming the site's Archivo keeps it the same everywhere.
+     A Kai face stands in if the brush face cannot load. */
+  .motto{grid-column:7/-1;grid-row:2/4;justify-self:end;align-self:stretch;display:flex;flex-direction:column;position:relative;margin-top:calc(var(--cap) - var(--s-motto) * .054);font-size:var(--s-motto);outline:none;cursor:default}
+  .motto__text{flex:1 0 auto;display:flex;flex-direction:column;justify-content:space-between;min-height:5em;font-family:'Motto Brush',RFArchivo,Arial,KaiTi,STKaiti,'Kaiti SC',serif;color:var(--ink-deep)}
+  .motto__text span{display:block;width:1em;height:1em;line-height:1;text-align:center}
+  /* The translation sits where a calligrapher signs: a narrow column in the
+     half cell left of the motto, beside 剑 (the second cell, wherever the
+     cells spread), closed by a seal. It is set nearer the brush ink than the
+     photograph, and its box reaches the motto, so the pointer can move onto
+     it. Hover or focus shows it; touch screens always show it. */
+  .motto__translation{position:absolute;top:calc((100% - var(--s-motto) * 5) / 4 + var(--s-motto) * 1.05);right:100%;padding-block-start:calc((var(--s-motto) * .5 - 16.5px) / 2 - var(--s-motto) * .1);writing-mode:vertical-rl;white-space:nowrap;opacity:0;transform:translateY(-6px);transition:opacity .4s ease,transform .4s ease}
+  .motto__translation span:last-child:after{content:'';display:inline-block;inline-size:13px;block-size:13px;margin-inline-start:12px;vertical-align:middle;background:var(--clay);box-shadow:inset 0 0 0 2px var(--clay),inset 0 0 0 3px var(--ground)}
   .motto:hover .motto__translation,.motto:focus-visible .motto__translation{opacity:1;transform:none}
   .motto:focus-visible{outline:2px solid var(--ink);outline-offset:6px}
-  .motto__seal{display:inline-block;inline-size:13px;block-size:13px;margin-inline-start:12px;vertical-align:middle;background:var(--clay);box-shadow:inset 0 0 0 2px var(--clay),inset 0 0 0 3px var(--ground)}
+  /* Where the signature stands beside the motto, the focus ring goes round
+     both, so it never cuts between the inscription and its signature. */
+  @media(min-width:701px){
+    .motto:focus-visible{outline:none}
+    .motto:focus-visible:before{content:'';position:absolute;top:-6px;right:-6px;bottom:-6px;left:calc(-.15em - 14.25px);outline:2px solid var(--ink);pointer-events:none}
+  }
+  /* Touch screens and phone widths always show it (on a phone it stands
+     far from the motto, out of a pointer's reach); so does print. */
+  @media(hover:none),(max-width:700px){.motto__translation{opacity:1;transform:none}}
+  @media print{.motto__translation{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.motto__translation{transition:opacity .2s linear;transform:none}}
+
+  /* The blade: a straight sword seen edge on, steel with a light ridge,
+     parallel to its point. Its tail fades, as if drawn from a sheath above
+     the column. It runs inside the column only, so it never crosses the
+     header, and it is seen only while it moves. */
+  .motto__blade{position:absolute;top:0;bottom:0;left:50%;width:.1em;margin-left:-.05em;overflow:hidden;pointer-events:none}
+  .motto__blade>span{position:absolute;left:0;right:0;bottom:100%;height:2em;background:linear-gradient(to right,#8d949b 20%,#f2f3ef 40%,#5c646d 58%,#262a2f 80%);clip-path:polygon(20% 0,80% 0,80% 88%,50% 100%,20% 88%);-webkit-mask-image:linear-gradient(to bottom,transparent,#000 55%);mask-image:linear-gradient(to bottom,transparent,#000 55%)}
+  @media(forced-colors:active){.motto__blade>span{forced-color-adjust:none}}
+  /* Before the cut the characters are closed. If the script never takes
+     the motto over, they open by themselves after 4 s. Print shows them. */
+  @media screen and (prefers-reduced-motion:no-preference){
+    :global(.motto-motion) .motto:not(.is-drawn) .motto__text span{clip-path:inset(0 50%)}
+    :global(.motto-motion) .motto:not(.is-drawn):not(.is-armed) .motto__text span{animation:motto-failsafe 0s 4s forwards}
+  }
+  @media screen and (hover:none) and (prefers-reduced-motion:no-preference),screen and (max-width:700px) and (prefers-reduced-motion:no-preference){
+    :global(.motto-motion) .motto:not(.is-drawn) .motto__translation{opacity:0}
+    :global(.motto-motion) .motto:not(.is-drawn):not(.is-armed) .motto__translation{animation:motto-failsafe 0s 4s forwards}
+  }
+  @keyframes motto-failsafe{to{clip-path:none;opacity:1}}
 
   /* Below the opening every section has the same form: a rule, a label on the
-     left half, the text on the right half, aligned with the portrait. */
-  .about-section{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;border-top:1px solid var(--rule);padding-block:24px 96px}
+     left half, the text on the right half, on the portrait's text line. The
+     label shares the first baseline of its text. */
+  .about-section{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;align-items:baseline;border-top:1px solid var(--rule);padding-block:24px 96px}
   .about-section>h2{grid-column:1/7}
   .about-section>:not(h2){grid-column:7/-1}
   .about-lead{font-size:var(--s-lead);line-height:1.4;letter-spacing:-.025em;max-width:30em;text-wrap:pretty}
   .about-ledger{list-style:none;padding:0;display:grid;gap:40px}
   .about-ledger li{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,5fr);column-gap:24px;align-items:baseline}
-  .about-ledger__place{font-size:var(--s-lead);line-height:1.3;letter-spacing:-.025em;margin-bottom:8px}
+  .about-ledger__place{font-size:var(--s-lead);line-height:1.3;letter-spacing:-.025em;margin-bottom:8px;text-wrap:balance}
   .about-ledger li p:not(.about-ledger__place){font-size:var(--s-body);line-height:1.6}
+  .about-ledger__line{display:block}
+  .about-ledger__half{white-space:nowrap}
 
-  @media(prefers-reduced-motion:no-preference){
-    .motto__text span{animation:motto-write .62s cubic-bezier(.45,.05,.3,1) both;animation-delay:calc(.25s + var(--i) * .24s)}
+  /* Every block ends the same distance above the next rule: about 104px
+     from its last baseline on the desktop. */
+  @media(min-width:1000px){.about-opening{padding-bottom:calc(104px - var(--foot))}}
+  /* Tablet: the portrait would be too narrow beside the motto, so it moves
+     under the words, and the sections stack. Words and motto keep the rail
+     and the ground. */
+  @media(min-width:701px) and (max-width:999px){
+    .about-kicker,.about-opening h1,.about-introduction{grid-column:1/9}
+    .motto{grid-column:9/-1}
+    .about-portrait{grid-column:1/9;grid-row:4;justify-self:stretch;width:auto;max-width:none;margin:48px 0 0}
   }
-  @property --write{syntax:'<percentage>';inherits:false;initial-value:115%}
-  @keyframes motto-write{from{--write:-15%}to{--write:115%}}
-  .motto__text span{-webkit-mask-image:linear-gradient(to bottom,#000 var(--write),transparent calc(var(--write) + 15%));mask-image:linear-gradient(to bottom,#000 var(--write),transparent calc(var(--write) + 15%))}
-
-  @media(hover:none){.motto__translation{opacity:1;transform:none}}
-  @media(prefers-reduced-motion:reduce){.motto__translation{transition:opacity .2s linear;transform:none}}
-  /* Narrower screens set the translation as one line under the photo. */
-  @media(max-width:1099px){.motto__translation{right:auto;left:0;top:calc(100cqw + 14px);writing-mode:horizontal-tb}.about-portrait{margin-bottom:36px}}
-  @media(max-width:900px){
+  @media(max-width:999px){
     .about-section{grid-template-columns:minmax(0,1fr);row-gap:24px}
     .about-section>h2,.about-section>:not(h2){grid-column:1}
   }
+  /* Phone: heading and motto hang from the same rail, the motto on the right
+     margin. The translation stands on the ground at the left margin, in two
+     lines; the portrait and the words follow at full width. */
   @media(max-width:700px){
-    .about-opening{grid-template-columns:minmax(0,1fr);padding-block:24px 72px}
-    .about-kicker,.about-opening h1,.about-introduction,.about-portrait{grid-column:1;grid-row:auto}
-    .about-opening h1{margin-bottom:32px}
-    .about-introduction{margin-top:24px;align-self:start}
+    .about-opening{grid-template-columns:minmax(0,1fr) auto;padding-block:24px 56px;container-type:inline-size}
+    .about-kicker{grid-column:1/-1}
+    .about-opening h1{grid-column:1}
+    .motto{grid-column:2;grid-row:2}
+    .about-portrait{grid-column:1/-1;grid-row:3;justify-self:stretch;width:auto;max-width:none;margin:32px 0 0}
+    .about-introduction{grid-column:1/-1;grid-row:4;align-self:start;margin:32px 0 0}
+    .motto__translation{writing-mode:horizontal-tb;top:auto;right:auto;left:calc(100% - (100vw - 2 * var(--gutter)));left:calc(100% - 100cqw);bottom:calc(var(--foot) - 4px);padding:0;white-space:normal;transform:none}
+    .motto__translation span{display:block}
     .about-section{padding-block:20px 64px}
     .about-ledger li{grid-template-columns:minmax(0,1fr);row-gap:4px}
   }
+  /* The heading's longest line ("computing.", 242px), one gutter and an
+     81px cell need 383px. Narrower, the motto takes the display size itself
+     (54px), which fits down to 356px. Narrower still, the motto goes under
+     the heading and the portrait stands beside it, as on the desktop: both
+     hang from one line, the portrait four cells high, so the translation has
+     room on the motto's ground below it. */
+  @media(max-width:382px){.about-page{--s-motto:var(--s-display)}}
+  @media(max-width:355px){
+    .about-opening h1{grid-column:1/-1}
+    .motto{grid-row:3;margin-top:24px}
+    .about-portrait{grid-column:1;grid-row:3;align-self:start;margin:calc(24px + var(--s-motto) * .054) 0 0}
+    .about-portrait:before{padding-top:min(100%,calc(var(--s-motto) * 3.946))}
+    .about-portrait>img{object-position:62% 0}
+    .about-introduction{grid-row:4}
+  }
+  /* The shared footer adds 15px above its rule on phones; here every rule
+     keeps the same distance from the text above it. */
+  @media(max-width:560px){:global(body .site-footer){margin-top:0}}
 </style>
