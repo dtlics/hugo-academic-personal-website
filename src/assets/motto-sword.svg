@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="sword" viewBox="-420 0 840 3300" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false">
+<defs>
+<pattern id="sw-fret" patternUnits="userSpaceOnUse" x="-130" y="820" width="46" height="46"><path d="M5 41V5H41V33H15V15H31V25" fill="none" stroke="#70767c" stroke-width="5.5" stroke-linecap="square"/></pattern>
+<clipPath id="sw-band"><path d="M-142 800H142L0 1306Z"/></clipPath>
+<g id="sw-shape">
+<!-- handle: as broad as the blade, two small holes near its end -->
+<path fill-rule="evenodd" d="M-56 22Q-56 0-34 0H56V720H-56ZM-12 74Q0 60 12 74V128Q0 142-12 128ZM-12 176Q0 162 12 176V230Q0 244-12 230Z"/>
+<!-- guard: a tall plate; a sharp fin up to the right, a spike down to the left, straight sides to the blade -->
+<path fill-rule="evenodd" d="M-60 712C-20 726 20 726 56 712C120 690 190 648 236 588C220 664 190 724 160 760L96 1292H-96L-182 832C-210 838-240 852-262 874C-236 822-206 790-174 772C-140 752-100 726-60 712ZM-60 896H60L0 1188Z"/>
+<!-- horn: a fang, broad at its root on the guard's left shoulder, curving in to a fine point -->
+<path d="M-174 774C-226 640-232 470-196 330C-176 250-148 170-104 60C-124 190-134 290-134 390C-134 520-112 630-62 712Z"/>
+<!-- blade: straight, broad, with a long point -->
+<path d="M-96 1284H96L80 2900L0 3300L-80 2900Z"/>
+</g>
+</defs>
+<use class="sw-halo" href="#sw-shape" fill="#deded7" stroke="#deded7" stroke-width="12" stroke-linejoin="round"/>
+<g class="sw-iron">
+<use href="#sw-shape" fill="#141416"/>
+<!-- the fret band round the window -->
+<g clip-path="url(#sw-band)"><path fill="url(#sw-fret)" fill-rule="evenodd" d="M-142 800H142L0 1306ZM-60 896H60L0 1188Z"/></g>
+<path fill="none" stroke="#5b6166" stroke-width="5" d="M-142 800H142L0 1306ZM-60 896H60L0 1188Z"/>
+<!-- rims of light on the left edges and the fin -->
+<path fill="none" stroke="#a9afb4" stroke-width="6" opacity=".7" d="M-188 750C-232 620-232 450-196 330C-178 260-150 180-110 72M-262 874C-236 822-206 790-174 772M-182 834L-96 1292L-80 2900L-4 3290"/>
+<path fill="none" stroke="#8b9196" stroke-width="5" opacity=".55" d="M60 712C122 690 190 648 236 588M-50 20V706"/>
+<path fill="none" stroke="#2c2f33" stroke-width="6" d="M0 1300V3230"/>
+</g>
+</svg>
