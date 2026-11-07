@@ -5,8 +5,10 @@ import ProfileLinks from '../components/ProfileLinks.astro';
 import { localPath } from '../lib/paths';
 // The motto's sword, drawn for this site: black iron, a fret-framed window
 // in the guard, a fang-like horn and a long slotted handle. Its red qi is
-// painted in public/images/motto-qi-*.webp (behind and in front of it).
+// painted in public/images/motto-qi-*.webp (behind and in front of it). As
+// the sword goes, its iron turns to the red glow of motto-sword-ember.svg.
 import sword from '../assets/motto-sword.svg?raw';
+import ember from '../assets/motto-sword-ember.svg?raw';
 const motto = ['忘', '剑', '得', '神', '兵'];
 // Both schools use the same four parts: years, school, degree, one note.
 const education = [
@@ -41,7 +43,7 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
             <figure class="motto" data-motto>
               <span class="motto__phrase" lang="zh-Hans">{motto.join('')}</span>
               <p class="motto__text" lang="zh-Hans" aria-hidden="true">{motto.map(character => <span class="motto__cell" data-c={character}><span class="motto__ink">{character}</span></span>)}</p>
-              <span class="motto__blade" aria-hidden="true"><span><i class="motto__qi motto__qi--back"></i><Fragment set:html={sword} /><i class="motto__qi motto__qi--front"></i></span></span>
+              <span class="motto__blade" aria-hidden="true"><span><i class="motto__qi motto__qi--back"></i><Fragment set:html={sword} /><Fragment set:html={ember} /><i class="motto__qi motto__qi--front"></i></span></span>
               <figcaption class="motto__translation"><span>Forget the sword; </span><span>let true steel speak.</span></figcaption>
             </figure>
           </div>
@@ -64,19 +66,29 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
   </div>
   <script is:inline>
     // The portrait and the motto stay in view while the words scroll past.
-    // The reader's scroll drives a sword down through the motto: each
-    // character opens in the wake of its point, the English follows each half
-    // of the line, and the sword then sinks away below 兵. Scrolling back
-    // brings the sword back up and closes the motto again.
+    // The reader's scroll moves a sword down through the motto. The sword is
+    // tied to the scroll: it moves when the page moves, by no more than the
+    // page moves, and stops when the page stops. Each character opens in the
+    // wake of its point, the English follows each half of the line, and past
+    // 兵 the iron fades into its red qi. Scrolling back brings the sword back
+    // up and closes the motto again.
     (() => {
       const root = document.documentElement, motto = document.querySelector('[data-motto]');
       if (!motto) return;
       const rail = document.querySelector('.about-rail'), panel = rail.firstElementChild, track = motto.parentElement;
+      const spread = rail.parentElement, page = spread.parentElement;
       const inks = [...motto.querySelectorAll('.motto__ink')], blade = motto.querySelector('.motto__blade > span');
+      const iron = blade.querySelector('.sword'), glow = blade.querySelector('.sword-ember'), qi = [...blade.querySelectorAll('.motto__qi')];
       const [first, second] = motto.querySelectorAll('.motto__translation > span');
+      const calm = matchMedia('(prefers-reduced-motion: reduce)');
       const clamp = v => Math.min(1, Math.max(0, v));
       const ramp = (v, from, to) => clamp((v - from) / (to - from));
-      let em = 16, range = 0, timed = false, played = false, armed = false, target = 0, shown = -1, raf = 0, before = 0, refresh = () => {};
+      // The point of the sword, in em below the head of the column. It waits
+      // in the head of 忘 (START), cuts down through the five characters, and
+      // a little below 兵 (END) the sword has gone. The sword is LENGTH em
+      // long, from the end of its handle to its point.
+      const START = .1, END = 5.6, LENGTH = 3.3, SLIT = .03, WAKE = .6;
+      let em = 16, range = 0, hold = 0, timed = false, played = false, armed = false, drawn = NaN, raf = 0, refresh = () => {};
       // The small viewport height (100svh) does not change while a phone's
       // address bar comes and goes, so the held part does not jump.
       const probe = document.createElement('div');
@@ -89,12 +101,21 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
       // and may go on after the held part moves on while the foot of the
       // column is below the middle of the screen; it always ends before the
       // head of the column leaves the screen, and never past the end of the
-      // page. The CSS decides which layout is in use: on a phone the rail is
-      // not a box of its own.
+      // page. Over that scroll the point moves at most as far as the page.
+      // Where the page is too short for that, the whole spread holds still
+      // for a while when its foot reaches the foot of the screen (or before
+      // the held part moves on, if that comes first): the sword alone moves
+      // then, for as much scroll as it still needs, up to half a screen. The
+      // CSS decides which layout is in use: on a phone the rail is not a box
+      // of its own, and the column there is short enough for its page.
       const measure = () => {
         const small = getComputedStyle(rail).display === 'contents', held = small ? motto : panel, box = small ? track : rail;
         (small ? panel : motto).style.top = '';
+        // Measure the page as it lies, without the hold; the space the hold
+        // adds below the spread stays, so the scroll does not move.
+        page.classList.remove('is-held');
         em = parseFloat(getComputedStyle(motto).fontSize);
+        drawn = NaN;
         const style = getComputedStyle(box), rect = box.getBoundingClientRect();
         const top = rect.top + scrollY + parseFloat(style.paddingTop) + (small ? parseFloat(getComputedStyle(motto).marginTop) : 0);
         // The held height counts the end of the translation and its seal.
@@ -102,20 +123,26 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
         const view = probe.offsetHeight || innerHeight, stick = Math.max(16, Math.min(top, view - height - 32));
         held.style.top = `${stick}px`;
         const unpin = bottom - height - stick;
-        range = Math.min(root.scrollHeight - innerHeight - 24, Math.max(unpin * .85, unpin + stick + height - view * .55), unpin + stick - 16);
+        const base = Math.min(root.scrollHeight - hold - innerHeight - 24, Math.max(unpin * .85, unpin + stick + height - view * .55), unpin + stick - 16);
+        const sheet = spread.getBoundingClientRect(), from = Math.min(sheet.bottom + scrollY - view, unpin), need = (END - START) * em - base;
+        hold = armed && !small && !calm.matches && from > 0 && from < base && need > 0 ? Math.round(Math.min(need, view / 2)) : 0;
+        page.style.setProperty('--hold', `${hold}px`);
+        if (hold) {
+          page.style.setProperty('--hold-top', `${Math.round(sheet.top + scrollY - from)}px`);
+          page.classList.add('is-held');
+        }
+        range = base + hold;
         timed = range < 160;
       };
       measure();
       addEventListener('resize', () => { measure(); refresh(); });
-      if ('ResizeObserver' in window) new ResizeObserver(() => { measure(); refresh(); }).observe(rail.parentElement);
+      if ('ResizeObserver' in window) new ResizeObserver(() => { measure(); refresh(); }).observe(spread);
       if (!root.classList.contains('motto-motion')) return;
+      // Reduced motion switched on while the page is open: the CSS shows the
+      // motto whole, and the hold goes too.
+      const settle = () => { measure(); refresh(); };
+      if (calm.addEventListener) calm.addEventListener('change', settle);
 
-      // The point of the sword, in em from the head of the column. It waits
-      // in the head of 忘 and cuts down to TURN over the first CUT of the
-      // scroll; over the rest it sinks on below 兵 until the whole sword
-      // (LENGTH em) has gone (END).
-      const START = .1, TURN = 5.4, END = 9.2, CUT = .85, LENGTH = 3.3, SLIT = .03, WAKE = .6;
-      const reach = p => p <= CUT ? START + (TURN - START) * p / CUT : TURN + (END - TURN) * (p - CUT) / (1 - CUT);
       const at = v => `${((v + .25) / 1.5 * 100).toFixed(2)}%`;
       // What the cut has opened of one character when the point is d em below
       // the head of its cell: a wedge behind the point, a slit at the point
@@ -130,47 +157,35 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
         return `polygon(${points.map(([x, y]) => `${at(x)} ${at(y)}`).join(',')})`;
       };
       // d: where the point is, in em. The sword is unseen at rest and comes
-      // in with the first scroll; past 兵 it sinks into the fade at the foot
-      // of its box. At rest it is already painted, too faint to see, so the
-      // first stroke does not wait for its first paint.
+      // in with the first scroll. As its point leaves 兵, the black iron
+      // turns red (the sword becomes qi), then that red and the qi round it
+      // fade, and at END the sword is gone. At rest it is already painted,
+      // too faint to see, so the first stroke does not wait for its first
+      // paint; at the end it stays painted the same way, for the way back.
       const draw = d => {
+        if (d === drawn) return;
+        drawn = d;
         blade.style.transform = `translate3d(0,${((d - LENGTH) * em).toFixed(1)}px,0)`;
         blade.style.opacity = Math.max(.002, ramp(d, START, START + .4));
+        iron.style.opacity = Math.max(.002, 1 - ramp(d, 4.8, 5.05));
+        glow.style.opacity = Math.max(.002, Math.min(ramp(d, 4.8, 5), 1 - ramp(d, 5.05, 5.4)) * .9);
+        const air = String(Math.max(.002, 1 - ramp(d, 5.1, END)));
+        qi.forEach(layer => { layer.style.opacity = air; });
         inks.forEach((ink, i) => { ink.style.clipPath = d >= END ? 'none' : wedge(d - i); });
         first.style.opacity = ramp(d, 2.3, 2.8);
-        second.style.opacity = ramp(d, 5.1, 5.6);
+        second.style.opacity = ramp(d, 5, 5.5);
       };
-      // The sword follows the scroll a little behind it, and never faster
-      // than 4.5 em a second, so a wheel step becomes a slow stroke and a
-      // fast flick still takes about a second.
-      const SPEED = 4.5;
-      const frame = now => {
-        const dt = Math.max(0, Math.min(64, now - before));
-        before = now;
-        if (shown < 0) shown = target;
-        else {
-          const step = (target - shown) * (1 - Math.exp(-dt / 200)), cap = SPEED * dt / 1000;
-          shown += Math.max(-cap, Math.min(cap, step));
-        }
-        if (Math.abs(target - shown) < .003) shown = target;
-        draw(shown);
-        raf = shown === target ? 0 : requestAnimationFrame(frame);
-      };
-      // Once the page has cut by itself, the motto stays open. A jump far
-      // down the page (End, a long flick) does not replay the cut once the
-      // head of the column has left the screen.
+      // The point is a straight function of the scroll, drawn in the frame
+      // the scroll is drawn in: no easing, no catching up. Once the page has
+      // cut by itself, the motto stays open.
+      const point = () => played ? END : START + (END - START) * clamp(scrollY / range);
       const follow = () => {
-        if (!armed || timed) return;
-        target = reach(played ? 1 : clamp(scrollY / range));
-        if (shown >= 0 && target - shown > 1 && motto.getBoundingClientRect().top < 0) {
-          if (raf) { cancelAnimationFrame(raf); raf = 0; }
-          return draw(shown = target);
-        }
-        if (!raf) { before = performance.now(); raf = requestAnimationFrame(frame); }
+        if (!armed || timed || raf) return;
+        raf = requestAnimationFrame(() => { raf = 0; if (!timed) draw(point()); });
       };
       // A page too short to scroll cuts once by itself when the motto is
-      // seen, and the motto then stays open. If the page becomes scrollable
-      // mid-cut, the cut finishes at the sword's own pace.
+      // seen, and the motto then stays open, also if the page becomes
+      // scrollable mid-cut.
       let playing = false;
       const play = () => {
         if (played) return;
@@ -179,7 +194,7 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
         const step = now => {
           if (!timed) { playing = false; return; }
           const t = clamp((now - begin) / 2400);
-          draw(shown = reach(t < .5 ? 2 * t * t : 1 - (2 - 2 * t) ** 2 / 2));
+          draw(START + (END - START) * (t < .5 ? 2 * t * t : 1 - (2 - 2 * t) ** 2 / 2));
           if (t < 1) requestAnimationFrame(step); else playing = false;
         };
         requestAnimationFrame(step);
@@ -189,17 +204,23 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
         if (!armed) return;
         if (!timed) {
           if (seen) { seen.disconnect(); seen = null; }
-          return follow();
+          return draw(point());
         }
-        if (raf) { cancelAnimationFrame(raf); raf = 0; }
-        if (played) { if (!playing) draw(shown = END); return; }
-        draw(shown = START);
+        if (played) { if (!playing) draw(END); return; }
+        draw(START);
         if (seen) return;
         if (!('IntersectionObserver' in window)) return play();
         seen = new IntersectionObserver(entries => { if (entries.some(entry => entry.intersectionRatio >= .35)) { seen.disconnect(); seen = null; play(); } }, { threshold: [0, .35] });
         seen.observe(motto);
       };
-      const still = () => { motto.classList.remove('is-armed'); root.classList.remove('motto-motion'); };
+      const still = () => {
+        armed = false;
+        motto.classList.remove('is-armed');
+        root.classList.remove('motto-motion');
+        page.classList.remove('is-held');
+        page.style.removeProperty('--hold');
+        hold = 0;
+      };
       // Never cut an empty column: wait for the brush face (its block period
       // is about 3 s); if it does not come, show the motto without motion.
       // Once the face is here the script owns the motto and the CSS failsafe
@@ -241,7 +262,12 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
 
   /* A spread of two pages. The words fill the left half, top to bottom. The
      right half holds the portrait and the motto, which stay in view while
-     the words scroll past. */
+     the words scroll past. Where the page is too short for the sword to go
+     no faster than the scroll, the script holds the whole spread still for
+     a while (--hold, at most half a screen) once its foot is on the screen;
+     the space after the spread is the scroll of that hold. */
+  .about-page:after{content:'';display:block;height:var(--hold,0px)}
+  .about-page.is-held .about-spread{position:sticky;top:var(--hold-top,0px)}
   .about-spread{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;padding-block:40px 96px}
   .about-kicker{grid-column:1/7;grid-row:1;margin-bottom:32px;font:var(--s-label)/1.5 RFMono,monospace;letter-spacing:.02em}
   /* The negative indent puts the ink of "I" on the column line. */
@@ -302,12 +328,17 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
 
   /* The sword: black iron, 3.3 em from the handle to the point, wrapped in
      red qi (one painted layer behind the iron, one in front). It comes out
-     of the head of the column, cuts down through it and sinks into the fade
-     at the foot of its box, which ends 80px below 兵 at most, so it never
-     reaches the footer. It is seen only while the motto is cut. */
+     of the head of the column and cuts down through it; past 兵 its point
+     goes into the fade at the foot of its box, which ends 80px below 兵 at
+     most, so it never reaches the footer, while the iron and then the qi
+     fade out. It is seen only while the motto is cut. */
   .motto__blade{display:none;position:absolute;top:0;left:50%;width:.84em;height:min(5.8em,calc(4.829em + 80px));margin-left:-.42em;overflow:hidden;pointer-events:none;-webkit-mask-image:linear-gradient(#0000,#000 .45em,#000 calc(100% - .4em),#0000);mask-image:linear-gradient(#0000,#000 .45em,#000 calc(100% - .4em),#0000)}
   .motto__blade>span{position:absolute;top:0;left:0;right:0;height:3.3em;transform:translateY(-3.3em)}
   .motto__blade :global(svg),.motto__qi{position:absolute;inset:0;display:block;width:100%;height:100%}
+  /* Each layer of the sword fades on its own, without being painted again;
+     the red glow is painted once, too faint to see, until the sword goes. */
+  .motto__blade :global(svg),.motto__qi{will-change:opacity}
+  .motto__blade :global(.sword-ember){opacity:.002}
   .motto__qi{background:0 0/100% 100% no-repeat}
   .motto__qi--back{background-image:url('/images/motto-qi-back.webp')}
   .motto__qi--front{background-image:url('/images/motto-qi-front.webp')}
@@ -331,7 +362,8 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
   /* In print the motto keeps its own box, so the translation stays beside
      it; the photo prints without the screen's lightening layer. */
   @media print{
-    .about-panel{position:static}
+    .about-page:after{display:none}
+    .about-page.is-held .about-spread,.about-panel{position:static}
     .motto{top:0!important}
     .about-portrait:after{display:none}
     .motto__ink{clip-path:none!important}
@@ -375,7 +407,7 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
     .about-introduction{grid-column:1;grid-row:4;margin-top:32px}
     .about-track{grid-column:2;grid-row:2/5;padding-top:var(--cap)}
     .motto{position:sticky;top:24px;display:flex;flex-direction:column;align-items:center}
-    /* The sword sinks away just above the translation. Its qi comes in a
+    /* The sword's box ends just above the translation. Its qi comes in a
        smaller painting. */
     .motto__blade{height:5.4em}
     .motto__qi--back{background-image:url('/images/motto-qi-back-small.webp')}

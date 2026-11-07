@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="sword-ember" viewBox="-420 0 840 3300" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false">
+<!-- The sword turned to red qi, seen only as it goes: its outline, red and glowing. -->
+<defs>
+<linearGradient id="swe-heat" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="3300"><stop offset="0" stop-color="#9c1f28"/><stop offset=".55" stop-color="#c8343e"/><stop offset="1" stop-color="#e8737a"/></linearGradient>
+<filter id="swe-glow" x="-40%" y="-3%" width="180%" height="106%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="22" result="wide"/><feGaussianBlur in="SourceGraphic" stdDeviation="6" result="soft"/><feMerge><feMergeNode in="wide"/><feMergeNode in="soft"/></feMerge></filter>
+</defs>
+<g fill="url(#swe-heat)" filter="url(#swe-glow)">
+<path fill-rule="evenodd" d="M-56 22Q-56 0-34 0H56V720H-56ZM-12 74Q0 60 12 74V128Q0 142-12 128ZM-12 176Q0 162 12 176V230Q0 244-12 230Z"/>
+<path fill-rule="evenodd" d="M-60 712C-20 726 20 726 56 712C120 690 190 648 236 588C220 664 190 724 160 760L96 1292H-96L-182 832C-210 838-240 852-262 874C-236 822-206 790-174 772C-140 752-100 726-60 712ZM-60 896H60L0 1188Z"/>
+<path d="M-174 774C-226 640-232 470-196 330C-176 250-148 170-104 60C-124 190-134 290-134 390C-134 520-112 630-62 712Z"/>
+<path d="M-96 1284H96L80 2900L0 3300L-80 2900Z"/>
+</g>
+</svg>
