@@ -166,7 +166,7 @@ const halves = (line: string) => { const [head, ...rest] = line.split(', '); ret
         if (d === drawn) return;
         drawn = d;
         blade.style.transform = `translate3d(0,${((d - LENGTH) * em).toFixed(1)}px,0)`;
-        blade.style.opacity = Math.max(.002, ramp(d, START, START + .4));
+        blade.style.opacity = d >= END ? .002 : Math.max(.002, ramp(d, START, START + .4));
         iron.style.opacity = Math.max(.002, 1 - ramp(d, 4.8, 5.05));
         glow.style.opacity = Math.max(.002, Math.min(ramp(d, 4.8, 5), 1 - ramp(d, 5.05, 5.4)) * .9);
         const air = String(Math.max(.002, 1 - ramp(d, 5.1, END)));
